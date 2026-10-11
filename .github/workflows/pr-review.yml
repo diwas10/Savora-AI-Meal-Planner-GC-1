@@ -12,14 +12,13 @@ concurrency:
 permissions:
   contents: read
   pull-requests: write
-  models: read
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   architecture-and-governance-review:
-    name: Automated Architecture & AI Code Review
+    name: Automated Architecture & Governance Review
     runs-on: ubuntu-latest
     steps:
       - name: Checkout PR branch with full history
@@ -27,7 +26,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Run Static Architecture & Governance Checks
+      - name: Run Architecture & Governance Checks
         id: review
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
@@ -45,8 +44,6 @@ jobs:
           ## Savora Automated PR Code Review
 
           Reviewed against [`AGENTS.md`](../blob/main/AGENTS.md) and [`ARCHITECTURE.md`](../blob/main/ARCHITECTURE.md).
-
-          ### 1. Deterministic Architecture & Governance Checks
 
           | Check | Status | Details |
           | :--- | :--- | :--- |
@@ -143,92 +140,10 @@ jobs:
 
           {
             echo ""
-            echo "**Static Gate Result:** \`${BLOCKERS}\` blocker(s), \`${WARNINGS}\` warning(s)."
-            echo ""
+            echo "**Result:** \`${BLOCKERS}\` blocker(s), \`${WARNINGS}\` warning(s)."
           } >> "$REPORT_FILE"
 
-          git diff "${BASE_SHA}...${HEAD_SHA}" -- \
-            . \
-            ':!pnpm-lock.yaml' \
-            ':!uv.lock' \
-            > pr_diff.full
-          head -c 24000 pr_diff.full > pr_diff.patch
-          rm -f pr_diff.full
-
           echo "blockers=${BLOCKERS}" >> "$GITHUB_OUTPUT"
-
-      - name: Run GitHub Models AI Code Reviewer Agent
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_TITLE: ${{ github.event.pull_request.title }}
-          PR_BODY: ${{ github.event.pull_request.body }}
-        run: |
-          node -e '
-            const fs = require("fs");
-
-            async function runAiReview() {
-              const reportFile = "pr_review_report.md";
-              const rules = fs.readFileSync("AGENTS.md", "utf8");
-              const diff = fs.existsSync("pr_diff.patch")
-                ? fs.readFileSync("pr_diff.patch", "utf8")
-                : "";
-
-              let aiSection = "\n### 2. AI Code Reviewer Agent (GitHub Models)\n\n";
-
-              if (!diff.trim()) {
-                aiSection += "_No source code diff to review (only lockfiles changed)._\n";
-                fs.appendFileSync(reportFile, aiSection);
-                return;
-              }
-
-              try {
-                const response = await fetch("https://models.github.ai/inference/chat/completions", {
-                  method: "POST",
-                  headers: {
-                    "Authorization": `Bearer ${process.env.GITHUB_TOKEN}`,
-                    "Content-Type": "application/json",
-                  },
-                  body: JSON.stringify({
-                    model: "openai/gpt-4o-mini",
-                    temperature: 0.1,
-                    max_tokens: 900,
-                    messages: [
-                      {
-                        role: "system",
-                        content:
-                          "You are the Savora AI Code Reviewer Agent. Review the Pull Request title, description, and diff strictly against the following Savora architecture and safety instructions.\n\n" +
-                          rules +
-                          "\n\nFormat your response in concise Markdown with:\n" +
-                          "- **Verdict**: `APPROVE` or `CHANGES_REQUESTED`\n" +
-                          "- **Key Findings**: Bullet points categorised by `[BLOCKER]`, `[WARN]`, or `[NIT]` (or state `No architectural or safety issues found.` if clean).\n" +
-                          "- Keep it concise and actionable."
-                      },
-                      {
-                        role: "user",
-                        content: `PR Title: ${process.env.PR_TITLE}\n\nPR Description:\n${process.env.PR_BODY || "(empty)"}\n\nGit Diff:\n\`\`\`diff\n${diff}\n\`\`\``
-                      }
-                    ]
-                  })
-                });
-
-                if (!response.ok) {
-                  const errText = await response.text();
-                  aiSection += `> _GitHub Models inference returned HTTP ${response.status}._\n`;
-                  console.log("GitHub Models status:", response.status, errText);
-                } else {
-                  const data = await response.json();
-                  const reviewText = data.choices?.[0]?.message?.content || "_No response generated._";
-                  aiSection += reviewText + "\n";
-                }
-              } catch (err) {
-                aiSection += `> _AI review skipped: ${err.message}_\n`;
-              }
-
-              fs.appendFileSync(reportFile, aiSection);
-            }
-
-            runAiReview();
-          '
 
       - name: Post or Update PR Review Comment & Enforce Blockers
         env:
