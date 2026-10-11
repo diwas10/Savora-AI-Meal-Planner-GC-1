@@ -1,0 +1,336 @@
+name: Savora PR Code Reviewer
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, edited]
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  architecture-and-governance-review:
+    name: Automated Architecture & Line-by-Line Review
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout PR branch with full history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run Architecture & Governance Checks
+        id: review
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          set -euo pipefail
+
+          BLOCKERS=0
+          WARNINGS=0
+          REPORT_FILE="pr_review_report.md"
+
+          cat << 'EOF' > "$REPORT_FILE"
+          <!-- savora-pr-reviewer -->
+          ## Savora Automated PR Code Review
+
+          Reviewed against [`AGENTS.md`](../blob/main/AGENTS.md) and [`ARCHITECTURE.md`](../blob/main/ARCHITECTURE.md).
+
+          ### 1. Architecture & Governance Gate
+
+          | Check | Status | Details |
+          | :--- | :--- | :--- |
+          EOF
+
+          add_row() {
+            local check="$1"
+            local status="$2"
+            local details="$3"
+            echo "| ${check} | ${status} | ${details} |" >> "$REPORT_FILE"
+          }
+
+          # 1. Check Commit Message Conventions
+          BAD_COMMITS=$(git log --no-merges --format="%h %s" "${BASE_SHA}..${HEAD_SHA}" | grep -vE "^[0-9a-f]+ \[(ADD|UPDATE|FIX|REFACTOR|DELETE)\]: .+" || true)
+          if [ -n "$BAD_COMMITS" ]; then
+            add_row "Commit Convention" "⚠️ WARN" "Commits should use bracketed prefixes (\`[ADD]:\`, \`[UPDATE]:\`, \`[FIX]:\`, \`[REFACTOR]:\`, \`[DELETE]:\`)."
+            WARNINGS=$((WARNINGS + 1))
+          else
+            add_row "Commit Convention" "✅ PASS" "All commits follow bracketed prefix convention."
+          fi
+
+          # 2. Check PR Description Quality
+          CLEAN_BODY=$(printf "%s" "${PR_BODY:-}" | perl -0777 -pe 's/<!--.*?-->//gs' | tr -d '[:space:]')
+          if [ "${#CLEAN_BODY}" -lt 80 ] || ! printf "%s" "${PR_BODY:-}" | grep -qi "## Summary" || ! printf "%s" "${PR_BODY:-}" | grep -qi "## Verification"; then
+            add_row "PR Description Quality" "⚠️ WARN" "PR description is missing or incomplete. Fill out \`.github/PULL_REQUEST_TEMPLATE.md\` (\`Summary\`, \`Key Changes\`, \`Verification\`)."
+            WARNINGS=$((WARNINGS + 1))
+          else
+            add_row "PR Description Quality" "✅ PASS" "Structured PR description provided."
+          fi
+
+          CHANGED_FILES=$(git diff --name-only "${BASE_SHA}...${HEAD_SHA}")
+
+          # 3. Check Secret / .env Protection
+          TRACKED_ENV=$(git ls-files | grep -E '(^|/)\.env($|\.)' | grep -vE '\.env\.example$' || true)
+          if [ -n "$TRACKED_ENV" ]; then
+            add_row "Secret / .env Protection" "❌ BLOCKER" "Tracked environment file(s) detected: \`${TRACKED_ENV}\`."
+            BLOCKERS=$((BLOCKERS + 1))
+          else
+            add_row "Secret / .env Protection" "✅ PASS" "No \`.env\` or secret files tracked in git."
+          fi
+
+          # 4. Check AI System Boundary Isolation
+          if grep -rnE "^\s*(from|import)\s+(savora_backend|fastapi|sqlalchemy|psycopg)" apps/ai_system/src/ >/dev/null 2>&1; then
+            add_row "AI System Isolation" "❌ BLOCKER" "\`apps/ai_system\` must not import \`savora_backend\`, \`fastapi\`, \`sqlalchemy\`, or DB drivers."
+            BLOCKERS=$((BLOCKERS + 1))
+          else
+            add_row "AI System Isolation" "✅ PASS" "No backend/HTTP/ORM imports in \`apps/ai_system\`."
+          fi
+
+          # 5. Check Frontend Layer & Framework Rules
+          if grep -rnE "from ['\"](react-router|react-router-dom|vite)['\"]" apps/frontend/src/ >/dev/null 2>&1; then
+            add_row "Frontend Framework Rules" "❌ BLOCKER" "React Router and Vite are prohibited in \`apps/frontend\` (use Next.js App Router)."
+            BLOCKERS=$((BLOCKERS + 1))
+          elif grep -rnE "from ['\"]axios['\"]" apps/frontend/src/app/ >/dev/null 2>&1; then
+            add_row "Frontend API Layering" "❌ BLOCKER" "Direct \`axios\` imports in \`src/app/\` are forbidden. Use \`.api.ts\` -> \`.query.ts\` -> components."
+            BLOCKERS=$((BLOCKERS + 1))
+          else
+            add_row "Frontend Architecture" "✅ PASS" "Next.js App Router and API/Query layering respected."
+          fi
+
+          # 6. Check Prohibited Infrastructure Dependencies (GC1 single-datastore rule)
+          if grep -riE "(redis|neo4j|celery|qdrant|pinecone|weaviate)" pyproject.toml apps/backend/pyproject.toml apps/ai_system/pyproject.toml >/dev/null 2>&1; then
+            add_row "GC1 Datastore Invariant" "❌ BLOCKER" "Supabase PostgreSQL is the sole required datastore for GC1. Do not add Redis, Neo4j, queues, or vector DBs."
+            BLOCKERS=$((BLOCKERS + 1))
+          else
+            add_row "GC1 Datastore Invariant" "✅ PASS" "Supabase PostgreSQL remains the sole datastore."
+          fi
+
+          # 7. Check Entity vs Migration Sync
+          ENTITY_CHANGED=$(echo "$CHANGED_FILES" | grep -E "^apps/backend/src/savora_backend/.*(entity|entities|models).*\.py$" || true)
+          MIGRATION_CHANGED=$(echo "$CHANGED_FILES" | grep -E "^apps/backend/alembic/versions/.*\.py$" || true)
+          if [ -n "$ENTITY_CHANGED" ] && [ -z "$MIGRATION_CHANGED" ]; then
+            add_row "Database Migrations" "⚠️ WARN" "Backend entity/model files changed without a new Alembic migration in \`apps/backend/alembic/versions/\`."
+            WARNINGS=$((WARNINGS + 1))
+          else
+            add_row "Database Migrations" "✅ PASS" "Entity and Alembic migration changes are consistent."
+          fi
+
+          # 8. Check Lockfile Sync
+          PKG_CHANGED=$(echo "$CHANGED_FILES" | grep -E "(^|/)package\.json$" || true)
+          PNPM_LOCK_CHANGED=$(echo "$CHANGED_FILES" | grep -E "^pnpm-lock\.yaml$" || true)
+          PYPROJECT_CHANGED=$(echo "$CHANGED_FILES" | grep -E "(^|/)pyproject\.toml$" || true)
+          UV_LOCK_CHANGED=$(echo "$CHANGED_FILES" | grep -E "^uv\.lock$" || true)
+
+          if [ -n "$PKG_CHANGED" ] && [ -z "$PNPM_LOCK_CHANGED" ]; then
+            add_row "Lockfile Sync" "⚠️ WARN" "\`package.json\` changed without updating \`pnpm-lock.yaml\` (unless metadata-only)."
+            WARNINGS=$((WARNINGS + 1))
+          elif [ -n "$PYPROJECT_CHANGED" ] && [ -z "$UV_LOCK_CHANGED" ]; then
+            add_row "Lockfile Sync" "⚠️ WARN" "\`pyproject.toml\` changed without updating \`uv.lock\`."
+            WARNINGS=$((WARNINGS + 1))
+          else
+            add_row "Lockfile Sync" "✅ PASS" "Workspace dependency manifests and lockfiles are in sync."
+          fi
+
+          git diff --unified=3 "${BASE_SHA}...${HEAD_SHA}" -- \
+            . \
+            ':!pnpm-lock.yaml' \
+            ':!uv.lock' \
+            > pr_diff.patch
+
+          git diff --numstat "${BASE_SHA}...${HEAD_SHA}" > pr_numstat.txt
+
+          echo "blockers=${BLOCKERS}" >> "$GITHUB_OUTPUT"
+          echo "warnings=${WARNINGS}" >> "$GITHUB_OUTPUT"
+
+      - name: Run Line-by-Line Diff Inspector & Request GitHub Copilot Review
+        uses: actions/github-script@v7
+        env:
+          BLOCKERS: ${{ steps.review.outputs.blockers }}
+          WARNINGS: ${{ steps.review.outputs.warnings }}
+        with:
+          script: |
+            const fs = require('fs');
+            const { owner, repo } = context.repo;
+            const pull_number = context.issue.number;
+            const head_sha = context.payload.pull_request.head.sha;
+
+            // 1. Request native GitHub Copilot Code Reviewer on the PR (if enabled on the repo/account)
+            try {
+              await github.rest.pulls.requestReviewers({
+                owner,
+                repo,
+                pull_number,
+                reviewers: ['copilot-pull-request-reviewer[bot]'],
+              });
+            } catch (err) {
+              console.log('Note: Native Copilot reviewer auto-request skipped:', err.message);
+            }
+
+            // 2. Parse unified diff into per-file changed lines
+            const rawDiff = fs.existsSync('pr_diff.patch') ? fs.readFileSync('pr_diff.patch', 'utf8') : '';
+            const numstatLines = fs.existsSync('pr_numstat.txt')
+              ? fs.readFileSync('pr_numstat.txt', 'utf8').trim().split('\n').filter(Boolean)
+              : [];
+
+            const filePatches = [];
+            let currentFile = null;
+            let currentLine = 0;
+
+            for (const line of rawDiff.split('\n')) {
+              if (line.startsWith('+++ b/')) {
+                currentFile = { path: line.slice(6).trim(), addedLines: [] };
+                filePatches.push(currentFile);
+              } else if (line.startsWith('@@ ') && currentFile) {
+                const m = line.match(/\+(\d+)(?:,(\d+))?/);
+                if (m) currentLine = parseInt(m[1], 10) - 1;
+              } else if (currentFile) {
+                if (line.startsWith('+') && !line.startsWith('+++')) {
+                  currentLine += 1;
+                  currentFile.addedLines.push({ line: currentLine, content: line.slice(1) });
+                } else if (line.startsWith(' ')) {
+                  currentLine += 1;
+                }
+              }
+            }
+
+            // 3. Line-by-Line Savora Code Inspector (attaches inline comments on exact lines)
+            const inlineComments = [];
+            const fileNotes = new Map();
+
+            const addNote = (path, note) => {
+              if (!fileNotes.has(path)) fileNotes.set(path, []);
+              fileNotes.get(path).push(note);
+            };
+
+            const addInline = (path, line, severity, message) => {
+              inlineComments.push({
+                path,
+                line,
+                side: 'RIGHT',
+                body: `**[${severity}]** ${message}`,
+              });
+              addNote(path, `[${severity}] L${line}: ${message}`);
+            };
+
+            for (const f of filePatches) {
+              const p = f.path;
+              const isPy = p.endsWith('.py');
+              const isTs = p.endsWith('.ts') || p.endsWith('.tsx');
+              const isTest = p.includes('/tests/') || p.endsWith('.test.ts') || p.endsWith('.spec.ts');
+
+              for (const { line, content } of f.addedLines) {
+                if (p.startsWith('apps/ai_system/src/') && isPy) {
+                  if (/^\s*(from|import)\s+(savora_backend|fastapi|sqlalchemy|psycopg)/.test(content)) {
+                    addInline(p, line, 'BLOCKER', '`apps/ai_system` must never import backend, FastAPI, or SQLAlchemy modules (`AGENTS.md`). Pass validated DTOs from `apps/backend` instead.');
+                  }
+                }
+
+                if (p.startsWith('apps/frontend/src/') && isTs && !p.endsWith('.api.ts') && !p.includes('/lib/')) {
+                  if (/\b(axios|fetch)\s*(\.|[(])/.test(content) || /from\s+['"]axios['"]/.test(content)) {
+                    addInline(p, line, 'BLOCKER', 'Do not call `axios` or `fetch` directly inside components/pages. Use `.api.ts` -> `.query.ts` (React Query) -> component (`AGENTS.md`).');
+                  }
+                }
+
+                if (p.startsWith('apps/backend/src/') && p.includes('controller') && isPy) {
+                  if (/["']success["']\s*:\s*(True|False)/.test(content)) {
+                    addInline(p, line, 'WARN', 'Do not manually construct `{success, source, data, message, status}` envelopes in controllers. Use centralized `TransformRoute` + `@response_message`.');
+                  }
+                }
+
+                if (isTs && !isTest && /:\s*any\b|<any>|as\s+any\b/.test(content)) {
+                  addInline(p, line, 'WARN', 'Avoid explicit `any`. Define a strict TypeScript interface or Zod schema.');
+                }
+
+                if (isPy && !isTest && p.includes('/src/') && /^\s*print\s*\(/.test(content)) {
+                  addInline(p, line, 'NIT', 'Avoid raw `print()` in application source; use structured logger instead.');
+                }
+                if (isTs && !isTest && p.startsWith('apps/frontend/src/') && /\bconsole\.log\s*\(/.test(content)) {
+                  addInline(p, line, 'NIT', 'Remove debug `console.log()` before merging.');
+                }
+
+                if (p !== '.env' && /(db\.[a-z0-9]{15,25}\.supabase\.co|postgresql\+asyncpg:\/\/postgres:[^<\[])/.test(content)) {
+                  addInline(p, line, 'BLOCKER', 'Never hardcode real Supabase project refs or database passwords in tracked files. Use `.env` placeholders.');
+                }
+              }
+
+              if (!fileNotes.has(p)) {
+                addNote(p, `Reviewed ${f.addedLines.length} added/modified line(s) — clean.`);
+              }
+            }
+
+            // 4. Build Per-File Walkthrough Table
+            const classifyLayer = (p) => {
+              if (p.startsWith('apps/frontend/')) return 'Frontend (Next.js)';
+              if (p.startsWith('apps/backend/')) return 'Backend (FastAPI)';
+              if (p.startsWith('apps/ai_system/')) return 'AI System (`savora_ai`)';
+              if (p.startsWith('packages/contracts/')) return 'Shared Contracts';
+              if (p.startsWith('.github/')) return 'CI / GitHub Workflows';
+              return 'Root / Docs / Config';
+            };
+
+            let walkthrough = '\n### 2. Per-File Line-by-Line Walkthrough\n\n';
+            walkthrough += '| File | Layer | Changes (`+`/`-`) | Line-Level Review Notes |\n';
+            walkthrough += '| :--- | :--- | :--- | :--- |\n';
+
+            for (const row of numstatLines) {
+              const [added, deleted, filePath] = row.split(/\s+/);
+              const notes = (fileNotes.get(filePath) || ['Reviewed — clean.']).join('<br>');
+              walkthrough += `| \`${filePath}\` | ${classifyLayer(filePath)} | \`+${added} / -${deleted}\` | ${notes} |\n`;
+            }
+
+            walkthrough += `\n---\n**Result:** \`${process.env.BLOCKERS}\` blocker(s), \`${process.env.WARNINGS}\` warning(s), \`${inlineComments.length}\` inline line comment(s).\n`;
+
+            fs.appendFileSync('pr_review_report.md', walkthrough);
+            const body = fs.readFileSync('pr_review_report.md', 'utf8');
+            const marker = '<!-- savora-pr-reviewer -->';
+
+            await core.summary.addRaw(body).write();
+
+            // 5. Post/Update Sticky Summary Comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner,
+              repo,
+              issue_number: pull_number,
+            });
+            const existing = comments.find(c => c.body && c.body.includes(marker));
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner,
+                repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number: pull_number,
+                body,
+              });
+            }
+
+            // 6. Post Inline Review Comments on the Exact Changed Lines in "Files changed"
+            if (inlineComments.length > 0) {
+              await github.rest.pulls.createReview({
+                owner,
+                repo,
+                pull_number,
+                commit_id: head_sha,
+                event: 'COMMENT',
+                body: `Savora Code Reviewer attached ${inlineComments.length} inline comment(s) on the diff.`,
+                comments: inlineComments.slice(0, 30),
+              });
+            }
+
+            if (process.env.BLOCKERS && process.env.BLOCKERS !== '0') {
+              core.setFailed(`Savora PR Code Reviewer found ${process.env.BLOCKERS} architectural blocker(s).`);
+            }
