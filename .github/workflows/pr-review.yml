@@ -128,14 +128,16 @@ jobs:
             echo ""
           } >> "$REPORT_FILE"
 
-          # Save filtered diff for AI reviewer (exclude lockfiles and large skill reference docs)
+          # Save filtered diff for AI reviewer without triggering SIGPIPE (141) under pipefail
           git diff "${BASE_SHA}...${HEAD_SHA}" -- \
             . \
             ':!pnpm-lock.yaml' \
             ':!uv.lock' \
             ':!.agents/skills/supabase/references/*' \
             ':!.agents/skills/supabase-postgres-best-practices/references/*' \
-            | head -c 24000 > pr_diff.patch
+            > pr_diff.full
+          head -c 24000 pr_diff.full > pr_diff.patch
+          rm -f pr_diff.full
 
           echo "blockers=${BLOCKERS}" >> "$GITHUB_OUTPUT"
 
