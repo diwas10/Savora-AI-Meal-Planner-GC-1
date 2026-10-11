@@ -44,7 +44,6 @@ Read individual rule files for detailed explanations and SQL examples:
 ```
 references/query-missing-indexes.md
 references/query-partial-indexes.md
-references/_sections.md
 ```
 
 Each rule file contains:

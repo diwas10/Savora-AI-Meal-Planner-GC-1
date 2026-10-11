@@ -162,9 +162,7 @@ jobs:
 
             async function runAiReview() {
               const reportFile = "pr_review_report.md";
-              const rules = fs.existsSync(".github/copilot-instructions.md")
-                ? fs.readFileSync(".github/copilot-instructions.md", "utf8")
-                : fs.readFileSync("AGENTS.md", "utf8");
+              const rules = fs.readFileSync("AGENTS.md", "utf8");
               const diff = fs.existsSync("pr_diff.patch")
                 ? fs.readFileSync("pr_diff.patch", "utf8")
                 : "";
