@@ -1,0 +1,272 @@
+name: Savora PR Code Reviewer
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, edited]
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+  models: read
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  architecture-and-governance-review:
+    name: Automated Architecture & AI Code Review
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout PR branch with full history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run Static Architecture & Governance Checks
+        id: review
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          set -euo pipefail
+
+          BLOCKERS=0
+          WARNINGS=0
+          REPORT_FILE="pr_review_report.md"
+
+          cat << 'EOF' > "$REPORT_FILE"
+          <!-- savora-pr-reviewer -->
+          ## Savora Automated PR Code Review
+
+          Reviewed against [`AGENTS.md`](../blob/main/AGENTS.md) and [`ARCHITECTURE.md`](../blob/main/ARCHITECTURE.md).
+
+          ### 1. Deterministic Architecture & Governance Checks
+
+          | Check | Status | Details |
+          | :--- | :--- | :--- |
+          EOF
+
+          add_row() {
+            local check="$1"
+            local status="$2"
+            local details="$3"
+            echo "| ${check} | ${status} | ${details} |" >> "$REPORT_FILE"
+          }
+
+          # 1. Check Commit Message Conventions
+          BAD_COMMITS=$(git log --no-merges --format="%h %s" "${BASE_SHA}..${HEAD_SHA}" | grep -vE "^[0-9a-f]+ \[(ADD|UPDATE|FIX|REFACTOR|DELETE)\]: .+" || true)
+          if [ -n "$BAD_COMMITS" ]; then
+            add_row "Commit Convention" "⚠️ WARN" "Commits should use bracketed prefixes (\`[ADD]:\`, \`[UPDATE]:\`, \`[FIX]:\`, \`[REFACTOR]:\`, \`[DELETE]:\`)."
+            WARNINGS=$((WARNINGS + 1))
+          else
+            add_row "Commit Convention" "✅ PASS" "All commits follow bracketed prefix convention."
+          fi
+
+          # 2. Check PR Description Quality
+          CLEAN_BODY=$(printf "%s" "${PR_BODY:-}" | perl -0777 -pe 's/<!--.*?-->//gs' | tr -d '[:space:]')
+          if [ "${#CLEAN_BODY}" -lt 80 ] || ! printf "%s" "${PR_BODY:-}" | grep -qi "## Summary" || ! printf "%s" "${PR_BODY:-}" | grep -qi "## Verification"; then
+            add_row "PR Description Quality" "⚠️ WARN" "PR description is missing or incomplete. Fill out \`.github/PULL_REQUEST_TEMPLATE.md\` (\`Summary\`, \`Key Changes\`, \`Verification\`)."
+            WARNINGS=$((WARNINGS + 1))
+          else
+            add_row "PR Description Quality" "✅ PASS" "Structured PR description provided."
+          fi
+
+          CHANGED_FILES=$(git diff --name-only "${BASE_SHA}...${HEAD_SHA}")
+
+          # 3. Check Secret / .env Protection
+          TRACKED_ENV=$(git ls-files | grep -E '(^|/)\.env($|\.)' | grep -vE '\.env\.example$' || true)
+          if [ -n "$TRACKED_ENV" ]; then
+            add_row "Secret / .env Protection" "❌ BLOCKER" "Tracked environment file(s) detected: \`${TRACKED_ENV}\`."
+            BLOCKERS=$((BLOCKERS + 1))
+          else
+            add_row "Secret / .env Protection" "✅ PASS" "No \`.env\` or secret files tracked in git."
+          fi
+
+          # 4. Check AI System Boundary Isolation
+          if grep -rnE "^\s*(from|import)\s+(savora_backend|fastapi|sqlalchemy|psycopg)" apps/ai_system/src/ >/dev/null 2>&1; then
+            add_row "AI System Isolation" "❌ BLOCKER" "\`apps/ai_system\` must not import \`savora_backend\`, \`fastapi\`, \`sqlalchemy\`, or DB drivers."
+            BLOCKERS=$((BLOCKERS + 1))
+          else
+            add_row "AI System Isolation" "✅ PASS" "No backend/HTTP/ORM imports in \`apps/ai_system\`."
+          fi
+
+          # 5. Check Frontend Layer & Framework Rules
+          if grep -rnE "from ['\"](react-router|react-router-dom|vite)['\"]" apps/frontend/src/ >/dev/null 2>&1; then
+            add_row "Frontend Framework Rules" "❌ BLOCKER" "React Router and Vite are prohibited in \`apps/frontend\` (use Next.js App Router)."
+            BLOCKERS=$((BLOCKERS + 1))
+          elif grep -rnE "from ['\"]axios['\"]" apps/frontend/src/app/ >/dev/null 2>&1; then
+            add_row "Frontend API Layering" "❌ BLOCKER" "Direct \`axios\` imports in \`src/app/\` are forbidden. Use \`.api.ts\` -> \`.query.ts\` -> components."
+            BLOCKERS=$((BLOCKERS + 1))
+          else
+            add_row "Frontend Architecture" "✅ PASS" "Next.js App Router and API/Query layering respected."
+          fi
+
+          # 6. Check Prohibited Infrastructure Dependencies (GC1 single-datastore rule)
+          if grep -riE "(redis|neo4j|celery|qdrant|pinecone|weaviate)" pyproject.toml apps/backend/pyproject.toml apps/ai_system/pyproject.toml >/dev/null 2>&1; then
+            add_row "GC1 Datastore Invariant" "❌ BLOCKER" "Supabase PostgreSQL is the sole required datastore for GC1. Do not add Redis, Neo4j, queues, or vector DBs."
+            BLOCKERS=$((BLOCKERS + 1))
+          else
+            add_row "GC1 Datastore Invariant" "✅ PASS" "Supabase PostgreSQL remains the sole datastore."
+          fi
+
+          # 7. Check Entity vs Migration Sync
+          ENTITY_CHANGED=$(echo "$CHANGED_FILES" | grep -E "^apps/backend/src/savora_backend/.*(entity|entities|models).*\.py$" || true)
+          MIGRATION_CHANGED=$(echo "$CHANGED_FILES" | grep -E "^apps/backend/alembic/versions/.*\.py$" || true)
+          if [ -n "$ENTITY_CHANGED" ] && [ -z "$MIGRATION_CHANGED" ]; then
+            add_row "Database Migrations" "⚠️ WARN" "Backend entity/model files changed without a new Alembic migration in \`apps/backend/alembic/versions/\`."
+            WARNINGS=$((WARNINGS + 1))
+          else
+            add_row "Database Migrations" "✅ PASS" "Entity and Alembic migration changes are consistent."
+          fi
+
+          # 8. Check Lockfile Sync
+          PKG_CHANGED=$(echo "$CHANGED_FILES" | grep -E "(^|/)package\.json$" || true)
+          PNPM_LOCK_CHANGED=$(echo "$CHANGED_FILES" | grep -E "^pnpm-lock\.yaml$" || true)
+          PYPROJECT_CHANGED=$(echo "$CHANGED_FILES" | grep -E "(^|/)pyproject\.toml$" || true)
+          UV_LOCK_CHANGED=$(echo "$CHANGED_FILES" | grep -E "^uv\.lock$" || true)
+
+          if [ -n "$PKG_CHANGED" ] && [ -z "$PNPM_LOCK_CHANGED" ]; then
+            add_row "Lockfile Sync" "⚠️ WARN" "\`package.json\` changed without updating \`pnpm-lock.yaml\` (unless metadata-only)."
+            WARNINGS=$((WARNINGS + 1))
+          elif [ -n "$PYPROJECT_CHANGED" ] && [ -z "$UV_LOCK_CHANGED" ]; then
+            add_row "Lockfile Sync" "⚠️ WARN" "\`pyproject.toml\` changed without updating \`uv.lock\`."
+            WARNINGS=$((WARNINGS + 1))
+          else
+            add_row "Lockfile Sync" "✅ PASS" "Workspace dependency manifests and lockfiles are in sync."
+          fi
+
+          {
+            echo ""
+            echo "**Static Gate Result:** \`${BLOCKERS}\` blocker(s), \`${WARNINGS}\` warning(s)."
+            echo ""
+          } >> "$REPORT_FILE"
+
+          git diff "${BASE_SHA}...${HEAD_SHA}" -- \
+            . \
+            ':!pnpm-lock.yaml' \
+            ':!uv.lock' \
+            > pr_diff.full
+          head -c 24000 pr_diff.full > pr_diff.patch
+          rm -f pr_diff.full
+
+          echo "blockers=${BLOCKERS}" >> "$GITHUB_OUTPUT"
+
+      - name: Run GitHub Models AI Code Reviewer Agent
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          node -e '
+            const fs = require("fs");
+
+            async function runAiReview() {
+              const reportFile = "pr_review_report.md";
+              const rules = fs.readFileSync("AGENTS.md", "utf8");
+              const diff = fs.existsSync("pr_diff.patch")
+                ? fs.readFileSync("pr_diff.patch", "utf8")
+                : "";
+
+              let aiSection = "\n### 2. AI Code Reviewer Agent (GitHub Models)\n\n";
+
+              if (!diff.trim()) {
+                aiSection += "_No source code diff to review (only lockfiles changed)._\n";
+                fs.appendFileSync(reportFile, aiSection);
+                return;
+              }
+
+              try {
+                const response = await fetch("https://models.github.ai/inference/chat/completions", {
+                  method: "POST",
+                  headers: {
+                    "Authorization": `Bearer ${process.env.GITHUB_TOKEN}`,
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify({
+                    model: "openai/gpt-4o-mini",
+                    temperature: 0.1,
+                    max_tokens: 900,
+                    messages: [
+                      {
+                        role: "system",
+                        content:
+                          "You are the Savora AI Code Reviewer Agent. Review the Pull Request title, description, and diff strictly against the following Savora architecture and safety instructions.\n\n" +
+                          rules +
+                          "\n\nFormat your response in concise Markdown with:\n" +
+                          "- **Verdict**: `APPROVE` or `CHANGES_REQUESTED`\n" +
+                          "- **Key Findings**: Bullet points categorised by `[BLOCKER]`, `[WARN]`, or `[NIT]` (or state `No architectural or safety issues found.` if clean).\n" +
+                          "- Keep it concise and actionable."
+                      },
+                      {
+                        role: "user",
+                        content: `PR Title: ${process.env.PR_TITLE}\n\nPR Description:\n${process.env.PR_BODY || "(empty)"}\n\nGit Diff:\n\`\`\`diff\n${diff}\n\`\`\``
+                      }
+                    ]
+                  })
+                });
+
+                if (!response.ok) {
+                  const errText = await response.text();
+                  aiSection += `> _GitHub Models inference returned HTTP ${response.status}._\n`;
+                  console.log("GitHub Models status:", response.status, errText);
+                } else {
+                  const data = await response.json();
+                  const reviewText = data.choices?.[0]?.message?.content || "_No response generated._";
+                  aiSection += reviewText + "\n";
+                }
+              } catch (err) {
+                aiSection += `> _AI review skipped: ${err.message}_\n`;
+              }
+
+              fs.appendFileSync(reportFile, aiSection);
+            }
+
+            runAiReview();
+          '
+
+      - name: Post or Update PR Review Comment & Enforce Blockers
+        env:
+          BLOCKERS: ${{ steps.review.outputs.blockers }}
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const body = fs.readFileSync('pr_review_report.md', 'utf8');
+            const marker = '<!-- savora-pr-reviewer -->';
+            const { owner, repo } = context.repo;
+            const issue_number = context.issue.number;
+
+            await core.summary.addRaw(body).write();
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner,
+              repo,
+              issue_number,
+            });
+
+            const existing = comments.find(c => c.body && c.body.includes(marker));
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner,
+                repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number,
+                body,
+              });
+            }
+
+            if (process.env.BLOCKERS && process.env.BLOCKERS !== '0') {
+              core.setFailed(`Savora PR Code Reviewer found ${process.env.BLOCKERS} architectural blocker(s).`);
+            }
