@@ -26,12 +26,12 @@ Follow these steps whenever preparing to commit or push changes in this reposito
 Run the relevant checks and fix any errors before committing:
 
 ```bash
-uv run ruff check .
-uv run pyright
-uv run pytest -q
-pnpm lint
-pnpm typecheck
-pnpm build
+sh .tools/env.sh uv run ruff check .
+sh .tools/env.sh uv run pyright
+sh .tools/env.sh uv run pytest -q
+sh .tools/env.sh pnpm lint
+sh .tools/env.sh pnpm typecheck
+sh .tools/env.sh pnpm build
 ```
 
 If backend HTTP schemas changed, regenerate contracts:
@@ -47,11 +47,18 @@ make contracts
    git commit -m "[ADD]: <concise imperative summary>"
    ```
 
-## 4. Push Branch & Open Pull Request
+## 4. Push Branch & Create Pull Request Directly from Terminal
 
 1. Push the feature/fix branch to `origin`:
    ```bash
    git push -u origin <branch-name>
    ```
-2. Open a Pull Request against `main` (via `gh pr create --base main` if `gh` is authenticated, or share the compare URL `https://github.com/diwas10/Savora-AI-Meal-Planner-GC-1/compare/main...<branch-name>`).
-3. **Never merge the PR into `main` yourself** unless the user explicitly asks you to merge it.
+2. **Create the Pull Request directly from the terminal** using the local `gh` CLI (never ask the user to manually click a compare link on GitHub):
+   ```bash
+   sh .tools/env.sh gh pr create --base main --title "[ADD]: <summary>" --body "<PR description>"
+   ```
+3. Check the CI and PR Code Reviewer status runs:
+   ```bash
+   sh .tools/env.sh gh pr checks
+   ```
+4. **Never merge the PR into `main` yourself** unless the user explicitly asks you to merge it.

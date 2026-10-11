@@ -31,7 +31,7 @@
   - `chore/<scope>-<short-description>`
 - **Commit format:** Use bracketed prefixes: `[ADD]:`, `[UPDATE]:`, `[FIX]:`, `[REFACTOR]:`, `[DELETE]:` followed by a concise imperative summary.
 - **Pre-push checks:** Run `make lint`, `make typecheck`, `make test`, and `make build` locally and fix any failures before pushing.
-- **Pull Requests:** Push the feature/fix branch to `origin` and open a Pull Request against `main` (via `gh pr create` or providing the PR link). Leave merging to human review after CI and code review checks pass.
+- **Pull Requests:** Push the feature/fix branch to `origin` and open a Pull Request against `main` directly from the terminal via `sh .tools/env.sh gh pr create --base main` (and inspect checks via `sh .tools/env.sh gh pr checks`). Leave merging to human review after CI and code review checks pass.
 
 ## Savora invariants
 - Rule Engine determines eligibility; unknown safety-critical fields do not PASS. Applicable hard clinical and allergy restrictions always apply, including craving.
