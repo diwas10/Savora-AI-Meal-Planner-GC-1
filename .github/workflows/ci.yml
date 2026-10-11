@@ -4,10 +4,15 @@ on:
   push:
     branches: [main]
   pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   python:
-    name: Python (ruff, pyright, pytest)
+    name: Python (ruff, pyright, pytest, architecture boundaries)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -16,12 +21,20 @@ jobs:
           enable-cache: true
       - name: Install Python dependencies
         run: uv sync --locked
+      - name: Verify AI boundary isolation (no backend/ORM/HTTP imports in ai_system)
+        run: |
+          if grep -rnE "^\s*(from|import)\s+(savora_backend|fastapi|sqlalchemy)" apps/ai_system/src/; then
+            echo "::error::apps/ai_system must not import savora_backend, fastapi, or sqlalchemy (see AGENTS.md)."
+            exit 1
+          fi
       - name: Lint with Ruff
         run: uv run ruff check .
       - name: Typecheck with Pyright
         run: uv run pyright
       - name: Run pytest
-        run: uv run pytest
+        run: uv run pytest -q
+      - name: Verify OpenAPI contract export
+        run: make contracts
 
   frontend:
     name: Frontend (eslint, tsc, next build)
@@ -35,6 +48,12 @@ jobs:
           cache: pnpm
       - name: Install JS dependencies
         run: pnpm install --frozen-lockfile
+      - name: Verify frontend layer isolation (no direct axios in src/app)
+        run: |
+          if grep -rnE "from ['\"]axios['\"]" apps/frontend/src/app/; then
+            echo "::error::Direct axios imports in apps/frontend/src/app/ are forbidden. Use .api.ts -> .query.ts -> component."
+            exit 1
+          fi
       - name: Lint
         run: pnpm lint
       - name: Typecheck

@@ -13,7 +13,7 @@ Supported profile concerns: diet patterns (vegetarian, vegan, etc.), explicit cu
 flowchart TD
   UI[Frontend / Onboarding] --> API[Backend Orchestrator]
   API --> NP[Nutrition Target Calculator]
-  NP --> DB[(PostgreSQL: profiles, foods, rules, plans)]
+  NP --> DB[(Supabase PostgreSQL: profiles, foods, rules, plans)]
   API --> RET[Recipe Retrieval]
   RET --> RULE[Rule Engine + Focused Food KG]
   RULE --> COMP[Meal Composition Engine]
@@ -79,7 +79,7 @@ Bypass Meal Composition and weekly CSP. Never bypass dietary/allergen or recipe-
 5. On success, persist substitution with before/after snapshots and update the plan's effective view transactionally. On failure return explicit no-feasible-replacement.
 
 ## 5. Knowledge and nutrition policy
-PostgreSQL is the source of truth; use relational food-edge tables and optional NetworkX traversal for the **focused** KG. No dedicated graph DB required for GC1.
+Supabase PostgreSQL is the source of truth; use relational food-edge tables and optional NetworkX traversal for the **focused** KG. No dedicated graph DB required for GC1.
 
 KB domains:
 - **Diet/culture:** vegetarian, vegan, explicit Indian/Chinese vegetarian templates and optional tradition-specific exclusions requiring user confirmation. Religion is not a deterministic proxy for diet.
@@ -175,7 +175,7 @@ Illustrative nutrient values only. Production contract must include all nutrient
 The complete result must contain 21 slots. Alternatives: `INFEASIBLE`, `TIMEOUT`, `INSUFFICIENT_DATA` with reasons. No silent relaxation of hard constraints.
 
 ## 10. Persistence
-Use PostgreSQL with migrations and indexes. Core entities: `users`, `user_profiles`, `user_nutrition_profiles`, `recipes`, `ingredients`, `recipe_ingredients`, `nutrition_references`, `portion_definitions`, `food_entities`, `food_relations`, `dietary_rules`, `meal_templates`, `meal_combinations`, `meal_combination_components`, `meal_plans`, `meal_plan_slots`, `meal_plan_substitutions`. Schema can be simplified where a curated catalogue suffices. Persist immutable plan/portion/nutrition snapshots so later recipe updates do not rewrite history. Generated plans and substitutions only; no feedback/consumption event table in GC1.
+Use Supabase PostgreSQL with Alembic migrations and indexes (local Docker Compose PostgreSQL is optional for offline testing). Core entities: `users`, `user_profiles`, `user_nutrition_profiles`, `recipes`, `ingredients`, `recipe_ingredients`, `nutrition_references`, `portion_definitions`, `food_entities`, `food_relations`, `dietary_rules`, `meal_templates`, `meal_combinations`, `meal_combination_components`, `meal_plans`, `meal_plan_slots`, `meal_plan_substitutions`. Schema can be simplified where a curated catalogue suffices. Persist immutable plan/portion/nutrition snapshots so later recipe updates do not rewrite history. Generated plans and substitutions only; no feedback/consumption event table in GC1.
 
 ## 11. Developer ownership and dependencies
 | Developer | Owns | Consumes | Delivers |
@@ -198,7 +198,7 @@ docs/            # ADRs, clinical evidence, evaluation reports
 AGENTS.md
 ARCHITECTURE.md
 ```
-PostgreSQL is sufficient; NetworkX is optional for small KG traversal. Use Qwen for structured NLU only. No vector DB, Redis, or Neo4j is required for MVP. Backend services orchestrate AI components via typed interfaces; do not require network microservices unless existing deployment warrants them.
+Supabase PostgreSQL is sufficient; NetworkX is optional for small KG traversal. Use Qwen for structured NLU only. No vector DB, Redis, or Neo4j is required for MVP. Backend services orchestrate AI components via typed interfaces; do not require network microservices unless existing deployment warrants them.
 
 ### 12.1 Monorepo runtime and ownership (approved)
 
@@ -207,17 +207,17 @@ flowchart LR
   B[Browser] --> N[Next.js App Router]
   N -->|HTTP /api| F[FastAPI Backend]
   F -->|Typed Python calls| A[AI System Package]
-  F -->|SQLAlchemy/Alembic| P[(PostgreSQL)]
+  F -->|SQLAlchemy/Alembic| P[(Supabase PostgreSQL)]
   A --> C[Composition / Transformer / Rules / CSP / Qwen]
 ```
 
 - **Next.js** owns route layouts and UI; `src/app` contains thin route entry points and `src/core` contains feature code. Server Components by default, client components for interactive forms/chat/React Query. Do not use Vite or React Router.
-- **FastAPI** is the sole authoritative application API and database writer. Use controller → service → repository modules, Pydantic v2 camelCase DTO aliases, consistent response/error envelopes, request context and migrations.
+- **FastAPI** is the sole authoritative application API and database writer (connecting to Supabase PostgreSQL via async SQLAlchemy 2 and Alembic; Next.js never queries Supabase directly). Use controller → service → repository modules, Pydantic v2 camelCase DTO aliases, consistent response/error envelopes, request context and migrations.
 - **AI package** is imported into the backend runtime, not deployed as a separate microservice. AI algorithms take validated domain inputs and return typed outputs; they do not import backend ORM models or manage transactions.
 - **Cross-language contracts** live as versioned OpenAPI definitions, generated TypeScript types and fixture examples in `packages/contracts`. Python Pydantic schemas are authoritative for HTTP contracts; avoid hand-maintained duplicate TS types.
 - **Frontend pattern:** feature-level `.api.ts` endpoint definitions, `.query.ts` React Query hooks, Zod schemas and React Hook Form. Avoid duplicate business logic in Next.js route handlers/server actions.
 - **Developer module ownership** remains as in §11. Member 3 owns Next.js and FastAPI app integration; Members 1/2 own their respective AI capability packages.
-- **Infrastructure:** pnpm workspace (frontend), uv workspace (backend and AI), PostgreSQL Docker Compose, Makefile and CI. No additional runtime infrastructure is required for GC1.
+- **Infrastructure:** pnpm workspace (frontend), uv workspace (backend and AI), Supabase PostgreSQL (with optional Docker Compose local fallback), Makefile and CI. No additional runtime infrastructure is required for GC1.
 
 ## 13. Testing, evaluation and acceptance
 - **Rule/KG:** curated vegetarian, vegan, no-pork/beef, peanut, derived ingredient, unknown-ingredient and clinical cases; zero known hard-rule violations.
