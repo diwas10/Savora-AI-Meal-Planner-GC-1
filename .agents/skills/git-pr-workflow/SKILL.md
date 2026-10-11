@@ -7,7 +7,7 @@ description: >-
 
 # Savora Git & Pull Request Workflow
 
-Follow these steps whenever preparing to commit or push changes in this repository.
+Follow these steps whenever preparing to commit, push, or open a Pull Request in this repository. This workflow applies to all contributors and AI coding agents.
 
 ## 1. Verify Branch (Never Commit to `main`)
 
@@ -15,7 +15,7 @@ Follow these steps whenever preparing to commit or push changes in this reposito
    ```bash
    git branch --show-current
    ```
-2. If on `main` (unless explicitly instructed by the user to push to `main`), create and switch to a new branch:
+2. If on `main` (unless explicitly instructed by the user for a hotfix), create and switch to a descriptive branch:
    - `feat/<scope>-<short-description>`
    - `fix/<scope>-<short-description>`
    - `refactor/<scope>-<short-description>`
@@ -23,18 +23,18 @@ Follow these steps whenever preparing to commit or push changes in this reposito
 
 ## 2. Run Pre-Push Checks
 
-Run the relevant checks and fix any errors before committing:
+Run the workspace checks locally and fix any errors before committing:
 
 ```bash
-sh .tools/env.sh uv run ruff check .
-sh .tools/env.sh uv run pyright
-sh .tools/env.sh uv run pytest -q
-sh .tools/env.sh pnpm lint
-sh .tools/env.sh pnpm typecheck
-sh .tools/env.sh pnpm build
+uv run ruff check .
+uv run pyright
+uv run pytest -q
+pnpm lint
+pnpm typecheck
+pnpm build
 ```
 
-If backend HTTP schemas changed, regenerate contracts:
+If backend HTTP DTOs or routes changed, regenerate contracts:
 ```bash
 make contracts
 ```
@@ -47,18 +47,25 @@ make contracts
    git commit -m "[ADD]: <concise imperative summary>"
    ```
 
-## 4. Push Branch & Create Pull Request Directly from Terminal
+## 4. Push Branch & Create a Well-Documented Pull Request
 
 1. Push the feature/fix branch to `origin`:
    ```bash
    git push -u origin <branch-name>
    ```
-2. **Create the Pull Request directly from the terminal** using the local `gh` CLI (never ask the user to manually click a compare link on GitHub):
+2. **Write a complete, detailed PR description** following `.github/PULL_REQUEST_TEMPLATE.md`. Never create a PR with an empty body or unfilled HTML comments. Fill out every section:
+   - `## Summary & Motivation`: What changed and why.
+   - `## Architecture & Ownership`: Relevant `ARCHITECTURE.md` sections and checked `[x]` workspace boxes.
+   - `## Key Changes`: Bulleted breakdown of modified modules/files.
+   - `## Savora Invariants Checklist`: Checked `[x]` items confirming architectural boundaries, clinical/allergen safety invariants, contracts, and migrations.
+   - `## Verification Executed`: Checked `[x]` commands that were run locally and their results.
+3. Open (or update) the Pull Request against `main` using `gh`:
    ```bash
-   sh .tools/env.sh gh pr create --base main --title "[ADD]: <summary>" --body "<PR description>"
+   gh pr create --base main --title "[ADD]: <summary>" --body-file <pr-body.md>
    ```
-3. Check the CI and PR Code Reviewer status runs:
+   *(If a PR is already open for the branch, update its title/description via `gh pr edit --title "..." --body-file <pr-body.md>`).*
+4. Verify CI and PR Code Reviewer checks:
    ```bash
-   sh .tools/env.sh gh pr checks
+   gh pr checks
    ```
-4. **Never merge the PR into `main` yourself** unless the user explicitly asks you to merge it.
+5. **Never merge the PR into `main` yourself** unless the user explicitly asks you to merge it.

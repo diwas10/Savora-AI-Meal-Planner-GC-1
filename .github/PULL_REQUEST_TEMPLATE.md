@@ -1,14 +1,18 @@
-## Summary
-<!-- Concise summary of the vertical slice or change -->
+## Summary & Motivation
+<!-- Concise explanation of what this PR changes and why -->
 
 ## Architecture & Ownership
 - **Relevant `ARCHITECTURE.md` Section(s):** <!-- e.g., §6 API Design, §10 Database Design -->
-- **Touched Packages:**
-  - [ ] `apps/frontend`
-  - [ ] `apps/backend`
-  - [ ] `apps/ai_system`
-  - [ ] `packages/contracts`
+- **Touched Workspaces:**
+  - [ ] `apps/frontend` (Next.js App Router)
+  - [ ] `apps/backend` (FastAPI / SQLAlchemy / Alembic)
+  - [ ] `apps/ai_system` (Rule/KG, Composer, Ranker, CSP, Qwen, XAI)
+  - [ ] `packages/contracts` (OpenAPI / Shared TS Types)
   - [ ] Infrastructure / CI / Docs
+
+## Key Changes
+<!-- Bulleted breakdown of key changes by module/file -->
+- 
 
 ## Savora Invariants Checklist
 - [ ] Dependency direction respected (`apps/frontend` → `apps/backend` → `apps/ai_system`; no backend/DB imports in `apps/ai_system`)

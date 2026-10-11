@@ -22,16 +22,24 @@
 - AI: Pydantic-validated boundaries, versioned prompts, isolated model adapters, deterministic test fakes, explicit timeouts and failures. Never trust Qwen output or model-generated nutrition.
 - Naming: Python/SQL snake_case, JSON camelCase, Python/TS classes PascalCase, REST plural kebab-case.
 
-## Git & Pull Request workflow (mandatory)
-- **Never commit, push, or merge directly to `main`** unless the user explicitly instructs you to bypass PRs for a specific command.
+## Git & Pull Request workflow (mandatory for all contributors & AI agents)
+- **Never commit, push, or merge directly to `main`** unless explicitly instructed for a specific hotfix/admin command.
 - **Branching:** Always create a descriptive branch off `main` before committing changes:
   - `feat/<scope>-<short-description>`
   - `fix/<scope>-<short-description>`
   - `refactor/<scope>-<short-description>`
   - `chore/<scope>-<short-description>`
 - **Commit format:** Use bracketed prefixes: `[ADD]:`, `[UPDATE]:`, `[FIX]:`, `[REFACTOR]:`, `[DELETE]:` followed by a concise imperative summary.
-- **Pre-push checks:** Run `make lint`, `make typecheck`, `make test`, and `make build` locally and fix any failures before pushing.
-- **Pull Requests:** Push the feature/fix branch to `origin` and open a Pull Request against `main` directly from the terminal via `sh .tools/env.sh gh pr create --base main` (and inspect checks via `sh .tools/env.sh gh pr checks`). Leave merging to human review after CI and code review checks pass.
+- **Pre-push checks:** Run `make lint`, `make typecheck`, `make test`, and `make build` (`uv run ruff check .`, `uv run pyright`, `uv run pytest -q`, `pnpm lint`, `pnpm typecheck`, `pnpm build`) locally and fix any failures before pushing.
+- **Pull Requests & Descriptions:**
+  - Push the branch to `origin` and open a Pull Request against `main` via `gh pr create --base main` (and verify checks via `gh pr checks`).
+  - Every PR **must** include a complete, filled-out description following `.github/PULL_REQUEST_TEMPLATE.md` (never leave an empty body or unfilled template placeholders). Include:
+    1. **Summary & Motivation** of the change
+    2. **Architecture & Ownership** (`ARCHITECTURE.md` sections and touched workspaces)
+    3. **Key Changes** grouped by module/package
+    4. **Savora Invariants Checklist** (boundaries, safety, contracts, migrations)
+    5. **Verification Executed** with actual check results
+  - Leave merging to human review after CI and automated PR review checks pass.
 
 ## Savora invariants
 - Rule Engine determines eligibility; unknown safety-critical fields do not PASS. Applicable hard clinical and allergy restrictions always apply, including craving.
@@ -44,4 +52,4 @@
 2. Create or switch to a non-`main` feature/fix branch.
 3. Implement a small vertical slice; update tests and shared contracts for changes.
 4. Run relevant Python lint/typecheck/pytest, frontend lint/typecheck/build and migration checks; state what actually ran.
-5. Commit with bracketed prefix, push branch, and open a PR (never merge to `main` directly). Report changed contracts, remaining risks and deviations.
+5. Commit with bracketed prefix, push branch, and open a well-documented PR against `main` (never merge to `main` directly). Report changed contracts, remaining risks and deviations.
