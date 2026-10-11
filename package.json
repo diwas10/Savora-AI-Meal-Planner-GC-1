@@ -1,6 +1,7 @@
 {
   "name": "savora",
   "private": true,
+  "packageManager": "pnpm@12.11.2",
   "scripts": {
     "dev": "pnpm --filter @savora/frontend dev",
     "build": "pnpm --filter @savora/frontend build",
