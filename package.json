@@ -1,0 +1,10 @@
+{
+  "name": "savora",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm --filter @savora/frontend dev",
+    "build": "pnpm --filter @savora/frontend build",
+    "lint": "pnpm --filter @savora/frontend lint",
+    "typecheck": "pnpm --filter @savora/frontend typecheck"
+  }
+}

@@ -1,0 +1,7 @@
+packages:
+  - apps/frontend
+  - packages/*
+
+# unrs-resolver's install script is only a fallback; prebuilt binaries ship as optional deps.
+allowBuilds:
+  unrs-resolver: false

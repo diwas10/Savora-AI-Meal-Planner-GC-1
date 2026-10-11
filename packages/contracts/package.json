@@ -1,0 +1,10 @@
+{
+  "name": "@savora/contracts",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "description": "OpenAPI-generated TypeScript types and contract fixtures."
+}
