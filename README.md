@@ -13,7 +13,7 @@ Read [`AGENTS.md`](./AGENTS.md) and [`ARCHITECTURE.md`](./ARCHITECTURE.md) befor
 ├── pnpm-workspace.yaml       # pnpm workspace root (JS/TS)
 ├── package.json              # Root JS scripts
 ├── pnpm-lock.yaml            # Locked JS dependencies
-├── docker-compose.yml        # Local PostgreSQL 18
+├── docker-compose.yml        # Optional local PostgreSQL 18 fallback
 ├── Makefile                  # Common developer commands
 ├── apps/
 │   ├── frontend/             # Next.js 16 App Router + TypeScript + Tailwind v4
@@ -28,27 +28,24 @@ Read [`AGENTS.md`](./AGENTS.md) and [`ARCHITECTURE.md`](./ARCHITECTURE.md) befor
 
 - **Python** `>=3.12` (managed via [`uv`](https://docs.astral.sh/uv/))
 - **Node.js** `>=22` and [`pnpm`](https://pnpm.io/)
-- **Docker** (for local PostgreSQL)
+- **Supabase PostgreSQL** (`db.<YOUR-SUPABASE-PROJECT-REF>.supabase.co:5432`, or Docker for offline local Postgres)
 
 ## Quick Start
 
-1. **Copy environment variables:**
+1. **Configure Environment Variables (Mandatory — `.env` is gitignored):**
    ```bash
    cp .env.example .env
+   # Fill in POSTGRES_HOST, POSTGRES_PASSWORD (percent-encoded), DATABASE_URL, and JWT_SECRET_KEY in .env
    ```
 2. **Install dependencies:**
    ```bash
    make setup
    ```
-3. **Start PostgreSQL (port `5432`):**
-   ```bash
-   make db
-   ```
-4. **Run database migrations:**
+3. **Run database migrations against Supabase PostgreSQL:**
    ```bash
    make migrate
    ```
-5. **Start the development servers:**
+4. **Start the development servers:**
    - Backend (`http://localhost:8000`): `make dev-backend`
    - Frontend (`http://localhost:3000`): `make dev-frontend`
 
@@ -64,4 +61,4 @@ Read [`AGENTS.md`](./AGENTS.md) and [`ARCHITECTURE.md`](./ARCHITECTURE.md) befor
 
 - **Browser → Next.js (`apps/frontend`) → FastAPI (`apps/backend`) → AI (`apps/ai_system`).**
 - `savora-backend` imports `savora-ai` in-process via the `uv` workspace; `savora-ai` never imports backend ORM models, controllers, or frontend code.
-- PostgreSQL is the sole mandatory database for GC1.
+- PostgreSQL (Supabase) is the sole mandatory database for GC1.

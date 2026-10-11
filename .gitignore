@@ -1,11 +1,23 @@
-# Local toolchain & worktree caches
-.tools/
+# Local developer agent folders & worktree caches
+.agent/
+.agents/
+.cursor/
+.claude/
+.windsurf/
 .delta/
 
-# Environment variables (keep .env.example tracked)
+# Environment variables & secrets (keep only .env.example tracked)
 .env
 .env.*
+**/.env
+**/.env.*
 !.env.example
+!**/.env.example
+*.pem
+*.key
+*.crt
+*.p12
+secrets.*
 
 # Python / uv / test & typecheck caches
 .venv/

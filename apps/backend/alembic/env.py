@@ -3,19 +3,28 @@
 import asyncio
 import os
 from logging.config import fileConfig
+from pathlib import Path
 
 from alembic import context
+from dotenv import load_dotenv
 from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
+
+load_dotenv(Path(__file__).resolve().parents[3] / ".env")
 
 config = context.config
 
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-if database_url := os.getenv("DATABASE_URL"):
-    config.set_main_option("sqlalchemy.url", database_url)
+database_url = os.getenv("DATABASE_URL")
+if not database_url:
+    raise RuntimeError(
+        "DATABASE_URL is not set. Copy `.env.example` to `.env` at the repository root "
+        "and configure your database credentials."
+    )
+config.set_main_option("sqlalchemy.url", database_url)
 
 target_metadata = None
 
