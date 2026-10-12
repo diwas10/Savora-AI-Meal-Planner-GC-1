@@ -1,9 +1,4 @@
-# Local developer agent folders & worktree caches
-.agent/
-.agents/
-.cursor/
-.claude/
-.windsurf/
+# Worktree caches
 .delta/
 
 # Environment variables & secrets (keep only .env.example tracked)

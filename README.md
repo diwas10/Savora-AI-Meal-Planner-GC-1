@@ -8,6 +8,7 @@ Read [`AGENTS.md`](./AGENTS.md) and [`ARCHITECTURE.md`](./ARCHITECTURE.md) befor
 .
 ├── AGENTS.md                 # Engineering rules & invariants
 ├── ARCHITECTURE.md           # System architecture & ownership
+├── .agents/                  # Shared team agent skills (supabase, supabase-postgres-best-practices)
 ├── pyproject.toml            # uv workspace root (Python)
 ├── uv.lock                   # Locked Python dependencies
 ├── pnpm-workspace.yaml       # pnpm workspace root (JS/TS)
