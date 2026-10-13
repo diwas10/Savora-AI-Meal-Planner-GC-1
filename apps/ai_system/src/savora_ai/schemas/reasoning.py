@@ -3,7 +3,7 @@
 from enum import StrEnum
 from typing import Self
 
-from pydantic import ValidationError, model_validator
+from pydantic import ValidationError, field_validator, model_validator
 
 from savora_ai.schemas.knowledge import (
     EvidenceReference,
@@ -15,6 +15,7 @@ from savora_ai.schemas.knowledge import (
     _ContractModel,
     _FactValue,
     _NonBlank,
+    _require_canonical_enum,
     _validate_evidence,
     _validate_value_unit,
 )
@@ -39,6 +40,13 @@ class FactObservation(_ContractModel):
     unit: MeasurementUnit | None = None
     evidence: tuple[EvidenceReference, ...]
 
+    @field_validator("unit", mode="after")
+    @classmethod
+    def validate_unit_member(cls, value: MeasurementUnit | None) -> MeasurementUnit | None:
+        if value is not None:
+            _require_canonical_enum(value)
+        return value
+
     @model_validator(mode="after")
     def validate_observation(self) -> Self:
         if not self.evidence:
@@ -59,6 +67,12 @@ class RuleEvaluation(_ContractModel):
     facts: tuple[FactObservation, ...] = ()
     status: RuleStatus
     reason: _NonBlank
+
+    @field_validator("applicability", "status", mode="after")
+    @classmethod
+    def validate_enum_members(cls, value: StrEnum) -> StrEnum:
+        _require_canonical_enum(value)
+        return value
 
     @model_validator(mode="after")
     def validate_evaluation(self) -> Self:
@@ -241,5 +255,23 @@ def aggregate_hard_status(trace: RuleTrace) -> RuleStatus:
 
 
 def is_candidate_eligible(status: RuleStatus) -> bool:
-    """Only a RuleStatus.PASS declaration is eligible; reject unvalidated strings."""
+    """Only canonical PASS is eligible; counterfeit enums raise ValidationError.
+
+    Other unvalidated values retain the existing ineligible boolean behavior.
+    """
+    if isinstance(status, RuleStatus):
+        try:
+            _require_canonical_enum(status)
+        except ValueError as error:
+            raise ValidationError.from_exception_data(
+                "RuleStatus",
+                [
+                    {
+                        "type": "value_error",
+                        "loc": ("status",),
+                        "input": status,
+                        "ctx": {"error": error},
+                    }
+                ],
+            ) from error
     return status is RuleStatus.PASS

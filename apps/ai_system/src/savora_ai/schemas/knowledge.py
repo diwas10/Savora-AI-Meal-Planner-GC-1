@@ -4,7 +4,7 @@ from enum import StrEnum
 from math import isfinite
 from typing import Annotated, Self
 
-from pydantic import BaseModel, ConfigDict, StringConstraints, model_validator
+from pydantic import BaseModel, ConfigDict, StringConstraints, field_validator, model_validator
 from pydantic.alias_generators import to_camel
 
 _NonBlank = Annotated[str, StringConstraints(min_length=1, pattern=r"\S")]
@@ -83,6 +83,12 @@ class MeasurementUnit(StrEnum):
     DIMENSIONLESS = "dimensionless"
 
 
+def _require_canonical_enum(value: StrEnum) -> None:
+    """Require the declared singleton, not merely an enum instance or equal text."""
+    if not any(value is member for member in type(value)):
+        raise ValueError(f"{type(value).__name__} requires a canonical declared enum member")
+
+
 class RuleReference(_ContractModel):
     rule_id: _NonBlank
     version: _NonBlank
@@ -96,6 +102,12 @@ class EvidenceReference(_ContractModel):
     source: _NonBlank
     locator: _NonBlank
     environment: RuleEnvironment
+
+    @field_validator("environment", mode="after")
+    @classmethod
+    def validate_environment_member(cls, value: RuleEnvironment) -> RuleEnvironment:
+        _require_canonical_enum(value)
+        return value
 
 
 def _validate_evidence(evidence: tuple[EvidenceReference, ...]) -> None:
@@ -140,6 +152,23 @@ class RuleDefinition(_ContractModel):
     approved_by: _NonBlank | None = None
     approval_reference: EvidenceReference | None = None
     environment: RuleEnvironment
+
+    @field_validator(
+        "scope",
+        "severity",
+        "domain",
+        "operator",
+        "unit",
+        "lifecycle",
+        "approval_status",
+        "environment",
+        mode="after",
+    )
+    @classmethod
+    def validate_enum_members(cls, value: StrEnum | None) -> StrEnum | None:
+        if value is not None:
+            _require_canonical_enum(value)
+        return value
 
     @model_validator(mode="after")
     def validate_declaration(self) -> Self:

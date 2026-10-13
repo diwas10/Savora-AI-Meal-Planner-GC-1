@@ -1,6 +1,7 @@
 """Synthetic contract tests. Fixture quantities have no clinical or nutritional meaning."""
 
 import json
+from enum import StrEnum
 from itertools import permutations
 from typing import Any
 
@@ -942,3 +943,233 @@ def test_empty_auxiliary_set_is_resolved_only_with_explicit_completeness(complet
     if not complete:
         with pytest.raises(ValidationError, match="present and complete"):
             evaluation(definition, facts=(fact(), observation), status=RuleStatus.PASS)
+
+
+# This matrix names every Phase 1 enum field; no Phase 2 helpers are imported.
+_RULE_ENUM_FIELDS: tuple[tuple[str, type[StrEnum]], ...] = (
+    ("scope", RuleScope),
+    ("severity", RuleSeverity),
+    ("domain", RuleDomain),
+    ("operator", PredicateOperator),
+    ("unit", MeasurementUnit),
+    ("lifecycle", RuleLifecycle),
+    ("approval_status", ApprovalStatus),
+    ("environment", RuleEnvironment),
+)
+_NESTED_ENUM_FIELDS: tuple[tuple[str, type[StrEnum]], ...] = (
+    ("rule_evidence", RuleEnvironment),
+    ("approval_evidence", RuleEnvironment),
+    ("applicability_evidence", RuleEnvironment),
+    ("fact_evidence", RuleEnvironment),
+    ("fact_unit", MeasurementUnit),
+    ("evaluation_status", RuleStatus),
+    ("evaluation_applicability", ApplicabilityStatus),
+)
+
+
+def _counterfeit_enum(enum_type: type[StrEnum], token: str) -> StrEnum:
+    value = str.__new__(enum_type, token)
+    value._name_ = token
+    value._value_ = token
+    return value
+
+
+def _unchecked_contract(record: Any, changes: dict[str, Any], mode: str) -> Any:
+    if mode == "copy":
+        return record.model_copy(update=changes)
+    return type(record).model_construct(**(vars(record) | changes))
+
+
+@pytest.mark.parametrize("mode", ["copy", "construct"])
+@pytest.mark.parametrize("token", ["ABSOLUTE", "UNDECLARED"])
+def test_original_counterfeit_extra_hard_fail_never_returns_pass(mode: str, token: str) -> None:
+    required = rule()
+    passing = trace((required,), (evaluation(required),))
+    extra = rule(rule_id="extra-hard")
+    failed = evaluation(extra, status=RuleStatus.FAIL, facts=(fact(value=9),))
+    fake = _counterfeit_enum(RuleSeverity, token)
+    invalid_rule = _unchecked_contract(extra, {"severity": fake}, mode)
+    invalid_evaluation = _unchecked_contract(failed, {"rule": invalid_rule}, mode)
+    invalid_trace = _unchecked_contract(
+        passing, {"evaluations": (*passing.evaluations, invalid_evaluation)}, mode
+    )
+    assert invalid_rule.severity is fake
+    assert fake is not RuleSeverity.ABSOLUTE
+    with pytest.raises(ValidationError, match="canonical declared enum member"):
+        is_candidate_eligible(aggregate_hard_status(invalid_trace))
+    # Validation rejects the supplied object rather than replacing its enum.
+    assert invalid_rule.severity is fake
+
+
+@pytest.mark.parametrize("mode", ["copy", "construct"])
+@pytest.mark.parametrize(
+    "field,enum_type,token",
+    [
+        (field, enum_type, token)
+        for field, enum_type in _RULE_ENUM_FIELDS
+        for token in (*[member.value for member in enum_type], "UNDECLARED")
+    ],
+)
+def test_every_rule_enum_rejects_counterfeits_at_schema_and_aggregation_boundaries(
+    mode: str, field: str, enum_type: type[StrEnum], token: str
+) -> None:
+    original = rule()
+    passing = trace((original,), (evaluation(original),))
+    fake = _counterfeit_enum(enum_type, token)
+    invalid_rule = _unchecked_contract(original, {field: fake}, mode)
+    with pytest.raises(ValidationError, match="canonical declared enum member"):
+        RuleDefinition.model_validate(invalid_rule, strict=True)
+    invalid_evaluation = _unchecked_contract(passing.evaluations[0], {"rule": invalid_rule}, mode)
+    invalid_trace = _unchecked_contract(
+        passing,
+        {"required_checks": (invalid_rule,), "evaluations": (invalid_evaluation,)},
+        mode,
+    )
+    with pytest.raises(ValidationError, match="canonical declared enum member"):
+        RuleTrace.model_validate(invalid_trace, strict=True)
+    with pytest.raises(ValidationError, match="canonical declared enum member"):
+        is_candidate_eligible(aggregate_hard_status(invalid_trace))
+    assert getattr(invalid_rule, field) is fake
+
+
+@pytest.mark.parametrize("mode", ["copy", "construct"])
+@pytest.mark.parametrize(
+    "location,enum_type,token",
+    [
+        (location, enum_type, token)
+        for location, enum_type in _NESTED_ENUM_FIELDS
+        for token in (*[member.value for member in enum_type], "UNDECLARED")
+    ],
+)
+def test_nested_evidence_fact_and_evaluation_enums_reject_counterfeits(
+    mode: str, location: str, enum_type: type[StrEnum], token: str
+) -> None:
+    original = rule(
+        approval_status=ApprovalStatus.APPROVED,
+        approved_by="SYNTHETIC reviewer; no real approval",
+        approval_reference=evidence(),
+    )
+    passing = trace((original,), (evaluation(original),))
+    fake = _counterfeit_enum(enum_type, token)
+    invalid_rule = original
+    invalid_evaluation = passing.evaluations[0]
+    if location in ("evaluation_status", "evaluation_applicability"):
+        field = "status" if location == "evaluation_status" else "applicability"
+        invalid_node = _unchecked_contract(invalid_evaluation, {field: fake}, mode)
+        invalid_evaluation = invalid_node
+    elif location == "fact_unit":
+        invalid_node = _unchecked_contract(fact(), {"unit": fake}, mode)
+        invalid_evaluation = _unchecked_contract(
+            invalid_evaluation, {"facts": (invalid_node,)}, mode
+        )
+    else:
+        invalid_node = _unchecked_contract(evidence(), {"environment": fake}, mode)
+        if location in ("rule_evidence", "approval_evidence"):
+            updates = (
+                {"evidence": (invalid_node,)}
+                if location == "rule_evidence"
+                else {"approval_reference": invalid_node}
+            )
+            invalid_rule = _unchecked_contract(original, updates, mode)
+            invalid_evaluation = _unchecked_contract(
+                invalid_evaluation, {"rule": invalid_rule}, mode
+            )
+        elif location == "applicability_evidence":
+            invalid_evaluation = _unchecked_contract(
+                invalid_evaluation, {"applicability_evidence": (invalid_node,)}, mode
+            )
+        else:
+            invalid_fact = _unchecked_contract(fact(), {"evidence": (invalid_node,)}, mode)
+            invalid_evaluation = _unchecked_contract(
+                invalid_evaluation, {"facts": (invalid_fact,)}, mode
+            )
+    with pytest.raises(ValidationError, match="canonical declared enum member"):
+        type(invalid_node).model_validate(invalid_node, strict=True)
+    invalid_trace = _unchecked_contract(
+        passing,
+        {"required_checks": (invalid_rule,), "evaluations": (invalid_evaluation,)},
+        mode,
+    )
+    with pytest.raises(ValidationError, match="canonical declared enum member"):
+        RuleTrace.model_validate(invalid_trace, strict=True)
+    with pytest.raises(ValidationError, match="canonical declared enum member"):
+        is_candidate_eligible(aggregate_hard_status(invalid_trace))
+
+
+@pytest.mark.parametrize(
+    "field,member",
+    [(field, member) for field, enum_type in _RULE_ENUM_FIELDS for member in enum_type],
+)
+def test_genuine_rule_enum_members_preserve_identity_and_json(field: str, member: StrEnum) -> None:
+    changes: dict[str, Any] = {field: member}
+    if member in (PredicateOperator.IN, PredicateOperator.NOT_IN):
+        changes.update(value=("synthetic-tag",), unit=None)
+    elif member is ApprovalStatus.APPROVED:
+        changes.update(
+            approved_by="SYNTHETIC reviewer; no real approval", approval_reference=evidence()
+        )
+    elif member is ApprovalStatus.REJECTED:
+        changes["lifecycle"] = RuleLifecycle.DRAFT
+    accepted = rule(**changes)
+    assert getattr(accepted, field) is member
+    reloaded = RuleDefinition.model_validate_json(accepted.model_dump_json(by_alias=True))
+    assert reloaded == accepted
+    assert getattr(reloaded, field) is member
+
+
+@pytest.mark.parametrize("unit", [*MeasurementUnit, None])
+def test_genuine_fact_unit_members_and_null_preserve_json(unit: MeasurementUnit | None) -> None:
+    accepted = fact(unit=unit, value=None, complete=False) if unit is None else fact(unit=unit)
+    reloaded = FactObservation.model_validate_json(accepted.model_dump_json(by_alias=True))
+    assert reloaded == accepted and reloaded.unit is unit
+
+
+@pytest.mark.parametrize("environment", list(RuleEnvironment))
+def test_genuine_evidence_environment_members_preserve_json(environment: RuleEnvironment) -> None:
+    # PRODUCTION here is fictional metadata, not an authenticated source.
+    accepted = evidence(environment=environment)
+    reloaded = EvidenceReference.model_validate_json(accepted.model_dump_json(by_alias=True))
+    assert reloaded == accepted and reloaded.environment is environment
+
+
+@pytest.mark.parametrize(
+    "applicability,status,expected",
+    [
+        (ApplicabilityStatus.APPLICABLE, RuleStatus.PASS, RuleStatus.PASS),
+        (ApplicabilityStatus.APPLICABLE, RuleStatus.FAIL, RuleStatus.FAIL),
+        (ApplicabilityStatus.APPLICABLE, RuleStatus.UNKNOWN, RuleStatus.UNKNOWN),
+        (ApplicabilityStatus.UNKNOWN, RuleStatus.UNKNOWN, RuleStatus.UNKNOWN),
+        (ApplicabilityStatus.NOT_APPLICABLE, RuleStatus.UNKNOWN, RuleStatus.PASS),
+    ],
+)
+def test_genuine_evaluation_enum_members_preserve_aggregation_and_json(
+    applicability: ApplicabilityStatus, status: RuleStatus, expected: RuleStatus
+) -> None:
+    definition = rule()
+    result = evaluation(definition, applicability=applicability, status=status)
+    reloaded = RuleEvaluation.model_validate_json(result.model_dump_json(by_alias=True))
+    assert reloaded.applicability is applicability and reloaded.status is status
+    aggregated = aggregate_hard_status(trace((definition,), (reloaded,)))
+    assert aggregated is expected
+    assert is_candidate_eligible(aggregated) is (expected is RuleStatus.PASS)
+
+
+def test_canonical_extra_hard_fail_is_rejected_or_dominates_when_required() -> None:
+    first = rule()
+    second = rule(rule_id="extra-hard")
+    results = (
+        evaluation(first),
+        evaluation(second, status=RuleStatus.FAIL, facts=(fact(value=9),)),
+    )
+    with pytest.raises(ValidationError, match="hard evaluation is absent from required manifest"):
+        trace((first,), results)
+    complete = trace((first, second), results)
+    assert aggregate_hard_status(complete) is RuleStatus.FAIL
+    assert not is_candidate_eligible(aggregate_hard_status(complete))
+
+
+@pytest.mark.parametrize("token", ["PASS", "UNDECLARED"])
+def test_counterfeit_status_cannot_be_directly_eligible(token: str) -> None:
+    fake = _counterfeit_enum(RuleStatus, token)
+    with pytest.raises(ValidationError, match="canonical declared enum member"):
+        is_candidate_eligible(fake)  # type: ignore[arg-type]
