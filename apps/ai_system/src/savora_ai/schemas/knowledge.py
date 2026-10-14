@@ -1,11 +1,24 @@
 """Provisional, versioned rule declarations; no predicate execution or clinical limits."""
 
+import json
 from enum import StrEnum
 from math import isfinite
 from typing import Annotated, Self
 
-from pydantic import BaseModel, ConfigDict, StringConstraints, field_validator, model_validator
+from pydantic import (
+    AliasChoices,
+    AliasPath,
+    BaseModel,
+    ConfigDict,
+    GetCoreSchemaHandler,
+    ModelWrapValidatorHandler,
+    StringConstraints,
+    ValidationError,
+    field_validator,
+    model_validator,
+)
 from pydantic.alias_generators import to_camel
+from pydantic_core import core_schema
 
 _NonBlank = Annotated[str, StringConstraints(min_length=1, pattern=r"\S")]
 _FactValue = bool | int | float | _NonBlank | tuple[_NonBlank, ...]
@@ -21,6 +34,159 @@ class _ContractModel(BaseModel):
         revalidate_instances="always",
         allow_inf_nan=False,
     )
+
+    @classmethod
+    def __get_pydantic_core_schema__(
+        cls, source: object, handler: GetCoreSchemaHandler
+    ) -> core_schema.CoreSchema:
+        schema = handler(source)
+        schema_ref = schema.get("ref")
+        if schema_ref is not None:
+            schema = schema.copy()
+            schema.pop("ref")
+        return core_schema.json_or_python_schema(
+            ref=schema_ref,
+            json_schema=core_schema.no_info_wrap_validator_function(
+                cls._validate_json_payload,
+                core_schema.json_schema(schema),
+                json_schema_input_schema=schema,
+            ),
+            python_schema=core_schema.no_info_wrap_validator_function(
+                cls._validate_unchecked_payload, schema
+            ),
+        )
+
+    @classmethod
+    def _validate_unchecked_payload(
+        cls, value: object, handler: ModelWrapValidatorHandler[Self]
+    ) -> Self:
+        # A before validator is too late for revalidated model instances: Pydantic
+        # has already merged their fields and extras by then. Wrap sees the original.
+        try:
+            # Inspect the entire original tree before Pydantic can normalize nested
+            # containers and hide subclass overrides from their field schemas.
+            payload = _validation_payload(value)
+        except RecursionError as error:
+            raise ValueError("cyclic or excessively deep contract payload") from error
+        cls._validate_alias_keys(payload)
+        return handler(payload)
+
+    @classmethod
+    def _validate_json_payload(
+        cls, value: object, handler: ModelWrapValidatorHandler[Self]
+    ) -> Self:
+        try:
+            value = _validation_payload(value)
+        except RecursionError as error:
+            raise ValueError("cyclic or excessively deep contract payload") from error
+        cls._validate_alias_keys(value)
+        # Wrap handlers receive Python containers even in JSON mode. Re-enter the
+        # native JSON schema so strict arrays/enum tokens retain their wire behavior.
+        try:
+            encoded = json.dumps(value, ensure_ascii=True, separators=(",", ":"))
+        except (RecursionError, TypeError, ValueError) as error:
+            raise ValueError("invalid or excessively deep JSON contract payload") from error
+        return handler(encoded)
+
+    @classmethod
+    def _validate_alias_keys(cls, value: object) -> None:
+        if isinstance(value, dict):
+            field_keys, invalid = _model_field_keys(cls)
+            seen: set[str] = set()
+            for key in value:
+                names = field_keys.get(key, set())
+                if seen.intersection(names):
+                    invalid = True
+                seen.update(names)
+            if invalid:
+                raise ValueError("malformed or colliding DTO field/alias keys")
+
+
+def _model_field_keys(model_type: type[_ContractModel]) -> tuple[dict[str, set[str]], bool]:
+    """Reserve field names and aliases from both subclasses and original contracts."""
+    field_keys: dict[str, set[str]] = {}
+    invalid = False
+    for model in model_type.__mro__:
+        if not issubclass(model, _ContractModel):
+            continue
+        for name, field in model.model_fields.items():
+            keys = [name]
+            for alias in (field.alias, field.serialization_alias, field.validation_alias):
+                choices = alias.choices if isinstance(alias, AliasChoices) else [alias]
+                for choice in choices:
+                    if isinstance(choice, str):
+                        keys.append(choice)
+                    elif isinstance(choice, AliasPath):
+                        # Reserve the whole root of nested and indexed aliases.
+                        if choice.path and isinstance(choice.path[0], str):
+                            keys.append(choice.path[0])
+                        else:
+                            invalid = True
+            for key in keys:
+                field_keys.setdefault(key, set()).add(name)
+    return field_keys, invalid
+
+
+def _require_builtin_container(value: object) -> None:
+    """Reject container subclasses before invoking any of their methods."""
+    if isinstance(value, (dict, list, tuple)) and type(value) not in (dict, list, tuple):
+        raise ValidationError.from_exception_data(
+            "ContractPayload",
+            [
+                {
+                    "type": "value_error",
+                    "loc": (),
+                    "input": None,
+                    "ctx": {"error": ValueError("unsupported custom container subclass")},
+                }
+            ],
+        )
+
+
+def _validation_payload(value: object) -> object:
+    """Flatten DTOs without coercing, overwriting or dropping unchecked fields."""
+    _require_builtin_container(value)
+    if isinstance(value, _ContractModel):
+        fields = vars(value)
+        extras = value.model_extra
+        # Storage is unchecked on model_construct/model_copy objects. Check it
+        # before key iteration, collision checks or either dict union operand.
+        _require_builtin_container(fields)
+        _require_builtin_container(extras)
+        field_keys, invalid = _model_field_keys(type(value))
+        invalid = invalid or (extras is not None and not isinstance(extras, dict))
+        extra_fields = extras if isinstance(extras, dict) else {}
+        invalid = invalid or (
+            any(type(key) is not str for key in (*fields, *extra_fields))
+            or any(key in fields or key in field_keys for key in extra_fields)
+            or any(key in field_keys and field_keys[key] != {key} for key in fields)
+        )
+        if invalid:
+            raise ValidationError.from_exception_data(
+                type(value).__name__,
+                [
+                    {
+                        "type": "value_error",
+                        "loc": (),
+                        "input": None,
+                        "ctx": {"error": ValueError("malformed or colliding DTO field/alias keys")},
+                    }
+                ],
+            )
+        value = fields | extra_fields
+    if isinstance(value, dict):
+        payload: dict[object, object] = {}
+        for key, item in value.items():
+            # Keys can contain tuple subclasses too. Inspect them before the
+            # new dictionary invokes their hash or equality methods.
+            _validation_payload(key)
+            payload[key] = _validation_payload(item)
+        return payload
+    if isinstance(value, tuple):
+        return tuple(_validation_payload(item) for item in value)
+    if isinstance(value, list):
+        return [_validation_payload(item) for item in value]
+    return value
 
 
 class RuleSeverity(StrEnum):

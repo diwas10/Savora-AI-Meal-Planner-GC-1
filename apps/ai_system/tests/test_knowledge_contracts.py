@@ -1,12 +1,21 @@
 """Synthetic contract tests. Fixture quantities have no clinical or nutritional meaning."""
 
 import json
+from collections.abc import Iterator
 from enum import StrEnum
 from itertools import permutations
 from typing import Any
 
 import pytest
-from pydantic import BaseModel, ValidationError
+from pydantic import (
+    AliasChoices,
+    AliasPath,
+    BaseModel,
+    ConfigDict,
+    Field,
+    TypeAdapter,
+    ValidationError,
+)
 
 from savora_ai.schemas import (
     ApplicabilityStatus,
@@ -28,6 +37,7 @@ from savora_ai.schemas import (
     aggregate_hard_status,
     is_candidate_eligible,
 )
+from savora_ai.schemas.reasoning import _validation_payload
 
 
 def evidence(**changes: Any) -> EvidenceReference:
@@ -1173,3 +1183,547 @@ def test_counterfeit_status_cannot_be_directly_eligible(token: str) -> None:
     fake = _counterfeit_enum(RuleStatus, token)
     with pytest.raises(ValidationError, match="canonical declared enum member"):
         is_candidate_eligible(fake)  # type: ignore[arg-type]
+
+
+class _ExtraRuleDefinition(RuleDefinition):
+    model_config = ConfigDict(extra="allow", alias_generator=lambda name: "input_" + name)
+
+
+class _AliasRuleDefinition(_ExtraRuleDefinition):
+    severity: RuleSeverity = Field(
+        alias="risk",
+        serialization_alias="wireSeverity",
+        validation_alias=AliasChoices(
+            "risk", AliasPath("nested", 0, "risk"), AliasPath("mapping", "risk")
+        ),
+    )
+
+
+@pytest.mark.parametrize("mode", ["construct", "copy"])
+@pytest.mark.parametrize("shadow", [RuleSeverity.SOFT, RuleSeverity.ABSOLUTE])
+def test_colliding_extra_hard_fail_never_returns_pass(mode: str, shadow: RuleSeverity) -> None:
+    required = rule()
+    passing = trace((required,), (evaluation(required),))
+    extra = rule(rule_id="extra-hard")
+    data = {"input_" + name: value for name, value in vars(extra).items()}
+    payload: dict[str, Any] = data | {"severity": shadow}
+    malicious = _ExtraRuleDefinition.model_construct(**payload)
+    if mode == "copy":
+        malicious = malicious.model_copy()
+    assert malicious.severity is RuleSeverity.ABSOLUTE
+    assert malicious.model_extra == {"severity": shadow}
+    failed = evaluation(extra, status=RuleStatus.FAIL, facts=(fact(value=9),))
+    invalid = passing.model_copy(
+        update={
+            "evaluations": (*passing.evaluations, failed.model_copy(update={"rule": malicious}))
+        }
+    )
+    with pytest.raises(ValidationError, match="colliding DTO"):
+        is_candidate_eligible(aggregate_hard_status(invalid))
+    assert malicious.severity is RuleSeverity.ABSOLUTE
+    assert malicious.model_extra == {"severity": shadow}
+    for validate in (
+        RuleDefinition.model_validate,
+        TypeAdapter(RuleDefinition).validate_python,
+    ):
+        with pytest.raises(ValidationError, match="colliding DTO"):
+            validate(malicious)
+    for validate in (RuleTrace.model_validate, TypeAdapter(RuleTrace).validate_python):
+        with pytest.raises(ValidationError, match="colliding DTO"):
+            validate(invalid)
+    with pytest.raises(ValidationError, match="colliding DTO"):
+        RuleEvaluation.model_validate(invalid.evaluations[-1])
+    with pytest.raises(ValidationError, match="colliding DTO"):
+        RuleTrace(**vars(invalid))
+
+
+@pytest.mark.parametrize("mode", ["construct", "copy"])
+@pytest.mark.parametrize(
+    "key",
+    [
+        "severity",
+        "input_severity",
+        "risk",
+        "wireSeverity",
+        "nested",
+        "mapping",
+        "requiredFacts",
+        "input_required_facts",
+    ],
+)
+def test_dto_field_and_inherited_alias_collisions_are_rejected(mode: str, key: str) -> None:
+    base = rule()
+    malicious = _AliasRuleDefinition.model_construct(**vars(base))
+    # Set unchecked storage explicitly when a constructor would consume an alias.
+    object.__setattr__(malicious, "__pydantic_extra__", {key: RuleSeverity.ABSOLUTE})
+    if mode == "copy":
+        malicious = malicious.model_copy()
+    invalid = trace((base,), (evaluation(base),)).model_copy(
+        update={"required_checks": (malicious,)}
+    )
+    with pytest.raises(ValidationError, match="colliding DTO"):
+        aggregate_hard_status(invalid)
+    for validate in (
+        RuleDefinition.model_validate,
+        _AliasRuleDefinition.model_validate,
+        TypeAdapter(RuleDefinition).validate_python,
+    ):
+        with pytest.raises(ValidationError, match="colliding DTO"):
+            validate(malicious)
+    with pytest.raises(ValidationError, match="colliding DTO"):
+        RuleTrace.model_validate(invalid)
+
+
+@pytest.mark.parametrize("mode", ["construct", "copy"])
+@pytest.mark.parametrize("token", ["ABSOLUTE", "SOFT", "UNDECLARED"])
+@pytest.mark.parametrize("location", ["field", "extra"])
+def test_collisions_cannot_hide_counterfeit_enums(mode: str, token: str, location: str) -> None:
+    base = rule()
+    fake = _counterfeit_enum(RuleSeverity, token)
+    payload: dict[str, Any] = vars(base) | {
+        "severity": fake if location == "field" else RuleSeverity.ABSOLUTE
+    }
+    malicious = _ExtraRuleDefinition.model_construct(**payload)
+    object.__setattr__(
+        malicious,
+        "__pydantic_extra__",
+        {"severity": fake if location == "extra" else RuleSeverity.SOFT},
+    )
+    if mode == "copy":
+        malicious = malicious.model_copy()
+    invalid = trace((base,), (evaluation(base),)).model_copy(
+        update={"required_checks": (malicious,)}
+    )
+    with pytest.raises(ValidationError, match="colliding DTO"):
+        is_candidate_eligible(aggregate_hard_status(invalid))
+    with pytest.raises(ValidationError, match="colliding DTO"):
+        RuleDefinition.model_validate(malicious)
+    with pytest.raises(ValidationError, match="colliding DTO"):
+        RuleTrace.model_validate(invalid)
+
+
+@pytest.mark.parametrize("extras", [[], "", 0, {1: "unexpected"}])
+def test_malformed_extra_storage_is_a_validation_error(extras: Any) -> None:
+    base = rule()
+    malicious = _ExtraRuleDefinition.model_construct(**vars(base))
+    object.__setattr__(malicious, "__pydantic_extra__", extras)
+    invalid = trace((base,), (evaluation(base),)).model_copy(
+        update={"required_checks": (malicious,)}
+    )
+    with pytest.raises(ValidationError, match="malformed"):
+        aggregate_hard_status(invalid)
+    with pytest.raises(ValidationError, match="malformed"):
+        RuleDefinition.model_validate(malicious)
+
+
+def test_alias_shadow_in_field_storage_is_rejected() -> None:
+    base = rule()
+    malicious = base.model_copy(update={"requiredFacts": base.required_facts})
+    invalid = trace((base,), (evaluation(base),)).model_copy(
+        update={"required_checks": (malicious,)}
+    )
+    with pytest.raises(ValidationError, match="colliding DTO"):
+        aggregate_hard_status(invalid)
+
+
+def test_alias_shared_by_two_declared_fields_is_rejected() -> None:
+    class AmbiguousRule(_AliasRuleDefinition):
+        risk: RuleSeverity
+
+    base = rule()
+    payload: dict[str, Any] = vars(base) | {"risk": RuleSeverity.ABSOLUTE}
+    malicious = AmbiguousRule.model_construct(**payload)
+    invalid = trace((base,), (evaluation(base),)).model_copy(
+        update={"required_checks": (malicious,)}
+    )
+    with pytest.raises(ValidationError, match="colliding DTO"):
+        aggregate_hard_status(invalid)
+
+
+def test_duplicate_unknown_keys_are_rejected_before_merging() -> None:
+    base = rule()
+    malicious = _ExtraRuleDefinition.model_construct(**vars(base))
+    vars(malicious)["unexpected"] = 1
+    object.__setattr__(malicious, "__pydantic_extra__", {"unexpected": 1})
+    invalid = trace((base,), (evaluation(base),)).model_copy(
+        update={"required_checks": (malicious,)}
+    )
+    with pytest.raises(ValidationError, match="colliding DTO"):
+        aggregate_hard_status(invalid)
+
+
+def test_noncolliding_extras_are_retained_for_strict_validation() -> None:
+    base = rule()
+    payload: dict[str, Any] = vars(base) | {"unexpected": 1}
+    malicious = _ExtraRuleDefinition.model_construct(**payload)
+    flattened = _validation_payload(malicious)
+    assert isinstance(flattened, dict) and flattened["unexpected"] == 1
+    invalid = trace((base,), (evaluation(base),)).model_copy(
+        update={"required_checks": (malicious,)}
+    )
+    with pytest.raises(ValidationError) as error:
+        aggregate_hard_status(invalid)
+    assert any(item["type"] == "extra_forbidden" for item in error.value.errors())
+    with pytest.raises(ValidationError) as direct_error:
+        RuleDefinition.model_validate(malicious)
+    assert any(item["type"] == "extra_forbidden" for item in direct_error.value.errors())
+
+
+def test_recursive_payload_preserves_containers_and_declared_types() -> None:
+    base = rule()
+    value = {"tuple": (base,), "list": [base], "dict": {"rule": base}}
+    flattened = _validation_payload(value)
+    assert isinstance(flattened, dict)
+    assert type(flattened["tuple"]) is tuple
+    assert type(flattened["list"]) is list
+    assert type(flattened["dict"]) is dict
+    for payload in (flattened["tuple"][0], flattened["list"][0], flattened["dict"]["rule"]):
+        assert payload["severity"] is RuleSeverity.ABSOLUTE
+        assert type(payload["value"]) is int
+        assert type(payload["required_facts"]) is tuple
+        assert RuleDefinition.model_validate(payload) == base
+
+
+@pytest.mark.parametrize("subclass", [_ExtraRuleDefinition, _AliasRuleDefinition])
+def test_valid_dto_subclasses_keep_normal_aggregation(subclass: type[RuleDefinition]) -> None:
+    base = rule()
+    valid = subclass.model_construct(**vars(base))
+    valid_trace = trace((base,), (evaluation(base),)).model_copy(
+        update={"required_checks": (valid,)}
+    )
+    assert aggregate_hard_status(valid_trace) is RuleStatus.PASS
+    assert is_candidate_eligible(aggregate_hard_status(valid_trace))
+
+
+@pytest.mark.parametrize("entry", ["model", "adapter", "constructor"])
+@pytest.mark.parametrize(
+    "key", ["input_severity", "risk", "wireSeverity", "nested", "mapping", "requiredFacts"]
+)
+def test_direct_dictionary_alias_collisions_are_rejected(entry: str, key: str) -> None:
+    payload: dict[str, Any] = vars(rule()) | {key: RuleSeverity.ABSOLUTE}
+    with pytest.raises(ValidationError, match="colliding DTO"):
+        if entry == "model":
+            _AliasRuleDefinition.model_validate(payload)
+        elif entry == "adapter":
+            TypeAdapter(_AliasRuleDefinition).validate_python(payload)
+        else:
+            _AliasRuleDefinition(**payload)
+
+
+@pytest.mark.parametrize("kind", ["rule", "trace"])
+@pytest.mark.parametrize("entry", ["model", "adapter", "constructor", "json", "adapter_json"])
+def test_direct_validation_preserves_valid_dto_and_wire_behavior(kind: str, entry: str) -> None:
+    base = rule()
+    original: Any = base if kind == "rule" else trace((base,), (evaluation(base),))
+    target: Any = type(original)
+    if entry == "model":
+        result = target.model_validate(original)
+    elif entry == "adapter":
+        result = TypeAdapter(target).validate_python(original)
+    elif entry == "constructor":
+        result = target(**original.model_dump(by_alias=True))
+    elif entry == "json":
+        result = target.model_validate_json(original.model_dump_json(by_alias=True))
+    else:
+        result = TypeAdapter(target).validate_json(original.model_dump_json(by_alias=True))
+    assert result == original
+    definition = result if kind == "rule" else result.required_checks[0]
+    assert definition.severity is RuleSeverity.ABSOLUTE
+    if kind == "trace":
+        assert aggregate_hard_status(result) is RuleStatus.PASS
+
+
+@pytest.mark.parametrize("entry", ["strings", "adapter_strings"])
+@pytest.mark.parametrize("key", ["rule_id", "ruleId"])
+def test_string_validation_preserves_normal_references(entry: str, key: str) -> None:
+    payload = {key: "synthetic-rule", "version": "fixture-v1"}
+    result = (
+        RuleReference.model_validate_strings(payload)
+        if entry == "strings"
+        else TypeAdapter(RuleReference).validate_strings(payload)
+    )
+    assert result == RuleReference(rule_id="synthetic-rule", version="fixture-v1")
+
+
+@pytest.mark.parametrize(
+    "entry", ["model", "adapter", "strings", "adapter_strings", "json", "adapter_json"]
+)
+def test_reference_alias_collisions_fail_at_real_validation_entry_points(entry: str) -> None:
+    payload = {"rule_id": "synthetic-rule", "ruleId": "synthetic-rule", "version": "fixture-v1"}
+    with pytest.raises(ValidationError):
+        if entry == "model":
+            RuleReference.model_validate(payload)
+        elif entry == "adapter":
+            TypeAdapter(RuleReference).validate_python(payload)
+        elif entry == "strings":
+            RuleReference.model_validate_strings(payload)
+        elif entry == "adapter_strings":
+            TypeAdapter(RuleReference).validate_strings(payload)
+        elif entry == "json":
+            RuleReference.model_validate_json(json.dumps(payload))
+        else:
+            TypeAdapter(RuleReference).validate_json(json.dumps(payload))
+
+
+@pytest.mark.parametrize("entry", ["model", "adapter"])
+def test_cyclic_unchecked_trace_fails_direct_validation(entry: str) -> None:
+    recursive: dict[str, Any] = {}
+    recursive["cycle"] = recursive
+    invalid = trace().model_copy(update={"required_checks": (recursive,)})
+    with pytest.raises(ValidationError, match="cyclic or excessively deep"):
+        if entry == "model":
+            RuleTrace.model_validate(invalid)
+        else:
+            TypeAdapter(RuleTrace).validate_python(invalid)
+
+
+@pytest.mark.parametrize("key", ["risk", "nested", "mapping"])
+def test_valid_alias_choices_and_paths_are_preserved(key: str) -> None:
+    base = rule()
+    payload: dict[str, Any] = vars(base).copy()
+    del payload["severity"]
+    payload[key] = (
+        [{"risk": RuleSeverity.ABSOLUTE}]
+        if key == "nested"
+        else {"risk": RuleSeverity.ABSOLUTE}
+        if key == "mapping"
+        else RuleSeverity.ABSOLUTE
+    )
+    valid = _AliasRuleDefinition.model_validate(payload)
+    assert valid.severity is RuleSeverity.ABSOLUTE
+    assert RuleDefinition.model_validate(valid) == base
+
+
+def test_distinct_alias_paths_can_share_a_valid_container_root() -> None:
+    class SharedRootReference(RuleReference):
+        rule_id: str = Field(validation_alias=AliasPath("binding", "id"))
+        version: str = Field(validation_alias=AliasPath("binding", "version"))
+
+    valid = SharedRootReference.model_validate(
+        {"binding": {"id": "synthetic-rule", "version": "fixture-v1"}}
+    )
+    assert RuleReference.model_validate(valid) == RuleReference(
+        rule_id="synthetic-rule", version="fixture-v1"
+    )
+
+
+@pytest.mark.parametrize("container", ["tuple", "list", "dict", "foreign_model"])
+def test_reused_nested_schemas_cannot_bypass_the_collision_guard(container: str) -> None:
+    base = rule()
+    payload: dict[str, Any] = {"input_" + name: value for name, value in vars(base).items()}
+    payload["severity"] = RuleSeverity.SOFT
+    malicious = _ExtraRuleDefinition.model_construct(**payload)
+    with pytest.raises(ValidationError, match="colliding DTO"):
+        if container == "tuple":
+            TypeAdapter(tuple[RuleDefinition, RuleDefinition]).validate_python((base, malicious))
+        elif container == "list":
+            TypeAdapter(list[RuleDefinition]).validate_python([base, malicious])
+        elif container == "dict":
+            TypeAdapter(dict[str, RuleDefinition]).validate_python(
+                {"valid": base, "invalid": malicious}
+            )
+        else:
+
+            class Pair(BaseModel):
+                left: RuleDefinition
+                right: RuleDefinition
+
+            Pair.model_validate({"left": base, "right": malicious})
+
+
+_container_calls: list[str] = []
+
+
+class _HiddenKeys(dict[str, Any]):
+    def __iter__(self) -> Iterator[str]:
+        _container_calls.append("__iter__")
+        return iter(())
+
+
+class _HiddenItems(dict[str, Any]):
+    def items(self) -> Any:
+        _container_calls.append("items")
+        return iter(())
+
+
+class _LeftUnion(dict[str, Any]):
+    def __or__(self, other: Any) -> Any:
+        _container_calls.append("__or__")
+        return dict(dict.items(self)) | {"severity": RuleSeverity.SOFT}
+
+
+class _RightUnion(dict[str, Any]):
+    def __ror__(self, other: Any) -> Any:
+        _container_calls.append("__ror__")
+        return dict(other) | {"severity": RuleSeverity.SOFT}
+
+
+class _HiddenTuple(tuple[Any, ...]):
+    def __iter__(self) -> Iterator[Any]:
+        _container_calls.append("tuple.__iter__")
+        return iter(tuple.__getitem__(self, slice(0, 1)))
+
+
+class _HiddenList(list[Any]):
+    def __iter__(self) -> Iterator[Any]:
+        _container_calls.append("list.__iter__")
+        return iter(list.__getitem__(self, slice(0, 1)))
+
+
+_CUSTOM_DICTS = (_HiddenKeys, _HiddenItems, _LeftUnion, _RightUnion)
+_CUSTOM_SEQUENCES = (_HiddenTuple, _HiddenList)
+
+
+@pytest.mark.parametrize("container", _CUSTOM_DICTS)
+@pytest.mark.parametrize("entry", ["model", "adapter", "recursive"])
+def test_custom_dicts_are_rejected_before_methods(container: Any, entry: str) -> None:
+    payload = container(rule().model_dump() | {"unexpected": "must not disappear"})
+    _container_calls.clear()
+    with pytest.raises(ValidationError, match="unsupported custom container subclass"):
+        if entry == "model":
+            RuleDefinition.model_validate(payload)
+        elif entry == "adapter":
+            TypeAdapter(RuleDefinition).validate_python(payload)
+        else:
+            _validation_payload(payload)
+    assert not _container_calls
+
+
+@pytest.mark.parametrize("container", _CUSTOM_DICTS)
+@pytest.mark.parametrize("entry", ["model", "adapter", "strings", "adapter_strings"])
+def test_custom_dicts_reach_guards_before_string_normalization(container: Any, entry: str) -> None:
+    payload = container(rule_id="synthetic", version="1", unexpected="must not disappear")
+    _container_calls.clear()
+    with pytest.raises(ValidationError, match="unsupported custom container subclass"):
+        if entry == "model":
+            RuleReference.model_validate(payload)
+        elif entry == "adapter":
+            TypeAdapter(RuleReference).validate_python(payload)
+        elif entry == "strings":
+            RuleReference.model_validate_strings(payload)
+        else:
+            TypeAdapter(RuleReference).validate_strings(payload)
+    assert not _container_calls
+
+
+@pytest.mark.parametrize("container", _CUSTOM_DICTS)
+@pytest.mark.parametrize("storage", ["fields", "extras"])
+@pytest.mark.parametrize("mode", ["construct", "copy"])
+@pytest.mark.parametrize("key", ["severity", "input_severity", "requiredFacts"])
+@pytest.mark.parametrize("same_value", [False, True])
+def test_custom_dto_storage_cannot_hide_collisions(
+    container: Any, storage: str, mode: str, key: str, same_value: bool
+) -> None:
+    base = rule()
+    malicious = _ExtraRuleDefinition.model_construct(**vars(base))
+    if mode == "copy":
+        malicious = malicious.model_copy()
+    shadow = RuleSeverity.ABSOLUTE if same_value else RuleSeverity.SOFT
+    object.__setattr__(malicious, "__pydantic_extra__", {key: shadow})
+    if storage == "fields":
+        object.__setattr__(malicious, "__dict__", container(vars(malicious)))
+    else:
+        object.__setattr__(malicious, "__pydantic_extra__", container({key: shadow}))
+    nested = trace((base,), (evaluation(base),)).model_copy(
+        update={"required_checks": (malicious,)}
+    )
+    _container_calls.clear()
+    validations = (
+        (RuleDefinition.model_validate, malicious),
+        (TypeAdapter(RuleDefinition).validate_python, malicious),
+        (RuleTrace.model_validate, nested),
+        (TypeAdapter(RuleTrace).validate_python, nested),
+        (_validation_payload, nested),
+    )
+    for validate, payload in validations:
+        with pytest.raises(ValidationError, match="unsupported custom container subclass"):
+            validate(payload)
+    with pytest.raises(ValidationError, match="unsupported custom container subclass"):
+        aggregate_hard_status(nested)
+    assert not _container_calls
+
+
+@pytest.mark.parametrize("container", _CUSTOM_SEQUENCES)
+@pytest.mark.parametrize("mode", ["dict", "construct", "copy"])
+def test_custom_sequences_cannot_hide_additional_hard_fail(container: Any, mode: str) -> None:
+    base = rule()
+    extra = rule(rule_id="extra-hard")
+    passing = trace((base,), (evaluation(base),))
+    failed = evaluation(extra, status=RuleStatus.FAIL, facts=(fact(value=9),))
+    # Built-in tuples expose the extra hard FAIL and are already rejected.
+    values = (*passing.evaluations, failed)
+    with pytest.raises(ValidationError, match="absent from required manifest"):
+        RuleTrace.model_validate(vars(passing) | {"evaluations": values})
+    payload: Any = vars(passing) | {"evaluations": container(values)}
+    if mode == "construct":
+        payload = RuleTrace.model_construct(**payload)
+    elif mode == "copy":
+        payload = passing.model_copy(update={"evaluations": payload["evaluations"]})
+    _container_calls.clear()
+    for validate in (RuleTrace.model_validate, TypeAdapter(RuleTrace).validate_python):
+        with pytest.raises(ValidationError, match="unsupported custom container subclass"):
+            validate(payload)
+    with pytest.raises(ValidationError, match="unsupported custom container subclass"):
+        aggregate_hard_status(payload)
+    assert not _container_calls
+
+
+@pytest.mark.parametrize("container", [*_CUSTOM_DICTS, *_CUSTOM_SEQUENCES])
+@pytest.mark.parametrize("entry", ["model", "adapter", "constructor"])
+def test_nested_custom_containers_are_checked_before_field_normalization(
+    container: Any, entry: str
+) -> None:
+    base = rule()
+    payload = base.model_dump()
+    if container in _CUSTOM_DICTS:
+        payload["applicability_reference"] = container(payload["applicability_reference"])
+    else:
+        payload["required_facts"] = container(base.required_facts)
+    _container_calls.clear()
+    with pytest.raises(ValidationError, match="unsupported custom container subclass"):
+        if entry == "model":
+            RuleDefinition.model_validate(payload)
+        elif entry == "adapter":
+            TypeAdapter(RuleDefinition).validate_python(payload)
+        else:
+            RuleDefinition(**payload)
+    assert not _container_calls
+
+
+def test_builtin_containers_dtos_and_json_preserve_validation() -> None:
+    base = rule()
+    passing = trace((base,), (evaluation(base),))
+    assert RuleTrace.model_validate(passing.model_dump()) == passing
+    assert TypeAdapter(RuleTrace).validate_python(passing) == passing
+    assert RuleTrace.model_validate_json(passing.model_dump_json()) == passing
+    assert TypeAdapter(RuleTrace).validate_json(passing.model_dump_json()) == passing
+    assert aggregate_hard_status(passing) is RuleStatus.PASS
+    # Lists remain lists in Python (strict tuple fields still reject them); JSON
+    # arrays and alias-path lists retain their existing supported behavior.
+    tree = {"list": [base], "tuple": (base,), "dict": {"rule": base}}
+    flattened: Any = _validation_payload(tree)
+    assert type(flattened["list"]) is list
+    assert type(flattened["tuple"]) is tuple
+    assert type(flattened["dict"]) is dict
+    for record in (flattened["list"][0], flattened["tuple"][0], flattened["dict"]["rule"]):
+        assert RuleDefinition.model_validate(record) == base
+
+
+@pytest.mark.parametrize("entry", ["model", "adapter", "recursive"])
+def test_custom_tuple_dictionary_keys_are_rejected_before_rehashing(entry: str) -> None:
+    class HashTuple(tuple[str, ...]):
+        def __hash__(self) -> int:
+            _container_calls.append("__hash__")
+            return tuple.__hash__(self)
+
+    payload: dict[Any, Any] = rule().model_dump()
+    payload[HashTuple(("unexpected",))] = "must not disappear"
+    _container_calls.clear()
+    with pytest.raises(ValidationError, match="unsupported custom container subclass"):
+        if entry == "model":
+            RuleDefinition.model_validate(payload)
+        elif entry == "adapter":
+            TypeAdapter(RuleDefinition).validate_python(payload)
+        else:
+            _validation_payload(payload)
+    assert not _container_calls
