@@ -19,6 +19,7 @@ from savora_ai.schemas.knowledge import (
     _validate_evidence,
     _validate_value_unit,
 )
+from savora_ai.schemas.knowledge import _validation_payload as _validation_payload
 
 
 class RuleStatus(StrEnum):
@@ -191,24 +192,6 @@ class RuleTrace(_ContractModel):
                 )
             provenance[identity] = reference
         return self
-
-
-def _validation_payload(value: object) -> object:
-    """Flatten DTO instances without coercing or dropping unchecked fields.
-
-    Retain container types and enum instances for strict Python validation. Reading the
-    field mapping also retains unknown model_copy updates that model_dump can omit.
-    No nested DTO instance is passed through to the validating constructor.
-    """
-    if isinstance(value, _ContractModel):
-        value = vars(value) | (value.model_extra or {})
-    if isinstance(value, dict):
-        return {key: _validation_payload(item) for key, item in value.items()}
-    if isinstance(value, tuple):
-        return tuple(_validation_payload(item) for item in value)
-    if isinstance(value, list):
-        return [_validation_payload(item) for item in value]
-    return value
 
 
 def aggregate_hard_status(trace: RuleTrace) -> RuleStatus:
