@@ -30,7 +30,9 @@ from savora_ai.schemas.knowledge import (
     ApprovalStatus,
     EvidenceReference,
     MeasurementUnit,
+    PredicateOperator,
     RuleDefinition,
+    RuleDomain,
     RuleLifecycle,
     RuleScope,
     RuleSeverity,
@@ -115,6 +117,59 @@ _APPLICABILITY = MappingProxyType(
 )
 
 
+class _CombinationAttributePolicy(NamedTuple):
+    scope: RuleScope
+    domain: RuleDomain
+    kind: Literal["boolean"]
+    operators: tuple[PredicateOperator, ...]
+    unit: None
+    applicability: tuple[str, str]
+
+
+# Separate ownership: never insert these names into the recipe fact adapters.
+_COMBINATION_ATTRIBUTES = MappingProxyType(
+    {
+        name: _CombinationAttributePolicy(
+            RuleScope.COMBINATION,
+            RuleDomain.CULINARY,
+            "boolean",
+            (PredicateOperator.EQ, PredicateOperator.NE),
+            None,
+            ("synthetic-context-enabled", "1"),
+        )
+        for name in (
+            "synthetic_combination_roles_compatible",
+            "synthetic_combination_composition_complete",
+        )
+    }
+)
+
+
+def _validate_combination_rule_policy(rule: RuleDefinition) -> None:
+    policy = _COMBINATION_ATTRIBUTES.get(rule.attribute)
+    if policy is None:
+        raise ValueError("combination-owned prerequisites require a combination predicate")
+    if (
+        rule.scope is not policy.scope
+        or rule.domain is not policy.domain
+        or type(rule.value) is not bool
+        or rule.operator not in policy.operators
+        or rule.unit is not policy.unit
+        or (rule.applicability_reference.rule_id, rule.applicability_reference.version)
+        != policy.applicability
+    ):
+        raise ValueError("unsupported combination scope/domain/predicate/unit/applicability")
+    for name in rule.required_facts:
+        if name in _COMBINATION_ATTRIBUTES:
+            continue
+        prerequisite = _ATTRIBUTES.get(name)
+        if prerequisite is None or prerequisite.subject not in (
+            FactSubjectKind.PROFILE,
+            FactSubjectKind.CONTEXT,
+        ):
+            raise ValueError("unsupported combination required attribute or recipe-owned fact")
+
+
 class _ManifestContent(_ContractModel):
     schema_version: Literal["expected-check-manifest.v1"] = "expected-check-manifest.v1"
     stage: Literal["RECIPE_FILTER"] = "RECIPE_FILTER"
@@ -127,9 +182,9 @@ class _ManifestContent(_ContractModel):
     evaluator_policy_version: Literal["synthetic-rule-evaluation.v1"] = (
         "synthetic-rule-evaluation.v1"
     )
-    attribute_policy_version: Literal["synthetic-attributes.v1", "synthetic-attributes.v2"] = (
-        "synthetic-attributes.v1"
-    )
+    attribute_policy_version: Literal[
+        "synthetic-attributes.v1", "synthetic-attributes.v2", "synthetic-attributes.v3-combination"
+    ] = "synthetic-attributes.v1"
     identity_policy_version: Literal["synthetic-manifest-identity.v1"] = (
         "synthetic-manifest-identity.v1"
     )
@@ -159,6 +214,7 @@ class _ManifestContent(_ContractModel):
     def validate_checks(self) -> Self:
         _require_canonical_enum(self.workflow)
         seen: set[str] = set()
+        has_combination_attributes = False
         for deferred, checks in ((False, self.required_checks), (True, self.deferred_checks)):
             for rule in checks:
                 if rule.rule_id in seen:
@@ -172,6 +228,15 @@ class _ManifestContent(_ContractModel):
                     raise ValueError("Phase 3 mandatory hard rules must be ACTIVE and APPROVED")
                 if deferred != (rule.scope not in (RuleScope.PROFILE, RuleScope.RECIPE)):
                     raise ValueError("fixed recipe-filter scope partition mismatch")
+                if any(name in _COMBINATION_ATTRIBUTES for name in rule.required_facts):
+                    has_combination_attributes = True
+                    _validate_combination_rule_policy(rule)
+        if has_combination_attributes != (
+            self.attribute_policy_version == "synthetic-attributes.v3-combination"
+        ):
+            raise ValueError(
+                "combination attributes require their exact scope-aware policy version"
+            )
         if self.workflow is KnowledgeWorkflow.CRAVING_DISCOVERY and self.deferred_checks:
             raise ValueError("standalone craving cannot carry later-scope obligations")
         return self
