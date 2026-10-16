@@ -335,25 +335,90 @@ These can complement the numerical `minutes` column when filtering or ranking re
 
 # 12. Cuisine Information
 
-Cuisine information is mainly encoded through tags.
+Cuisine candidates use an explicit, limited 15-category EDA taxonomy. They are
+metadata labels, not verified cultural classifications or runtime eligibility rules.
 
-The EDA identified:
+| Cuisine | Recipes |
+|---|---:|
+| Indian | 2,708 |
+| Chinese | 2,008 |
+| Italian | 7,410 |
+| Mexican | 6,694 |
+| Thai | 1,208 |
+| Japanese | 851 |
+| Korean | 253 |
+| French | 2,268 |
+| Greek | 2,391 |
+| Mediterranean | 0 |
+| American | 31,179 |
+| British | 2,249 |
+| Spanish | 1,072 |
+| Middle Eastern | 2,067 |
+| Vietnamese | 351 |
 
-- 68,631 recipes with an identified cuisine
-- Approximately 29.63% of all recipes
+Each category uses the exact lowercase tag shown in the implementation mapping:
+`indian`, `chinese`, `italian`, `mexican`, `thai`, `japanese`, `korean`,
+`french`, `greek`, `mediterranean`, `american`, `spanish`,
+`middle-eastern`, and `vietnamese`. British instead matches the verified
+`english`, `scottish`, and `welsh` tags. Their individual counts are 1,744,
+715, and 203; the recipe-ID union is 2,249, so adding their tag frequencies
+would overcount. There is no exact `british` tag in this source. The 635
+`british-columbian` recipes do not establish British cuisine; an independent
+mapped British tag would still justify a British label.
 
-The generic `cuisine` tag itself occurs in 91,165 recipes.
+American uses only `american`. `north-american`, `central-american`,
+`south-american`, and `native-american` do not imply that label. Chinese uses
+`chinese`, excluding holiday-only `chinese-new-year`; Middle Eastern uses
+`middle-eastern`, excluding `middle-eastern-main-dish` unless the exact cuisine
+tag is also present. No substring, fuzzy, or space/hyphen rewriting is used.
+The exact `mediterranean` tag is absent; zero means no match under this limited
+taxonomy, not that the dataset has no Mediterranean dishes.
 
-The dataset also contains an `indian` tag:
+CSV tag lists are parsed with `ast.literal_eval`, validated as lists of strings,
+then normalized with `strip().lower()`. Cuisine analysis reads the raw tag fields directly;
+the notebook's older generic list parser can return an empty list on errors,
+so it is not used as the cuisine-validation boundary. Malformed cuisine input
+raises an error.
+Counting uses sets of stable recipe IDs within each cuisine. Multiple labels
+require explicit supported tags for each label; duplicate rows and repeated
+tags do not increase counts. The implementation and full mapping live in
+`apps/ai_system/src/savora_ai/core/food_data/foodcom_cuisines.py`.
 
-- Indian recipes: 2,708
+Recipe-level results:
 
-However, the EDA did not find explicit:
+- 231,637 unique recipe IDs; 0 duplicate IDs in the source.
+- 59,381 recipes with at least one mapped cuisine: 25.64% (25.635369133601284%).
+- 172,256 recipes without a mapped cuisine.
+- 62,709 cuisine assignments, including 3,176 recipes with multiple labels.
+- The generic `cuisine` tag remains 91,165 recipes and does not assign a category.
 
-- South Indian tags
-- North Indian tags
+These figures replace the former substring-based counts and coverage.
+All 552 normalized tag frequencies were independently checked against the
+recipe-level source and the existing `foodcom_all_tags_eda.csv`; that export is
+unchanged. Dietary and other metadata exports are also unaffected.
 
-Therefore, Food.com alone may not provide sufficiently fine-grained regional cuisine classification.
+Reproduce from the repository root, with the actual recipe-level CSV available:
+
+```powershell
+uv run python -m savora_ai.core.food_data.foodcom_cuisines --source "PATH/RAW_recipes.csv"
+uv run python -m savora_ai.core.food_data.foodcom_cuisines --source "PATH/RAW_recipes.csv" --check
+$env:FOODCOM_RAW_RECIPES = "PATH/RAW_recipes.csv"
+uv run pytest -q apps/ai_system/tests/test_foodcom_cuisines.py
+```
+
+`--check` performs no writes. Missing source records stop regeneration; counts
+are never approximated from aggregate tag totals. The review worktree did not
+contain `RAW_recipes.csv`; regeneration read the available original-workspace
+CSV without changing it. `foodcom_cuisine_provenance_eda.json` records the source
+filename, SHA-256, normalization, deduplication, and exact taxonomy.
+`foodcom_cuisine_coverage_eda.csv` records the denominator, union, assignments,
+multi-label count, and unrounded percentage.
+
+The notebook's cuisine tag display, counts, chart, candidates, coverage, and
+stage-3 summary use the same exact-tag helper and refreshed recipe-level results.
+Only cuisine-dependent cells were re-executed for this review. The dataset has
+an `indian` tag but no explicit South Indian or North Indian tags, so finer
+regional classification needs additional validated evidence.
 
 ---
 
@@ -372,6 +437,16 @@ The notebook converts this field into a Python list and then separates it into s
 7. Carbohydrates — %DV, not grams
 
 Before applying physical-unit nutrition constraints, convert the %DV fields using validated dataset-specific daily-value references and verify the serving/reference quantity.
+
+The notebook retains these raw values without conversion. A percentage of a
+daily reference is neither a gram/milligram amount nor a percentage by mass.
+Neither these columns nor the kcal field establish a per-100-g basis. Any
+per-serving interpretation must be verified against the dataset's serving
+reference; conversion to per-100-g additionally requires a validated mass for
+that reference serving. The raw recipe CSV has no serving-mass column.
+Until those references and quantities are validated, do not pass these raw
+columns to gram, milligram, or per-100-g rules. No conversion factors are
+assumed or introduced here.
 
 All 231,637 recipes contain nutrition vectors of length 7.
 
@@ -871,7 +946,7 @@ It provides the information needed for:
 - recipe identification
 - ingredient matching
 - dietary filtering
-- nutrition constraints
+- nutrition constraints after validated %DV conversion and serving/reference-mass validation
 - recipe ranking features
 - meal-plan generation
 
@@ -1001,7 +1076,7 @@ The Food.com EDA shows several important characteristics of the dataset:
 
 5. Recipes contain rich dietary and semantic tags such as vegetarian, vegan, low-sodium, low-carb and cuisine information.
 
-6. Cuisine information is incomplete: only about 29.63% of recipes were assigned an identified cuisine in the notebook's cuisine extraction.
+6. Cuisine information is incomplete: only about 25.64% of recipes were assigned an identified cuisine in the notebook's cuisine extraction.
 
 7. Ingredient vocabulary is highly varied, with 14,942 unique raw ingredient strings.
 
@@ -1057,7 +1132,7 @@ The EDA also reveals several limitations that should be considered during system
 
 - Nutrition contains extreme/outlier values.
 - Food.com dietary tags are metadata labels rather than authoritative medical guidelines.
-- Only around 29.63% of recipes received an identified cuisine in the notebook's cuisine analysis.
+- Only around 25.64% of recipes received an identified cuisine in the notebook's cuisine analysis.
 - Fine-grained categories such as South Indian and North Indian were not available as explicit tags.
 - Ingredient mapping covers approximately 78% of unique raw ingredient strings rather than 100%.
 - Ratings are heavily biased toward positive ratings.

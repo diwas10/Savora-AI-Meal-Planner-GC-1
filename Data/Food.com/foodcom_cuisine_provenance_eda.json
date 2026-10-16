@@ -1,0 +1,55 @@
+{
+  "source_file": "RAW_recipes.csv",
+  "source_sha256": "6a8136d1da9e03396a9f52d72200b3fddb8fe103f11e1496effca30ac4e0539f",
+  "taxonomy": {
+    "Indian": [
+      "indian"
+    ],
+    "Chinese": [
+      "chinese"
+    ],
+    "Italian": [
+      "italian"
+    ],
+    "Mexican": [
+      "mexican"
+    ],
+    "Thai": [
+      "thai"
+    ],
+    "Japanese": [
+      "japanese"
+    ],
+    "Korean": [
+      "korean"
+    ],
+    "French": [
+      "french"
+    ],
+    "Greek": [
+      "greek"
+    ],
+    "Mediterranean": [
+      "mediterranean"
+    ],
+    "American": [
+      "american"
+    ],
+    "British": [
+      "english",
+      "scottish",
+      "welsh"
+    ],
+    "Spanish": [
+      "spanish"
+    ],
+    "Middle Eastern": [
+      "middle-eastern"
+    ],
+    "Vietnamese": [
+      "vietnamese"
+    ]
+  },
+  "normalization": "ast.literal_eval list[str]; strip and lower; exact tag equality",
+  "deduplication": "unique recipe id per cuisine; coverage is the union of recipe ids"
+}
