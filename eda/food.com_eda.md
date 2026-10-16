@@ -363,13 +363,15 @@ The original `nutrition` field is stored as a string containing seven values.
 
 The notebook converts this field into a Python list and then separates it into seven nutrition variables:
 
-1. Calories
-2. Total fat
-3. Sugar
-4. Sodium
-5. Protein
-6. Saturated fat
-7. Carbohydrates
+1. Calories — kcal
+2. Total fat — %DV, not grams
+3. Sugar — %DV, not grams
+4. Sodium — %DV, not milligrams
+5. Protein — %DV, not grams
+6. Saturated fat — %DV, not grams
+7. Carbohydrates — %DV, not grams
+
+Before applying physical-unit nutrition constraints, convert the %DV fields using validated dataset-specific daily-value references and verify the serving/reference quantity.
 
 All 231,637 recipes contain nutrition vectors of length 7.
 
