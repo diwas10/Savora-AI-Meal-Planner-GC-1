@@ -33,6 +33,7 @@ from savora_ai.schemas.knowledge import (
     PredicateOperator,
     RuleDefinition,
     RuleDomain,
+    RuleEnvironment,
     RuleLifecycle,
     RuleScope,
     RuleSeverity,
@@ -170,6 +171,58 @@ def _validate_combination_rule_policy(rule: RuleDefinition) -> None:
             raise ValueError("unsupported combination required attribute or recipe-owned fact")
 
 
+_DAY_MAX_TOTAL = 2**63 - 1  # Representation/resource bound, never a nutritional threshold.
+_DAY_ATTRIBUTES = MappingProxyType(
+    {"synthetic_day_complete": None, "synthetic_day_quantity_total": MeasurementUnit.MG}
+)
+
+
+def _validate_day_rule_policy(rule: RuleDefinition) -> None:
+    """Admit only the two application-owned, synthetic DAY predicates; execute neither."""
+    if (
+        rule.attribute not in _DAY_ATTRIBUTES
+        or rule.scope is not RuleScope.DAY
+        or rule.domain is not RuleDomain.CULINARY
+        or rule.environment is not RuleEnvironment.SYNTHETIC
+        or rule.lifecycle is not RuleLifecycle.ACTIVE
+        or rule.severity is not RuleSeverity.ABSOLUTE
+        or rule.approval_status is not ApprovalStatus.APPROVED
+        or rule.unit is not _DAY_ATTRIBUTES.get(rule.attribute)
+        or (rule.applicability_reference.rule_id, rule.applicability_reference.version)
+        != ("synthetic-context-enabled", "1")
+    ):
+        raise ValueError("unsupported DAY scope/domain/unit/applicability or admission metadata")
+    numeric = rule.attribute == "synthetic_day_quantity_total"
+    operators = (
+        (
+            PredicateOperator.LT,
+            PredicateOperator.LE,
+            PredicateOperator.GT,
+            PredicateOperator.GE,
+            PredicateOperator.EQ,
+            PredicateOperator.NE,
+        )
+        if numeric
+        else (PredicateOperator.EQ, PredicateOperator.NE)
+    )
+    valid_value = (
+        type(rule.value) is int and 0 <= rule.value <= _DAY_MAX_TOTAL
+        if numeric
+        else type(rule.value) is bool
+    )
+    if rule.operator not in operators or not valid_value:
+        raise ValueError("unsupported DAY predicate/value")
+    for name in rule.required_facts:
+        if name in _DAY_ATTRIBUTES:
+            continue
+        policy = _ATTRIBUTES.get(name)
+        if policy is None or policy.subject not in (
+            FactSubjectKind.PROFILE,
+            FactSubjectKind.CONTEXT,
+        ):
+            raise ValueError("unsupported DAY prerequisite or non-DAY food ownership")
+
+
 class _ManifestContent(_ContractModel):
     schema_version: Literal["expected-check-manifest.v1"] = "expected-check-manifest.v1"
     stage: Literal["RECIPE_FILTER"] = "RECIPE_FILTER"
@@ -183,7 +236,10 @@ class _ManifestContent(_ContractModel):
         "synthetic-rule-evaluation.v1"
     )
     attribute_policy_version: Literal[
-        "synthetic-attributes.v1", "synthetic-attributes.v2", "synthetic-attributes.v3-combination"
+        "synthetic-attributes.v1",
+        "synthetic-attributes.v2",
+        "synthetic-attributes.v3-combination",
+        "synthetic-attributes.v4-day",
     ] = "synthetic-attributes.v1"
     identity_policy_version: Literal["synthetic-manifest-identity.v1"] = (
         "synthetic-manifest-identity.v1"
@@ -215,6 +271,7 @@ class _ManifestContent(_ContractModel):
         _require_canonical_enum(self.workflow)
         seen: set[str] = set()
         has_combination_attributes = False
+        has_day_attributes = False
         for deferred, checks in ((False, self.required_checks), (True, self.deferred_checks)):
             for rule in checks:
                 if rule.rule_id in seen:
@@ -231,7 +288,15 @@ class _ManifestContent(_ContractModel):
                 if any(name in _COMBINATION_ATTRIBUTES for name in rule.required_facts):
                     has_combination_attributes = True
                     _validate_combination_rule_policy(rule)
-        if has_combination_attributes != (
+                if any(name in _DAY_ATTRIBUTES for name in rule.required_facts):
+                    has_day_attributes = True
+                    _validate_day_rule_policy(rule)
+        if has_day_attributes:
+            if self.attribute_policy_version != "synthetic-attributes.v4-day":
+                raise ValueError("DAY attributes require their exact scope-aware policy version")
+        elif self.attribute_policy_version == "synthetic-attributes.v4-day":
+            raise ValueError("DAY policy version requires DAY-owned attributes")
+        elif has_combination_attributes != (
             self.attribute_policy_version == "synthetic-attributes.v3-combination"
         ):
             raise ValueError(
