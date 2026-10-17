@@ -16,10 +16,12 @@ from savora_ai.schemas.filtering import (
     _APPLICABILITY,
     _ATTRIBUTES,
     _COMBINATION_ATTRIBUTES,
+    _DAY_ATTRIBUTES,
     _DERIVED_ATTRIBUTES,
     ExpectedCheckManifest,
     _ManifestContent,
     _validate_combination_rule_policy,
+    _validate_day_rule_policy,
 )
 from savora_ai.schemas.knowledge import (
     ApprovalStatus,
@@ -126,6 +128,12 @@ class _ManifestRequest(_KnowledgeContextRequest):
 def _validate_rule_policy(rule: RuleDefinition) -> None:
     if rule.approval_status is not ApprovalStatus.APPROVED:
         _reject("Phase 3 mandatory hard rule is unapproved")
+    if any(name in _DAY_ATTRIBUTES for name in rule.required_facts):
+        try:
+            _validate_day_rule_policy(rule)
+        except ValueError as error:
+            _reject(str(error))
+        return
     if any(name in _COMBINATION_ATTRIBUTES for name in rule.required_facts):
         try:
             _validate_combination_rule_policy(rule)
@@ -204,7 +212,9 @@ def build_expected_check_manifest(
     checks = _mandatory_checks(kb, context)
     body = _ManifestContent(
         attribute_policy_version=(
-            "synthetic-attributes.v3-combination"
+            "synthetic-attributes.v4-day"
+            if any(name in _DAY_ATTRIBUTES for rule in checks for name in rule.required_facts)
+            else "synthetic-attributes.v3-combination"
             if any(
                 name in _COMBINATION_ATTRIBUTES for rule in checks for name in rule.required_facts
             )
