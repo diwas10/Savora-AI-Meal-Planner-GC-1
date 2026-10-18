@@ -140,6 +140,12 @@ def test_top_k_agrees_with_rank() -> None:
     assert [full_rank(primary, t, ["FC_9"], pop) for t in top] == [1, 2, 3]
 
 
+def test_history_outside_the_universe_is_ignored() -> None:
+    # Catalogue-restricted ranking: the user's history holds non-catalogue recipes.
+    pop = PopularityOrder.build(["FC_1", "FC_2"], {"FC_2": 3})
+    assert full_rank({}, "FC_1", ["FC_99", "FC_2"], pop) == 1  # FC_2 excluded, FC_99 unknown
+
+
 def test_unknown_target_is_an_error() -> None:
     pop = PopularityOrder.build(["FC_1"], {})
     with pytest.raises(ValueError):

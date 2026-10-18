@@ -58,7 +58,9 @@ def full_rank(
     else:  # every scored item, plus unscored items more popular than the target
         scored_more_popular = sum(1 for item in primary if pop.position[item] < q_t)
         count = len(primary) + (q_t - scored_more_popular)
-    count -= sum(1 for item in set(history) - {target} if above(item))
+    # History outside the universe (e.g. a non-catalogue dish when ranking the catalogue)
+    # was never a competitor, so it is not subtracted.
+    count -= sum(1 for item in set(history) - {target} if item in pop.position and above(item))
     return count + 1
 
 
