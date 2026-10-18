@@ -12,6 +12,7 @@ from savora_ai.core.food_data.selection import (
 from savora_ai.schemas.enums import CulinaryRole, DishClass, MealType
 
 MAIN_ONLY = tuple(k for k in SLOT_KINDS if k.name == "MAIN_WITH_ACCOMPANIMENT")
+QUOTA = MAIN_ONLY[0].quota
 
 
 def dish(
@@ -61,7 +62,7 @@ def test_selection_is_deterministic_order_independent_and_seed_sensitive() -> No
     c = select_stratified(pool, {}, "seed-b", cuisines=("Indian",), slot_kinds=MAIN_ONLY)
     assert a == b
     assert ids(a.recipes) != ids(c.recipes)
-    assert len(a.recipes) == 8  # the quota
+    assert len(a.recipes) == QUOTA
 
 
 def test_half_of_a_stratum_is_vegetarian_when_the_data_allows() -> None:
@@ -73,8 +74,8 @@ def test_half_of_a_stratum_is_vegetarian_when_the_data_allows() -> None:
 
 
 def test_popularity_orders_within_a_stratum() -> None:
-    pool = indian_mains(20)
-    popular = {f"FC_{i}": 50 for i in range(13, 21)}
+    pool = indian_mains(30)
+    popular = {f"FC_{i}": 50 for i in range(31 - QUOTA, 31)}
     result = select_stratified(pool, popular, "s", cuisines=("Indian",), slot_kinds=MAIN_ONLY)
     assert ids(result.recipes) == set(popular)
 
@@ -111,7 +112,7 @@ def test_a_short_stratum_is_reported_not_padded_with_other_cuisines() -> None:
     result = select_stratified(pool, {}, "s", cuisines=("Indian",), slot_kinds=MAIN_ONLY)
     assert "FC_100" not in ids(result.recipes)
     report = result.strata[0].as_json()
-    assert report["selected"] == 3 and report["shortfall"] == 5
+    assert report["selected"] == 3 and report["shortfall"] == QUOTA - 3
 
 
 def test_unsettled_dishes_are_never_selected() -> None:

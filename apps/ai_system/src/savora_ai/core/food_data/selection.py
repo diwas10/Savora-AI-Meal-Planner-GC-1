@@ -8,7 +8,7 @@ Indian ones. Selection therefore fills a quota per stratum = (cuisine, slot kind
 
 Why these sizes: a dish may repeat at most twice a week, so 7 breakfasts need at least 4
 distinct dishes and 14 lunches + dinners at least 7 distinct mains; rule filtering (diet,
-allergy) then removes some, so each stratum aims for 8, at least half vegetarian.
+allergy) then removes some, so each stratum aims for 10, at least half vegetarian.
 
 Within a stratum the order is: curated first (a reviewer chose it), then training-split
 popularity (Stage 5; never held-out data), then a seeded hash. A stratum that cannot fill
@@ -68,11 +68,13 @@ def _vegetable_side(r: CatalogueRecipe) -> bool:
     return CulinaryRole.VEGETABLE in r.roles and r.dish_class is DishClass.COMPONENT
 
 
-# PROVISIONAL quotas per cuisine.
+# PROVISIONAL quotas per cuisine, tuned with Stage 10 scenario coverage: 8 left three of
+# eight synthetic scenarios short; 10 leaves two, both data limits (no Nepali breakfasts
+# exist; peanut-free Thai breakfasts are 3 at any quota); 12 adds dishes but no coverage.
 SLOT_KINDS: tuple[SlotKind, ...] = (
-    SlotKind("BREAKFAST_BASE", 8, _breakfast),
-    SlotKind("COMPLETE_MAIN", 8, _main(DishClass.COMPLETE_MEAL)),
-    SlotKind("MAIN_WITH_ACCOMPANIMENT", 8, _main(DishClass.REQUIRES_ACCOMPANIMENT)),
+    SlotKind("BREAKFAST_BASE", 10, _breakfast),
+    SlotKind("COMPLETE_MAIN", 10, _main(DishClass.COMPLETE_MEAL)),
+    SlotKind("MAIN_WITH_ACCOMPANIMENT", 10, _main(DishClass.REQUIRES_ACCOMPANIMENT)),
     SlotKind("VEGETABLE_SIDE", 4, _vegetable_side),
 )
 
