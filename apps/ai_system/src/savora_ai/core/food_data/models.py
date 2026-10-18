@@ -9,7 +9,7 @@ from typing import Annotated, Self
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints, model_validator
 from pydantic.alias_generators import to_camel
 
-from savora_ai.schemas.enums import MealType
+from savora_ai.schemas.enums import MealType, QuarantineReason
 
 # A string with at least one non-space character.
 _NonBlank = Annotated[str, StringConstraints(min_length=1, pattern=r"\S")]
@@ -57,7 +57,8 @@ class CatalogueRecipe(_FoodModel):
     ingredients: tuple[_NonBlank, ...]
     cuisines: tuple[_NonBlank, ...]  # exact-tag cuisines only; may be empty
     diet_tags: tuple[_NonBlank, ...]  # Food.com metadata labels, NOT verified diet facts
-    meal_types: tuple[MealType, ...] = Field(min_length=1)
+    # Empty = not classified yet (Stage 2 assigns roles/meals); such a recipe is never selected.
+    meal_types: tuple[MealType, ...]
     nutrition_per_serving: ServingNutrition
     dv_reference: _NonBlank  # which DvReference produced the gram/mg values
     # Unknown until a person verifies it (ADR 0001); None means unknown, never zero.
@@ -79,3 +80,11 @@ class ServingMassOverride(_FoodModel):
     recipe_id: _NonBlank
     serving_mass_g: float = Field(gt=0)
     source: _NonBlank
+
+
+class QuarantinedRow(_FoodModel):
+    """A raw row with a data defect. Kept with ALL its reasons so a person can review it."""
+
+    source_id: str  # raw text: a defective row may not even have a numeric ID
+    name: str  # plain str, not _NonBlank: a blank name is itself a defect we must record
+    reasons: tuple[QuarantineReason, ...] = Field(min_length=1)  # at least one, any number

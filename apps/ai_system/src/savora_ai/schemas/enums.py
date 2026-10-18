@@ -87,11 +87,14 @@ class PlanStatus(StrEnum):
     INSUFFICIENT_DATA = "INSUFFICIENT_DATA"
 
 
-class RejectionReason(StrEnum):
-    """Why a raw recipe was kept out of the catalogue; recorded in the build report."""
+class QuarantineReason(StrEnum):
+    """Why a raw recipe was quarantined: a DATA DEFECT, not a classification gap.
+
+    A recipe with no meal tag is not defective, it is unclassified (Stage 2), so it has
+    no reason here. A quarantined row is kept, with all its reasons, for later review.
+    """
 
     MALFORMED_NUTRITION = "MALFORMED_NUTRITION"
     MALFORMED_METADATA = "MALFORMED_METADATA"
     NUTRITION_OUT_OF_RANGE = "NUTRITION_OUT_OF_RANGE"
-    ENERGY_INCONSISTENT = "ENERGY_INCONSISTENT"
-    NO_MEAL_TYPE = "NO_MEAL_TYPE"
+    ENERGY_INCONSISTENT = "ENERGY_INCONSISTENT"  # NO_MEAL_TYPE is gone on purpose

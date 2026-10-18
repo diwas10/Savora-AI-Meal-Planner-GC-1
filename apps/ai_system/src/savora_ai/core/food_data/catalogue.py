@@ -12,6 +12,7 @@ from savora_ai.core.food_data.foodcom_cuisines import get_cuisines, normalize_ta
 from savora_ai.core.food_data.models import (
     CatalogueRecipe,
     DvReference,
+    QuarantinedRow,
     ServingMassOverride,
 )
 from savora_ai.core.food_data.nutrition_convert import (
@@ -19,7 +20,7 @@ from savora_ai.core.food_data.nutrition_convert import (
     parse_nutrition,
     to_serving_nutrition,
 )
-from savora_ai.schemas.enums import MealType, RejectionReason
+from savora_ai.schemas.enums import MealType, QuarantineReason
 
 # --- PROVISIONAL sanity limits (one recipe serving) ---------------------------------
 MIN_KCAL = 50.0  # below this a "meal" is a condiment or a data error
@@ -65,6 +66,12 @@ def meal_types_for(tags: frozenset[str]) -> tuple[MealType, ...]:
     return tuple(meal for meal in MealType if meal in found)
 
 
+def _order_key(recipe: CatalogueRecipe, seed: str) -> tuple[bool, str]:
+    """Cuisine-labelled recipes first (cuisine policies need them), then a seeded hash."""
+    digest = hashlib.sha256(f"{seed}:{recipe.recipe_id}".encode()).hexdigest()
+    return not recipe.cuisines, digest
+
+
 def build_recipe(
     source_id: int,
     name: str,
@@ -72,32 +79,50 @@ def build_recipe(
     nutrition_raw: object,
     ingredients_raw: object,
     ref: DvReference,
-) -> CatalogueRecipe | RejectionReason:
-    """Return a catalogue entry or the single reason the row was rejected."""
+) -> CatalogueRecipe | QuarantinedRow:
+    """Return an accepted entry, or the quarantined row with EVERY defect found.
+
+    A recipe without a meal tag is accepted with empty `meal_types` (unclassified).
+    """
+
+    reasons: list[QuarantineReason] = []
+
+    raw = None
+
     try:
         raw = parse_nutrition(nutrition_raw)
     except ValueError:
-        return RejectionReason.MALFORMED_NUTRITION
+        reasons.append(QuarantineReason.MALFORMED_NUTRITION)
+
+    tags: frozenset[str] = frozenset()
+    ingredients: tuple[str, ...] = ()
+
     try:
         tags = normalize_tags(tags_raw)
         ingredients = parse_string_list(ingredients_raw)
     except ValueError:
-        return RejectionReason.MALFORMED_METADATA
-    if not name.strip() or not ingredients or source_id <= 0:
-        return RejectionReason.MALFORMED_METADATA
+        reasons.append(QuarantineReason.MALFORMED_METADATA)
+    else:
+        if not name.strip() or not ingredients or source_id <= 0:
+            reasons.append(QuarantineReason.MALFORMED_METADATA)
 
-    calories, fat, _sugar, sodium, protein, sat_fat, carbs = raw
-    if not MIN_KCAL <= calories <= MAX_KCAL or max(fat, protein, sat_fat, carbs, sodium) > MAX_PDV:
-        return RejectionReason.NUTRITION_OUT_OF_RANGE
+    nutrition = None
+    if raw is not None:
+        calories, fat, _sugar, sodium, protein, sat_fat, carbs = raw
 
-    nutrition = to_serving_nutrition(raw, ref)
-    ratio = energy_ratio(nutrition)
-    if ratio is None or not ENERGY_RATIO_RANGE[0] <= ratio <= ENERGY_RATIO_RANGE[1]:
-        return RejectionReason.ENERGY_INCONSISTENT
+        if (
+            not MIN_KCAL <= calories <= MAX_KCAL
+            or max(fat, protein, sat_fat, carbs, sodium) > MAX_PDV
+        ):
+            reasons.append(QuarantineReason.NUTRITION_OUT_OF_RANGE)
+        else:
+            nutrition = to_serving_nutrition(raw, ref)
+            ratio = energy_ratio(nutrition)
+            if ratio is None or not ENERGY_RATIO_RANGE[0] <= ratio <= ENERGY_RATIO_RANGE[1]:
+                reasons.append(QuarantineReason.ENERGY_INCONSISTENT)
 
-    meals = meal_types_for(tags)
-    if not meals:
-        return RejectionReason.NO_MEAL_TYPE
+    if reasons or nutrition is None:
+        return QuarantinedRow(source_id=str(source_id), name=name, reasons=tuple(reasons))
 
     return CatalogueRecipe(
         recipe_id=f"FC_{source_id}",
@@ -105,7 +130,7 @@ def build_recipe(
         ingredients=ingredients,
         cuisines=tuple(get_cuisines(tags_raw)),
         diet_tags=tuple(sorted(tags & DIET_TAGS)),
-        meal_types=meals,
+        meal_types=meal_types_for(tags),
         nutrition_per_serving=nutrition,
         dv_reference=ref.name,
         provenance=(
@@ -114,12 +139,6 @@ def build_recipe(
             "serving mass unverified",
         ),
     )
-
-
-def _order_key(recipe: CatalogueRecipe, seed: str) -> tuple[bool, str]:
-    """Cuisine-labelled recipes first (cuisine policies need them), then a seeded hash."""
-    digest = hashlib.sha256(f"{seed}:{recipe.recipe_id}".encode()).hexdigest()
-    return (not recipe.cuisines, digest)
 
 
 def select_catalogue(
