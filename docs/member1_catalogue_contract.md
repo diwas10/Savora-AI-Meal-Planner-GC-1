@@ -126,6 +126,37 @@ Blocking fact: Member 2's candidate contracts currently accept **SYNTHETIC evide
 approves a production evidence path. Until then, Member 2 can test against this export
 through an adapter that labels it SYNTHETIC in tests.
 
+## 4a. Scenario A: implemented with assumed answers
+
+So the work is not blocked, `core/meal_composition/member2_adapter.py` implements ONE
+assumed answer to each question below, all in the `SCENARIO_A` block. If Member 2
+decides differently, only that block changes. Assumptions:
+
+| # | Assumed answer |
+|---|---|
+| Q1 | Food.com quantities use `QuantityUnit.SERVING`; USDA quantities use grams |
+| Q2 | Food.com-derived nutrition counts as known (`complete=True`); `null` stays incomplete |
+| Q3 | Meal totals are integers rounded half-up |
+| vocabulary | Real facts are published under Member 2's admitted synthetic names: classification settled = `synthetic_flag`; sodium per serving = `synthetic_serving_quantity`; sodium per 100 g = `synthetic_quantity`; template-built meal = `synthetic_combination_roles_compatible` and `_composition_complete` |
+| measurement | The one daily meal measurement (mg only) carries the meal's **sodium** total, summed into `synthetic_day_quantity_total` |
+| evidence | Labelled SYNTHETIC (the only environment accepted); not for production |
+| ingredients | Listed but not mapped to canonical ingredients: `UNRESOLVED_MAPPING`, so ingredient rules stay UNKNOWN |
+
+**Verified end to end** (`tests/test_member2_adapter_integration.py`). Real dishes and
+meals from the committed export pass Member 2's strict contracts, recipe filter and
+`solve_daily_plan`. With a day sodium cap of 10,000 mg the day is FEASIBLE (342 + 649 +
+649 mg). At 1,500 mg the solver backtracks (6 nodes) and swaps dinner for a 218 mg meal.
+At 1 mg it is INFEASIBLE.
+
+Gaps found while integrating, for Member 2:
+
+- The daily measurement only accepts mg, so **meal energy (kcal) cannot be constrained**
+  yet. Calorie targets need a second measurement attribute or a kcal unit.
+- The daily solver allowed the **same meal at lunch and dinner**; a within-day repetition
+  rule is needed.
+- Only synthetic attribute names are admitted; real names (sodium, energy, diet,
+  allergens) need approved policies.
+
 ## 5. Questions needing an answer
 
 1. **Venkat:** accept `PER_SERVING` quantities in `serving` units next to grams (the

@@ -431,6 +431,28 @@ module is the only file that imports torch.
 
 ---
 
+## 13a. Integrating with Member 2 under an assumed scenario
+
+Venkat's open decisions (portion units, whether Food.com nutrition counts as known,
+rounding) would have blocked integration, so one answer to each was **assumed in one
+place** (`SCENARIO_A` in `meal_composition/member2_adapter.py`). This is a common
+pattern: make the assumption explicit, isolated and tested, so changing it later is a
+one-block edit instead of a rewrite.
+
+What the integration taught:
+
+- **Read the other side's validators, not just its field names.** His contracts admit
+  only a fixed synthetic vocabulary, require the meal measurement in mg, and pin the
+  basis evidence IDs. Each was found by running the real data through them and reading
+  the error, then mapping our facts onto his names.
+- **The adapter owns only Member 1 records.** It builds recipe references, candidate
+  facts, combination facts and meal options. The knowledge base and rule context stay
+  Members 2 and 3's; the test builds a fictional one the way his own fixture does.
+- **End-to-end on real data finds real gaps.** At a 1,500 mg sodium cap the solver
+  backtracked and swapped dinner for a lower-sodium meal. The same run showed it would
+  serve the same meal at lunch and dinner, and that energy (kcal) cannot be constrained
+  yet. Both are now listed for Venkat (contract note 4a).
+
 ## 14. Check yourself
 
 1. Why is a recipe without a course tag *unclassified* and not *defective*?
@@ -449,6 +471,8 @@ module is the only file that imports torch.
 13. Your model loses to popularity in-sample. What does that tell you?
 14. Why do uniform negatives fail and what does logQ correction change?
 15. What happens in `rank_recipes` for a new user with no history?
+16. Why does the adapter keep every assumed Member 2 decision in one `SCENARIO_A` block?
+17. Why is the meal measurement sodium and not energy in scenario A?
 
 ## 15. Open items and where they are tracked
 
