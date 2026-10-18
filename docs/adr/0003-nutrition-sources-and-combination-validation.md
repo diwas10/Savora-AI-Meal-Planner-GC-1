@@ -84,6 +84,21 @@ This is a formal acceptance test before the catalogue is handed to Member 2.
 - A missing USDA nutrient stays `None` and is flagged; a negative value (carbohydrate by
   difference) is flagged and set to `None`, never clamped to 0.
 
+## Implemented (Stage 9, `core/meal_composition/nutrition.py`)
+
+- Required nutrients for FULLY_KNOWN: energy, fat, saturated fat, carbohydrate, protein,
+  sodium. Sugar is not required (Food.com never has it; no active rule needs it).
+- Provisional trust order, weakest first: FOODCOM_DERIVED, CURATED, USDA_FNDDS,
+  USDA_SR_LEGACY, USDA_FOUNDATION.
+- Sanity: meal energy is recomputed from each dish's base record (not the rounded
+  portion vectors) and must agree within 1 kcal; it must be known and within 150 to
+  2,000 kcal. A failing configuration is dropped with a coded reason; a meal with none
+  left is rejected and listed in the export.
+- Result on the current build: 1,988 configurations kept, 52 dropped and 3 meals
+  rejected, all for ENERGY_OUT_OF_RANGE. Every kept configuration is FULLY_KNOWN, and
+  **every one has source tier FOODCOM_DERIVED**, because every meal has a Food.com anchor
+  dish. Open item 2 therefore decides whether any meal can pass a hard clinical rule.
+
 ## Consequences
 
 - No silent precedence rule can overwrite a dish with a different food.

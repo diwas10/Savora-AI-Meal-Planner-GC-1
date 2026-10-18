@@ -5,11 +5,17 @@ Usage (from the repo root):
         --source Data/Food.com/RAW_recipes.csv --output-dir Data/catalogue --with-quarantine
 
 Files are named by build time, so they sort chronologically:
-    Data/catalogue/20261018T153045Z_catalogue.json
+    Data/catalogue/20261018T153045Z_catalogue.json      dishes, portions, nutrition
+    Data/catalogue/20261018T153045Z_combinations.json   validated 1-3 dish meals + presets
+    Data/catalogue/20261018T153045Z_build_report.json   counts, strata, coverage (readable)
     Data/catalogue/20261018T153045Z_quarantine.json   (only with --with-quarantine)
     Data/catalogue/20261018T153045Z_review.json       (only with --with-review)
 
 Curated classification overrides are read from Data/curated/classification_overrides.json.
+
+`--check` rebuilds and compares the content (everything except the version) with the
+latest export in the output directory; it fails if they differ, i.e. the export is stale.
+It needs the raw Food.com files, so run it locally before committing an export.
 
 The recipes are deterministic for a given source file, seed, DV reference and quotas.
 The version is the UTC build time, so it says WHEN a build was made; the source hash and
@@ -51,6 +57,20 @@ from savora_ai.core.food_data.usda_staples import (
     load_spec,
     staple_dishes,
 )
+from savora_ai.core.meal_composition.composer import compose
+from savora_ai.core.meal_composition.coverage import coverage_report
+from savora_ai.core.meal_composition.nutrition import validate_combinations
+from savora_ai.core.meal_composition.pairings import (
+    DEFAULT_PAIRINGS,
+    PairingFile,
+    load_pairings,
+    validate_pairings,
+)
+from savora_ai.core.meal_composition.templates import (
+    DEFAULT_TEMPLATES,
+    TemplateFile,
+    load_templates,
+)
 from savora_ai.schemas.enums import ClassificationStatus, QuarantineReason
 
 _REQUIRED_COLUMNS = {"id", "name", "tags", "nutrition", "ingredients"}
@@ -75,6 +95,20 @@ def review_filename(version: str) -> str:
     return f"{version}_review.json"
 
 
+def combinations_filename(version: str) -> str:
+    return f"{version}_combinations.json"
+
+
+def build_report_filename(version: str) -> str:
+    return f"{version}_build_report.json"
+
+
+def content_sha256(data: object) -> str:
+    """Digest of canonical JSON, so consumers can pin exactly what they read."""
+    text = json.dumps(data, sort_keys=True, separators=(",", ":"))
+    return hashlib.sha256(text.encode()).hexdigest()
+
+
 DEFAULT_CLASSIFICATION_OVERRIDES = Path("Data/curated/classification_overrides.json")
 
 
@@ -90,6 +124,8 @@ class BuildResult:
     catalogue: dict[str, object]
     quarantine: dict[str, object]
     review: dict[str, object]
+    combinations: dict[str, object]
+    build_report: dict[str, object]
 
 
 def build(
@@ -102,6 +138,8 @@ def build(
     classification_overrides: Sequence[ClassificationOverride] = (),
     staples: Sequence[CatalogueRecipe] = (),
     popularity: PopularityTable | None = None,
+    templates: TemplateFile | None = None,
+    pairings: PairingFile | None = None,
 ) -> BuildResult:
     version = catalogue_version(built_at)  # fail early on a naive timestamp
     ref = DV_REFERENCES[dv_name]
@@ -216,6 +254,36 @@ def build(
         # Food.com selection first, then the curated USDA staples (ADR 0003 D1).
         "recipes": [r.model_dump(mode="json", by_alias=True) for r in (*selected, *staples)],
     }
+    dishes = (*selected, *staples)
+    combinations: dict[str, object] = {"catalogueVersion": version, "combinations": []}
+    build_report: dict[str, object] = {
+        "catalogueVersion": version,
+        "catalogue": catalogue["report"],
+        "popularity": catalogue["popularity"],
+    }
+    if templates is not None and pairings is not None:
+        validate_pairings(pairings, dishes)
+        composition = compose(dishes, templates, pairings, seed)
+        validation = validate_combinations(composition.combinations, dishes)
+        coverage = coverage_report(dishes, validation.combinations)
+        combinations = {
+            "catalogueVersion": version,
+            # Pins the exact dish content these meals reference.
+            "catalogueContentSha256": content_sha256(catalogue["recipes"]),
+            "templatesSchema": templates.schema_version,
+            "pairingsSchema": pairings.schema_version,
+            "composition": composition.report,
+            "validation": validation.report,
+            "rejected": list(validation.rejected),
+            "combinations": [
+                c.model_dump(mode="json", by_alias=True) for c in validation.combinations
+            ],
+        }
+        build_report |= {
+            "composition": composition.report,
+            "validation": validation.report,
+            "coverage": coverage,
+        }
     quarantine: dict[str, object] = {
         "catalogueVersion": version,
         "source": {"file": source.name, "sha256": source_sha256},
@@ -226,7 +294,38 @@ def build(
         "source": {"file": source.name, "sha256": source_sha256},
         "rows": review,
     }
-    return BuildResult(catalogue=catalogue, quarantine=quarantine, review=review_queue)
+    return BuildResult(
+        catalogue=catalogue,
+        quarantine=quarantine,
+        review=review_queue,
+        combinations=combinations,
+        build_report=build_report,
+    )
+
+
+def _without_version(data: dict[str, object]) -> dict[str, object]:
+    return {k: v for k, v in data.items() if k != "catalogueVersion"}
+
+
+def check_exports(output_dir: Path, result: BuildResult) -> list[str]:
+    """Problems if the latest export differs from a fresh build (ignoring the version)."""
+    exports = sorted(output_dir.glob("*_catalogue.json"))
+    if not exports:
+        return [f"no export in {output_dir}"]
+    version = exports[-1].name.removesuffix("_catalogue.json")  # versions sort by time
+    problems: list[str] = []
+    for name, fresh in (
+        (catalogue_filename(version), result.catalogue),
+        (combinations_filename(version), result.combinations),
+    ):
+        path = output_dir / name
+        if not path.exists():
+            problems.append(f"{path} is missing")
+        elif _without_version(json.loads(path.read_text(encoding="utf-8"))) != _without_version(
+            json.loads(json.dumps(fresh))
+        ):
+            problems.append(f"{path} is stale: rebuild and commit the new export")
+    return problems
 
 
 def with_popularity(recipe: CatalogueRecipe, count: int) -> CatalogueRecipe:
@@ -258,6 +357,9 @@ def main() -> None:
     )
     parser.add_argument("--staples-spec", type=Path, default=DEFAULT_SPEC)
     parser.add_argument("--staples-extract", type=Path, default=DEFAULT_EXTRACT)
+    parser.add_argument("--templates", type=Path, default=DEFAULT_TEMPLATES)
+    parser.add_argument("--pairings", type=Path, default=DEFAULT_PAIRINGS)
+    parser.add_argument("--check", action="store_true", help="fail if the export is stale")
     args = parser.parse_args()
     # A missing curation file is an error, not "no curation": it would silently drop overrides.
     curated = load_classification_overrides(args.classification_overrides)
@@ -271,11 +373,25 @@ def main() -> None:
         classification_overrides=curated,
         staples=staples,
         popularity=load_popularity(args.interactions, args.popularity_cutoff),
+        templates=load_templates(args.templates),
+        pairings=load_pairings(args.pairings),
     )
+    if args.check:
+        problems = check_exports(args.output_dir, result)
+        for problem in problems:
+            print(problem, file=sys.stderr)
+        if problems:
+            raise SystemExit(1)
+        print(f"latest export in {args.output_dir} is up to date")
+        return
     version = str(result.catalogue["catalogueVersion"])
-    catalogue_path = args.output_dir / catalogue_filename(version)
-    _write_json(catalogue_path, result.catalogue)
-    print(f"wrote {catalogue_path}")
+    for path, data in (
+        (args.output_dir / catalogue_filename(version), result.catalogue),
+        (args.output_dir / combinations_filename(version), result.combinations),
+        (args.output_dir / build_report_filename(version), result.build_report),
+    ):
+        _write_json(path, data)
+        print(f"wrote {path}")
     if args.with_quarantine:
         quarantine_path = args.output_dir / quarantine_filename(version)
         _write_json(quarantine_path, result.quarantine)
@@ -284,7 +400,12 @@ def main() -> None:
         review_path = args.output_dir / review_filename(version)
         _write_json(review_path, result.review)
         print(f"wrote {review_path}")
-    print(json.dumps(result.catalogue["report"], indent=2))
+    summary = {
+        key: result.build_report.get(key)
+        for key in ("composition", "validation")
+        if key in result.build_report
+    }
+    print(json.dumps({"catalogue": result.catalogue["report"], **summary}, indent=2))
 
 
 if __name__ == "__main__":

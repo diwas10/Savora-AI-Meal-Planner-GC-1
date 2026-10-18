@@ -58,6 +58,32 @@ time with Member 2. Caps are named constants.
 A standalone craving does not use the composer or the CSP (AGENTS.md invariant). The
 composer serves planned meals and planned substitutions.
 
+## Implemented (Stages 6 and 8)
+
+- **Templates as data** (`Data/curated/meal_templates.json`): `ONE_DISH`, `MAIN_STAPLE`,
+  `MAIN_STAPLE_VEGETABLE`, `BREAKFAST`, `BREAKFAST_FRUIT`, `BREAKFAST_PROTEIN`. A role may
+  fill one slot only; at most 3 slots.
+- **Pairings as data** (`Data/curated/pairings.json`): per cuisine, the verified USDA
+  staples a main may be served with (Indian: rice, brown rice, roti, naan; Nepali: rice,
+  roti; Thai: rice, rice noodles; and so on). A vegetable side must share the main's
+  cuisine or be cuisine-neutral; same-cuisine sides come first. A breakfast add-on whose
+  ingredient is already in the base is skipped (no boiled egg with an omelette).
+- **Presets as steps.** Each preset moves each slot a number of steps from the dish's
+  standard portion along that dish's own options (Food.com 0.5/0.75/1/1.25/1.5 servings;
+  roti 1/2/3/4 pieces), clamped to the ends. HIGHER_PROTEIN: main +2, staple -1.
+  LOWER_CARB: main +1, staple smallest, vegetable +1. HIGHER_ENERGY: main +1, staple +1.
+  A fifth preset, **LOWER_ENERGY** (everything -1 except vegetables +1), was added for
+  weight-loss goals. Presets that produce an identical portion tuple are merged, so a
+  meal has 1 to 5 configurations (about 4.5 on average).
+- **IDs.** `C_<templateId>__<dishId>__...` (the template is part of the ID: a frittata as a
+  lunch ONE_DISH and as a BREAKFAST are different meals). Configuration:
+  `<combinationId>#<PRESET>`. This answers open item 4.
+- **Caps** (`CompositionLimits`): 2 staples per main, 1 vegetable side per main and staple,
+  2 add-ons per breakfast base, chosen by a seeded hash; exceeding 600 meals per meal type
+  is an error, never a silent cut.
+- **Result:** 446 meals (breakfast 149, lunch and dinner 300 each), 1,988 configurations
+  after validation (ADR 0003 D4).
+
 ## Consequences
 
 - Search size is bounded and predictable.

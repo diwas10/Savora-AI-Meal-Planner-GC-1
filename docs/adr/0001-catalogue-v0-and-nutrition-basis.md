@@ -144,12 +144,37 @@ full Food.com chronological split, never on the catalogue. The catalogue is chos
 held-out interactions. The build report records this as a flag
 (`independentOfHeldOutData: true`).
 
+**Implemented (Stages 5 and 7).**
+
+- *Popularity cutoff.* Only interactions dated **before 2012-01-01** count (906,736
+  training, 225,631 held out; about 80/20). The Food.com `interactions_train/test.csv`
+  files are not used: they split each user's history, so "train" contains 2018 data and
+  would leak the future of other users. The cutoff is provisional and must equal the
+  Transformer's training cutoff once that split is decided.
+- *Strata.* Seven target cuisines (Nepali, Thai, Chinese, Indian, Mexican, Italian,
+  American; thinner ones pick first) times four slot kinds: breakfast base 10, complete
+  main 10, main needing an accompaniment 10, vegetable side 4. At least half of each
+  stratum is vegetarian-tagged where the data allows. Order within a stratum: curated,
+  then training popularity, then a seeded hash. Near-duplicate names are skipped.
+- *Result.* 160 Food.com dishes plus 22 USDA staples. 4 of 28 strata are short and
+  reported, not padded: Nepali breakfast (0 exist), Nepali vegetable side (0 exist;
+  cuisine-neutral USDA vegetables fill that role), Nepali complete main (7 of 10).
+
 ### D7. Coverage is measured statically and by scenario
 
 - *Static:* counts by cuisine, meal, diet, role and dish class.
 - *Scenario:* representative synthetic profiles run through Member 2's `filter_candidates`
   and `solve_week` once they exist. No clinical thresholds are invented before Member 2
   supplies sourced rules.
+
+**Implemented (Stage 10, `core/meal_composition/coverage.py`).** Eight synthetic
+scenarios (cuisine policy, diet, explicit exclusion) are checked with a labelled
+*proxy* filter (unverified diet tags, ingredient words; a missing tag fails closed). A
+scenario is sufficient when it has at least 4 distinct breakfast anchor dishes and 7
+distinct lunch/dinner anchor dishes (7 and 14 slots, at most 2 repeats a week). Quotas of
+8 left 3 scenarios short; 10 leaves 2, both data limits: "Nepali, strict" has no
+breakfast at all, and "Thai, strict, peanut excluded" has 3 breakfasts at any quota.
+Whether STRICT cuisine users may receive cuisine-neutral breakfasts is a team decision.
 
 ## Consequences
 

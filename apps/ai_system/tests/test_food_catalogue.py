@@ -450,20 +450,46 @@ def test_cli_names_files_by_build_time_and_writes_quarantine_on_request(
         str(REPO / "Data/curated/usda_staples.json"),
         "--staples-extract",
         str(REPO / "Data/curated/usda_staples_extract.json"),
+        "--templates",
+        str(REPO / "Data/curated/meal_templates.json"),
+        "--pairings",
+        str(REPO / "Data/curated/pairings.json"),
     ]
 
     monkeypatch.setattr("sys.argv", argv)
     build_catalogue.main()
-    [catalogue_file] = out_dir.iterdir()  # exactly one file: no quarantine unless asked for
-    match = re.fullmatch(r"(\d{8}T\d{6}Z)_catalogue\.json", catalogue_file.name)
+    names = sorted(p.name for p in out_dir.iterdir())  # no quarantine unless asked for
+    assert len(names) == 3
+    match = re.fullmatch(r"(\d{8}T\d{6}Z)_build_report\.json", names[0])
     assert match is not None
     version = match.group(1)
-    written = json.loads(catalogue_file.read_text(encoding="utf-8"))
+    assert names == [
+        f"{version}_build_report.json",
+        f"{version}_catalogue.json",
+        f"{version}_combinations.json",
+    ]
+    written = json.loads((out_dir / names[1]).read_text(encoding="utf-8"))
     assert written["catalogueVersion"] == version
     assert written["independentOfHeldOutData"] is True
     by_id = {r["recipeId"]: r for r in written["recipes"]}
     assert by_id["FC_1"]["trainingInteractions"] == 1  # the multi-line review row counts
     assert by_id["FC_2"]["trainingInteractions"] == 0
+    combos = json.loads((out_dir / names[2]).read_text(encoding="utf-8"))
+    assert combos["catalogueVersion"] == version
+    assert any("FC_1" in c["combinationId"] for c in combos["combinations"])
+    assert combos["validation"]["combinationsRejected"] == 0
+    report = json.loads((out_dir / names[0]).read_text(encoding="utf-8"))
+    assert report["coverage"]["scenariosTotal"] == 8
+
+    # --check: a fresh build matches the export (the version is ignored)...
+    monkeypatch.setattr("sys.argv", [*argv, "--check"])
+    build_catalogue.main()
+    assert sorted(p.name for p in out_dir.iterdir()) == names  # check writes nothing
+    # ...and a hand-edited export is reported stale.
+    written["recipes"][0]["name"] = "edited"
+    (out_dir / names[1]).write_text(json.dumps(written), encoding="utf-8")
+    with pytest.raises(SystemExit):
+        build_catalogue.main()
 
     monkeypatch.setattr("sys.argv", [*argv, "--with-quarantine"])
     build_catalogue.main()
@@ -471,6 +497,12 @@ def test_cli_names_files_by_build_time_and_writes_quarantine_on_request(
     assert len(quarantine_files) == 1
     written = json.loads(quarantine_files[0].read_text(encoding="utf-8"))
     assert len(written["rows"]) == 2
+
+
+def test_check_without_any_export_is_a_problem(tmp_path: Path) -> None:
+    source = tmp_path / "RAW_recipes.csv"
+    write_source(source)
+    assert build_catalogue.check_exports(tmp_path / "none", run_build(source)) != []
 
 
 def test_file_names_embed_the_version() -> None:
