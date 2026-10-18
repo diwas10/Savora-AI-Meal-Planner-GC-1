@@ -24,6 +24,7 @@ from typing import Annotated, Literal, Self
 
 from pydantic import Field, model_validator
 
+from savora_ai.core.food_data.classification import check_cuisines
 from savora_ai.core.food_data.models import (
     CatalogueRecipe,
     NutrientVector,
@@ -101,6 +102,7 @@ class StapleSpec(_FoodModel):
     def check_id(self) -> Self:
         if self.dish_id != f"USDA_{self.fdc_id}":
             raise ValueError("dishId must be USDA_<fdcId>")
+        check_cuisines(self.cuisines)
         return self
 
 

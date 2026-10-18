@@ -16,6 +16,7 @@ from typing import Literal, Self
 
 from pydantic import Field, model_validator
 
+from savora_ai.core.food_data.foodcom_cuisines import CUISINE_TAGS
 from savora_ai.core.food_data.models import CatalogueRecipe, _FoodModel, _NonBlank
 from savora_ai.schemas.enums import ClassificationStatus, CulinaryRole, DishClass, MealType
 
@@ -102,6 +103,18 @@ SELF_CONTAINED_NAME_WORDS = (
     "taco",
 )
 
+# Cuisine names a curated record may use: the exact-tag cuisines plus curated-only ones.
+# Food.com has no Nepali tag, so Nepali comes from curation alone (ADR 0001 open item 1).
+CURATED_ONLY_CUISINES = ("Nepali",)
+KNOWN_CUISINES = frozenset((*CUISINE_TAGS, *CURATED_ONLY_CUISINES))
+
+
+def check_cuisines(cuisines: Iterable[str]) -> None:
+    unknown = sorted(set(cuisines) - KNOWN_CUISINES)
+    if unknown:
+        raise ValueError(f"unknown cuisine names {unknown}; use one of {sorted(KNOWN_CUISINES)}")
+
+
 # A main or complete meal below this energy per serving is implausible as a meal.
 MIN_MEAL_KCAL = 50.0
 # A side or staple above this per "serving" is usually a whole batch or loaf.
@@ -163,6 +176,8 @@ class ClassificationOverride(_FoodModel):
             raise ValueError("a plannable override needs a dishClass; an exclusion has none")
         if self.roles is None and self.cuisines is None:
             raise ValueError("an override must change something")
+        if self.cuisines is not None:
+            check_cuisines(self.cuisines)
         return self
 
 
