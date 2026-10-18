@@ -85,3 +85,13 @@ class PlanStatus(StrEnum):
     INFEASIBLE = "INFEASIBLE"
     TIMEOUT = "TIMEOUT"
     INSUFFICIENT_DATA = "INSUFFICIENT_DATA"
+
+
+class RejectionReason(StrEnum):
+    """Why a raw recipe was kept out of the catalogue; recorded in the build report."""
+
+    MALFORMED_NUTRITION = "MALFORMED_NUTRITION"
+    MALFORMED_METADATA = "MALFORMED_METADATA"
+    NUTRITION_OUT_OF_RANGE = "NUTRITION_OUT_OF_RANGE"
+    ENERGY_INCONSISTENT = "ENERGY_INCONSISTENT"
+    NO_MEAL_TYPE = "NO_MEAL_TYPE"
