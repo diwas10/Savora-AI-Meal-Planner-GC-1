@@ -82,6 +82,8 @@ def case_ranks(
     using the SAME protocol as evaluate.py (`torch_model.scored_cases`)."""
     device = next(model.parameters()).device
     pop = log_popularity.to(device)
+    # De-duplicate: (0.0, best) with best == 0.0 must not append every rank twice.
+    weights = tuple(dict.fromkeys(weights))
     ranks: dict[float, list[int]] = {w: [] for w in weights}
     for _, row, target in scored_cases(model, index, cases, None, candidate_rows):
         for w in weights:
