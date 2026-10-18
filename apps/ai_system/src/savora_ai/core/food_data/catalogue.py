@@ -1,4 +1,4 @@
-"""Validate raw Food.com rows, assign meal types and pick a reproducible catalogue.
+"""Validate raw Food.com rows, classify them and pick a reproducible catalogue.
 
 Pure functions over plain values so they can be tested without pandas or the dataset.
 The thresholds below are PROVISIONAL (ADR 0001) and are named so they can change in one place.
@@ -8,34 +8,35 @@ import ast
 import hashlib
 from collections.abc import Iterable, Mapping, Sequence
 
+from savora_ai.core.food_data.classification import classify, is_plannable
 from savora_ai.core.food_data.foodcom_cuisines import get_cuisines, normalize_tags
 from savora_ai.core.food_data.models import (
     CatalogueRecipe,
     DvReference,
     QuarantinedRow,
     ServingMassOverride,
+    ServingNutrition,
 )
 from savora_ai.core.food_data.nutrition_convert import (
     energy_ratio,
+    implied_energy_kcal,
     parse_nutrition,
     to_serving_nutrition,
 )
 from savora_ai.schemas.enums import MealType, QuarantineReason
 
 # --- PROVISIONAL sanity limits (one recipe serving) ---------------------------------
-MIN_KCAL = 50.0  # below this a "meal" is a condiment or a data error
+# Below this a serving is seasoning, water or a data error, whatever its role. Meal dishes
+# have a higher, role-aware floor (classification.MIN_MEAL_KCAL); sides may be light.
+MIN_KCAL = 10.0
 MAX_KCAL = 1500.0  # above this the row is probably a whole batch, not one serving
 MAX_PDV = 300.0  # %DV of any macro above this is treated as an extreme outlier
 # Atwater-implied energy / stated energy must fall inside this band (median is ~0.98).
 ENERGY_RATIO_RANGE = (0.75, 1.25)
-
-# Exact Food.com course tag -> meal type. Food.com has NO "dinner" tag, so dinner is
-# derived from "main-dish". A recipe may serve several meals.
-MEAL_TAGS: dict[str, MealType] = {
-    "breakfast": MealType.BREAKFAST,
-    "lunch": MealType.LUNCH,
-    "main-dish": MealType.DINNER,
-}
+# Food.com stores whole-number %DV. Rounding each of fat, carbohydrate and protein by up to
+# 0.5 %DV moves implied energy by up to ~10 kcal (2.9 + 6.0 + 1.0), which dominates the
+# ratio for light dishes. A gap within this many kcal is rounding, not inconsistency.
+ENERGY_ABS_TOLERANCE_KCAL = 10.0
 
 # Diet labels we keep as unverified metadata for later rule-engine use.
 DIET_TAGS = frozenset({"vegetarian", "vegan"})
@@ -60,10 +61,15 @@ def parse_string_list(value: object) -> tuple[str, ...]:
     return tuple(item.strip() for item in value if item.strip())
 
 
-def meal_types_for(tags: frozenset[str]) -> tuple[MealType, ...]:
-    """Meal types in a fixed (enum) order so output is deterministic."""
-    found = {MEAL_TAGS[tag] for tag in tags if tag in MEAL_TAGS}
-    return tuple(meal for meal in MealType if meal in found)
+def energy_consistent(nutrition: ServingNutrition) -> bool:
+    """Stated energy agrees with the macros within the ratio band or the rounding gap."""
+    ratio = energy_ratio(nutrition)
+    if ratio is None:
+        return False
+    gap = abs(implied_energy_kcal(nutrition) - nutrition.energy_kcal)
+    return ENERGY_RATIO_RANGE[0] <= ratio <= ENERGY_RATIO_RANGE[1] or (
+        gap <= ENERGY_ABS_TOLERANCE_KCAL
+    )
 
 
 def _order_key(recipe: CatalogueRecipe, seed: str) -> tuple[bool, str]:
@@ -82,7 +88,8 @@ def build_recipe(
 ) -> CatalogueRecipe | QuarantinedRow:
     """Return an accepted entry, or the quarantined row with EVERY defect found.
 
-    A recipe without a meal tag is accepted with empty `meal_types` (unclassified).
+    Accepted recipes carry their Stage 2 classification; one with no usable course
+    evidence is accepted as REQUIRES_REVIEW, not quarantined.
     """
 
     reasons: list[QuarantineReason] = []
@@ -117,20 +124,24 @@ def build_recipe(
             reasons.append(QuarantineReason.NUTRITION_OUT_OF_RANGE)
         else:
             nutrition = to_serving_nutrition(raw, ref)
-            ratio = energy_ratio(nutrition)
-            if ratio is None or not ENERGY_RATIO_RANGE[0] <= ratio <= ENERGY_RATIO_RANGE[1]:
+            if not energy_consistent(nutrition):
                 reasons.append(QuarantineReason.ENERGY_INCONSISTENT)
 
     if reasons or nutrition is None:
         return QuarantinedRow(source_id=str(source_id), name=name, reasons=tuple(reasons))
 
+    classification = classify(name, tags, nutrition.energy_kcal)
     return CatalogueRecipe(
         recipe_id=f"FC_{source_id}",
         name=name.strip(),
         ingredients=ingredients,
         cuisines=tuple(get_cuisines(tags_raw)),
         diet_tags=tuple(sorted(tags & DIET_TAGS)),
-        meal_types=meal_types_for(tags),
+        roles=classification.roles,
+        dish_class=classification.dish_class,
+        meal_types=classification.meal_types,
+        classification_status=classification.status,
+        classification_evidence=classification.evidence,
         nutrition_per_serving=nutrition,
         dv_reference=ref.name,
         provenance=(
@@ -154,7 +165,11 @@ def select_catalogue(
         for recipe in ordered:
             if taken >= quotas.get(meal, 0):
                 break
-            if meal in recipe.meal_types and recipe.recipe_id not in chosen:
+            if (
+                is_plannable(recipe)
+                and meal in recipe.meal_types
+                and recipe.recipe_id not in chosen
+            ):
                 chosen[recipe.recipe_id] = recipe
                 taken += 1
     return tuple(sorted(chosen.values(), key=lambda r: r.recipe_id))

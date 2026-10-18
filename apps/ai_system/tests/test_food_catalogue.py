@@ -14,10 +14,10 @@ from savora_ai.core.food_data.build_catalogue import build, catalogue_version
 from savora_ai.core.food_data.catalogue import (
     apply_serving_masses,
     build_recipe,
-    meal_types_for,
     parse_string_list,
     select_catalogue,
 )
+from savora_ai.core.food_data.classification import ClassificationOverride
 from savora_ai.core.food_data.models import CatalogueRecipe, QuarantinedRow, ServingMassOverride
 from savora_ai.core.food_data.nutrition_convert import (
     FDA_1993,
@@ -26,7 +26,13 @@ from savora_ai.core.food_data.nutrition_convert import (
     per_100g,
     to_serving_nutrition,
 )
-from savora_ai.schemas.enums import MealType, QuarantineReason
+from savora_ai.schemas.enums import (
+    ClassificationStatus,
+    CulinaryRole,
+    DishClass,
+    MealType,
+    QuarantineReason,
+)
 
 # [kcal, fat%, sugar%, sodium%, protein%, sat fat%, carbs%] -> 13 g fat, 60 g carbs, 10 g protein
 GOOD_NUTRITION = [400.0, 20.0, 10.0, 10.0, 20.0, 10.0, 20.0]
@@ -110,13 +116,11 @@ def test_good_row_becomes_catalogue_entry() -> None:
     assert recipe.recipe_id == "FC_137739"
     assert recipe.cuisines == ("Indian",)
     assert recipe.diet_tags == ("vegetarian",)
-    assert recipe.meal_types == (MealType.DINNER,)  # dinner comes from main-dish
+    assert recipe.roles == (CulinaryRole.MAIN_DISH,)
+    assert recipe.dish_class is DishClass.REQUIRES_ACCOMPANIMENT  # dal needs rice or roti
+    assert recipe.meal_types == (MealType.LUNCH, MealType.DINNER)  # a main suits both
+    assert recipe.classification_status is ClassificationStatus.AUTO
     assert recipe.serving_mass_g is None and recipe.serving_mass_source is None
-
-
-def test_meal_types_are_ordered_and_multi_valued() -> None:
-    both = meal_types_for(frozenset({"lunch", "breakfast", "main-dish"}))
-    assert both == (MealType.BREAKFAST, MealType.LUNCH, MealType.DINNER)
 
 
 @pytest.mark.parametrize(
@@ -126,7 +130,7 @@ def test_meal_types_are_ordered_and_multi_valued() -> None:
         ({"tags": "oops"}, QuarantineReason.MALFORMED_METADATA),
         ({"ingredients": []}, QuarantineReason.MALFORMED_METADATA),
         ({"name": "  "}, QuarantineReason.MALFORMED_METADATA),
-        ({"nutrition": [10.0, 1, 1, 1, 1, 1, 1]}, QuarantineReason.NUTRITION_OUT_OF_RANGE),
+        ({"nutrition": [5.0, 0, 0, 0, 0, 0, 0]}, QuarantineReason.NUTRITION_OUT_OF_RANGE),
         ({"nutrition": [5000.0, 20, 10, 10, 20, 10, 20]}, QuarantineReason.NUTRITION_OUT_OF_RANGE),
         ({"nutrition": [400.0, 20, 10, 10, 20, 10, 9999]}, QuarantineReason.NUTRITION_OUT_OF_RANGE),
         ({"nutrition": [900.0, 20, 10, 10, 20, 10, 20]}, QuarantineReason.ENERGY_INCONSISTENT),
@@ -158,9 +162,22 @@ def test_energy_check_is_skipped_when_the_range_check_fails() -> None:
     assert QuarantineReason.ENERGY_INCONSISTENT not in row.reasons
 
 
-def test_recipe_without_meal_tag_is_unclassified_not_quarantined() -> None:
-    recipe = make_ok(1, tags=["dessert", "indian"])
-    assert recipe.meal_types == ()
+def test_recipe_without_course_evidence_is_accepted_for_review_not_quarantined() -> None:
+    recipe = make_ok(1, tags=["dessert", "indian"])  # "dessert" is not a Food.com course
+    assert recipe.roles == () and recipe.meal_types == ()
+    assert recipe.classification_status is ClassificationStatus.REQUIRES_REVIEW
+
+
+def test_light_dish_within_rounding_gap_is_energy_consistent() -> None:
+    # 20 kcal stated; 1 %DV carbohydrate = 3 g = 12 kcal implied: ratio 0.6, gap 8 kcal.
+    recipe = make_ok(1, tags=["side-dishes", "vegetables"], nutrition=[20.0, 0, 0, 0, 0, 0, 1])
+    assert recipe.roles == (CulinaryRole.VEGETABLE,)
+
+
+def test_large_gap_on_a_light_dish_is_still_inconsistent() -> None:
+    # 60 kcal stated, 0 implied: a 60 kcal gap is not rounding.
+    row = make_quarantined(nutrition=[60.0, 0, 0, 0, 0, 0, 0])
+    assert row.reasons == (QuarantineReason.ENERGY_INCONSISTENT,)
 
 
 def test_quarantined_row_needs_at_least_one_reason() -> None:
@@ -253,11 +270,20 @@ def write_source(path: Path) -> None:
                     "ingredients": str(GOOD_INGREDIENTS),
                 }
             )
-        writer.writerow(  # accepted but no meal tag: unclassified
+        writer.writerow(  # accepted but no usable course tag: awaits review
             {
-                "name": "dessert",
+                "name": "mystery",
                 "id": "10",
                 "tags": "['dessert']",
+                "nutrition": str(GOOD_NUTRITION),
+                "ingredients": str(GOOD_INGREDIENTS),
+            }
+        )
+        writer.writerow(  # accepted, confidently not a planning dish
+            {
+                "name": "brownies",
+                "id": "11",
+                "tags": "['desserts']",
                 "nutrition": str(GOOD_NUTRITION),
                 "ingredients": str(GOOD_INGREDIENTS),
             }
@@ -287,10 +313,13 @@ def test_build_reports_and_is_reproducible(tmp_path: Path) -> None:
     assert first == run_build(source)
     report = first.catalogue["report"]
     assert isinstance(report, dict)
-    assert report["rawRecipes"] == 8
-    assert report["accepted"] == 6
-    assert report["acceptedWithMealType"] == 5
-    assert report["acceptedUnclassified"] == 1
+    assert report["rawRecipes"] == 9
+    assert report["accepted"] == 7
+    assert report["plannable"] == 5
+    assert report["requiresReview"] == 1
+    assert report["notPlanningDish"] == 1
+    assert report["classificationStatus"] == {"AUTO": 6, "REQUIRES_REVIEW": 1}
+    assert report["plannableRoles"] == {"MAIN_DISH": 5}
     assert report["quarantinedRows"] == 2
     # Row 9 has two reasons and "abc" has one, so reasons add up to more than the rows.
     assert report["quarantineReasons"] == {"MALFORMED_METADATA": 2, "MALFORMED_NUTRITION": 1}
@@ -310,12 +339,65 @@ def test_quarantine_file_keeps_every_defective_row(tmp_path: Path) -> None:
     assert by_id["abc"]["reasons"] == ["MALFORMED_METADATA"]
 
 
-def test_selected_recipes_exclude_the_unclassified_one(tmp_path: Path) -> None:
+def test_selected_recipes_exclude_unsettled_and_non_meal_dishes(tmp_path: Path) -> None:
     source = tmp_path / "RAW_recipes.csv"
     write_source(source)
     recipes = run_build(source).catalogue["recipes"]
     assert isinstance(recipes, list)
-    assert "FC_10" not in {r["recipeId"] for r in recipes}
+    assert {"FC_10", "FC_11"}.isdisjoint({r["recipeId"] for r in recipes})
+
+
+def test_review_file_lists_dishes_awaiting_review_with_evidence(tmp_path: Path) -> None:
+    source = tmp_path / "RAW_recipes.csv"
+    write_source(source)
+    [row] = run_build(source).review["rows"]  # type: ignore[misc]
+    assert row["recipeId"] == "FC_10"
+    assert "no usable course evidence" in row["evidence"]
+
+
+def test_curated_override_settles_a_review_dish(tmp_path: Path) -> None:
+    source = tmp_path / "RAW_recipes.csv"
+    write_source(source)
+    override = ClassificationOverride(
+        recipe_id="FC_10",
+        roles=(CulinaryRole.MAIN_DISH,),
+        dish_class=DishClass.REQUIRES_ACCOMPANIMENT,
+        meal_types=(MealType.LUNCH, MealType.DINNER),
+        rationale="test",
+        curated_by="tester",
+    )
+    result = build(
+        source,
+        seed="s",
+        dv_name=FDA_1993.name,
+        overrides_path=None,
+        built_at=BUILT_AT,
+        classification_overrides=(override,),
+    )
+    report = result.catalogue["report"]
+    assert isinstance(report, dict)
+    assert report["plannable"] == 6 and report["requiresReview"] == 0
+    assert report["curatedOverridesApplied"] == 1
+
+
+def test_override_for_a_missing_recipe_is_an_error(tmp_path: Path) -> None:
+    source = tmp_path / "RAW_recipes.csv"
+    write_source(source)
+    override = ClassificationOverride(
+        recipe_id="FC_9",  # quarantined, so not an accepted recipe
+        cuisines=("Nepali",),
+        rationale="test",
+        curated_by="tester",
+    )
+    with pytest.raises(ValueError, match="FC_9"):
+        build(
+            source,
+            seed="s",
+            dv_name=FDA_1993.name,
+            overrides_path=None,
+            built_at=BUILT_AT,
+            classification_overrides=(override,),
+        )
 
 
 # --- catalogue version --------------------------------------------------------------
@@ -374,7 +456,20 @@ def test_cli_names_files_by_build_time_and_writes_quarantine_on_request(
     source = tmp_path / "RAW_recipes.csv"
     write_source(source)
     out_dir = tmp_path / "out"
-    argv = ["build", "--source", str(source), "--output-dir", str(out_dir)]
+    curation = tmp_path / "overrides.json"
+    curation.write_text(
+        '{"schemaVersion": "classification-overrides.v1", "note": "t", "overrides": []}',
+        encoding="utf-8",
+    )
+    argv = [
+        "build",
+        "--source",
+        str(source),
+        "--output-dir",
+        str(out_dir),
+        "--classification-overrides",
+        str(curation),
+    ]
 
     monkeypatch.setattr("sys.argv", argv)
     build_catalogue.main()

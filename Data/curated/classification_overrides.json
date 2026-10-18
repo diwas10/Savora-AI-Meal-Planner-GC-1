@@ -1,0 +1,162 @@
+{
+  "schemaVersion": "classification-overrides.v1",
+  "note": "Curated corrections to tag-based classification (ADR 0001 D5). curatedBy 'ai-review:claude' means the entry was chosen by AI judgement on the recipe name, tags and nutrition, at the project lead's request; it has not been confirmed by a person.",
+  "overrides": [
+    {
+      "recipeId": "FC_304023",
+      "roles": [
+        "MAIN_DISH"
+      ],
+      "dishClass": "REQUIRES_ACCOMPANIMENT",
+      "mealTypes": [
+        "LUNCH",
+        "DINNER"
+      ],
+      "rationale": "bengali dal: Indian lentil/legume curry eaten with rice or roti: a main that needs an accompaniment; tags were only soups-stews/lunch/none",
+      "curatedBy": "ai-review:claude"
+    },
+    {
+      "recipeId": "FC_140318",
+      "roles": [
+        "MAIN_DISH"
+      ],
+      "dishClass": "REQUIRES_ACCOMPANIMENT",
+      "mealTypes": [
+        "LUNCH",
+        "DINNER"
+      ],
+      "rationale": "chana dal curry kerala style: Indian lentil/legume curry eaten with rice or roti: a main that needs an accompaniment; tags were only soups-stews/lunch/none",
+      "curatedBy": "ai-review:claude"
+    },
+    {
+      "recipeId": "FC_235680",
+      "roles": [
+        "MAIN_DISH"
+      ],
+      "dishClass": "REQUIRES_ACCOMPANIMENT",
+      "mealTypes": [
+        "LUNCH",
+        "DINNER"
+      ],
+      "rationale": "chana masala with spinach: Indian lentil/legume curry eaten with rice or roti: a main that needs an accompaniment; tags were only soups-stews/lunch/none",
+      "curatedBy": "ai-review:claude"
+    },
+    {
+      "recipeId": "FC_516746",
+      "roles": [
+        "MAIN_DISH"
+      ],
+      "dishClass": "REQUIRES_ACCOMPANIMENT",
+      "mealTypes": [
+        "LUNCH",
+        "DINNER"
+      ],
+      "rationale": "chana masala in the slow cooker: Indian lentil/legume curry eaten with rice or roti: a main that needs an accompaniment; tags were only soups-stews/lunch/none",
+      "curatedBy": "ai-review:claude"
+    },
+    {
+      "recipeId": "FC_13288",
+      "roles": [
+        "MAIN_DISH"
+      ],
+      "dishClass": "REQUIRES_ACCOMPANIMENT",
+      "mealTypes": [
+        "LUNCH",
+        "DINNER"
+      ],
+      "rationale": "chole: Indian lentil/legume curry eaten with rice or roti: a main that needs an accompaniment; tags were only soups-stews/lunch/none",
+      "curatedBy": "ai-review:claude"
+    },
+    {
+      "recipeId": "FC_62586",
+      "roles": [
+        "MAIN_DISH"
+      ],
+      "dishClass": "REQUIRES_ACCOMPANIMENT",
+      "mealTypes": [
+        "LUNCH",
+        "DINNER"
+      ],
+      "rationale": "cousin helen's dal: Indian lentil/legume curry eaten with rice or roti: a main that needs an accompaniment; tags were only soups-stews/lunch/none",
+      "curatedBy": "ai-review:claude"
+    },
+    {
+      "recipeId": "FC_36696",
+      "roles": [
+        "MAIN_DISH"
+      ],
+      "dishClass": "REQUIRES_ACCOMPANIMENT",
+      "mealTypes": [
+        "LUNCH",
+        "DINNER"
+      ],
+      "rationale": "dal maharani: Indian lentil/legume curry eaten with rice or roti: a main that needs an accompaniment; tags were only soups-stews/lunch/none",
+      "curatedBy": "ai-review:claude"
+    },
+    {
+      "recipeId": "FC_9779",
+      "roles": [
+        "MAIN_DISH"
+      ],
+      "dishClass": "REQUIRES_ACCOMPANIMENT",
+      "mealTypes": [
+        "LUNCH",
+        "DINNER"
+      ],
+      "rationale": "dal makhani: Indian lentil/legume curry eaten with rice or roti: a main that needs an accompaniment; tags were only soups-stews/lunch/none",
+      "curatedBy": "ai-review:claude"
+    },
+    {
+      "recipeId": "FC_195571",
+      "roles": [
+        "MAIN_DISH"
+      ],
+      "dishClass": "REQUIRES_ACCOMPANIMENT",
+      "mealTypes": [
+        "LUNCH",
+        "DINNER"
+      ],
+      "rationale": "dal makhani spicy black lentils: Indian lentil/legume curry eaten with rice or roti: a main that needs an accompaniment; tags were only soups-stews/lunch/none",
+      "curatedBy": "ai-review:claude"
+    },
+    {
+      "recipeId": "FC_416178",
+      "roles": [
+        "MAIN_DISH"
+      ],
+      "dishClass": "REQUIRES_ACCOMPANIMENT",
+      "mealTypes": [
+        "LUNCH",
+        "DINNER"
+      ],
+      "rationale": "indian dhal: Indian lentil/legume curry eaten with rice or roti: a main that needs an accompaniment; tags were only soups-stews/lunch/none",
+      "curatedBy": "ai-review:claude"
+    },
+    {
+      "recipeId": "FC_327998",
+      "roles": [
+        "MAIN_DISH"
+      ],
+      "dishClass": "REQUIRES_ACCOMPANIMENT",
+      "mealTypes": [
+        "LUNCH",
+        "DINNER"
+      ],
+      "rationale": "jaipur mung dal: Indian lentil/legume curry eaten with rice or roti: a main that needs an accompaniment; tags were only soups-stews/lunch/none",
+      "curatedBy": "ai-review:claude"
+    },
+    {
+      "recipeId": "FC_47552",
+      "roles": [
+        "MAIN_DISH"
+      ],
+      "dishClass": "REQUIRES_ACCOMPANIMENT",
+      "mealTypes": [
+        "LUNCH",
+        "DINNER"
+      ],
+      "rationale": "lentil sambar: Indian lentil/legume curry eaten with rice or roti: a main that needs an accompaniment; tags were only soups-stews/lunch/none",
+      "curatedBy": "ai-review:claude"
+    }
+  ]
+}

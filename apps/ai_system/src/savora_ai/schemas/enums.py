@@ -98,3 +98,15 @@ class QuarantineReason(StrEnum):
     MALFORMED_METADATA = "MALFORMED_METADATA"
     NUTRITION_OUT_OF_RANGE = "NUTRITION_OUT_OF_RANGE"
     ENERGY_INCONSISTENT = "ENERGY_INCONSISTENT"  # NO_MEAL_TYPE is gone on purpose
+
+
+class ClassificationStatus(StrEnum):
+    """How a dish's roles and meal types were decided (ADR 0001 D5).
+
+    Only AUTO and CURATED dishes may be selected for planning; REQUIRES_REVIEW dishes
+    go to the review queue until a curated override settles them.
+    """
+
+    AUTO = "AUTO"
+    CURATED = "CURATED"
+    REQUIRES_REVIEW = "REQUIRES_REVIEW"

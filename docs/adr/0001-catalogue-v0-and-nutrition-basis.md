@@ -68,9 +68,15 @@ holds:
 
 - the nutrition vector does not have seven finite, non-negative numbers;
 - name or ingredients are missing, or the ID is not positive;
-- kcal is outside 50 to 1,500 or a macro/sodium %DV exceeds 300 (provisional limits);
-- Atwater-implied energy / stated energy is outside 0.75 to 1.25 (checked only when the
-  range check passed).
+- kcal is outside 10 to 1,500 or a macro/sodium %DV exceeds 300 (provisional limits);
+- Atwater-implied energy / stated energy is outside 0.75 to 1.25 **and** the absolute gap
+  exceeds 10 kcal (checked only when the range check passed). Food.com stores whole-number
+  %DV, so rounding fat, carbohydrate and protein by 0.5 %DV each moves implied energy by up
+  to about 10 kcal (2.9 + 6.0 + 1.0); for light dishes that rounding dominates the ratio.
+
+The floor was 50 kcal. It is now 10 kcal for every row, because vegetable sides can be
+lighter than 50 kcal; the 50 kcal floor moved to classification and applies only to meal
+dishes (D5).
 
 Quarantined rows never reach the catalogue, but they are counted by reason in the build
 report and written to a review file, so a person can re-admit a row through a curated
@@ -99,6 +105,32 @@ decides, and a person signs off. Qwen is not involved in catalogue construction.
 
 The earlier fixed map `main-dish -> DINNER` is retired: a main dish can serve lunch or
 dinner.
+
+**Implemented rules (Stage 2, `core/food_data/classification.py`).** Food.com has two
+kinds of tag: *course* tags (`main-dish`, `side-dishes`, `salads`, `breads`, `breakfast`)
+and *main-ingredient* tags (`vegetables`, `rice`, `pasta`). Roles come from course tags;
+ingredient tags only qualify a side (`side-dishes` + `rice` is a STAPLE, `side-dishes` +
+`vegetables` a VEGETABLE). A vegetable soup is therefore not a vegetable side.
+
+| Evidence | Result |
+|---|---|
+| `main-dish` or `one-dish-meal` | MAIN_DISH; COMPLETE_MEAL if `one-dish-meal`, a self-contained tag (pasta, sandwiches, casseroles...) or name word (biryani, noodle, momo...), else REQUIRES_ACCOMPANIMENT |
+| `breakfast` / `brunch` | BREAKFAST_BASE, COMPLETE_MEAL |
+| `side-dishes`, `salads`, savoury `breads` | STAPLE or VEGETABLE, COMPONENT |
+| dessert, drink, sauce, snack, appetizer course only | not a planning dish (AUTO, no roles) |
+| meal course next to a non-meal course | REQUIRES_REVIEW (conflict) |
+| `soups-stews` only, `lunch` only, unqualified side only, nothing | REQUIRES_REVIEW |
+| meal dish below 50 kcal, side above 700 kcal per serving | REQUIRES_REVIEW |
+
+Role to meals: BREAKFAST_BASE and FRUIT suit breakfast; MAIN_DISH, STAPLE, VEGETABLE and
+PROTEIN_SOURCE suit lunch and dinner. Curated overrides live in
+`Data/curated/classification_overrides.json`; they replace the classification fields
+together (status CURATED), or only the cuisines, and keep the tag evidence for audit.
+An override that matches no accepted recipe fails the build.
+
+Full-data result (231,637 raw rows): 213,696 accepted, of which 106,332 plannable,
+52,151 REQUIRES_REVIEW (written to `<version>_review.json` with `--with-review`) and
+55,213 not planning dishes; 17,941 quarantined.
 
 ### D6. Selection is stratified; popularity is only a tie-breaker (revised)
 

@@ -31,6 +31,7 @@ EXPECTED: dict[type[StrEnum], tuple[str, ...]] = {
         "NUTRITION_OUT_OF_RANGE",
         "ENERGY_INCONSISTENT",
     ),
+    enums.ClassificationStatus: ("AUTO", "CURATED", "REQUIRES_REVIEW"),
 }
 
 

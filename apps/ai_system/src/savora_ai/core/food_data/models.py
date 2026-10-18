@@ -9,7 +9,13 @@ from typing import Annotated, Self
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints, model_validator
 from pydantic.alias_generators import to_camel
 
-from savora_ai.schemas.enums import MealType, QuarantineReason
+from savora_ai.schemas.enums import (
+    ClassificationStatus,
+    CulinaryRole,
+    DishClass,
+    MealType,
+    QuarantineReason,
+)
 
 # A string with at least one non-space character.
 _NonBlank = Annotated[str, StringConstraints(min_length=1, pattern=r"\S")]
@@ -57,8 +63,12 @@ class CatalogueRecipe(_FoodModel):
     ingredients: tuple[_NonBlank, ...]
     cuisines: tuple[_NonBlank, ...]  # exact-tag cuisines only; may be empty
     diet_tags: tuple[_NonBlank, ...]  # Food.com metadata labels, NOT verified diet facts
-    # Empty = not classified yet (Stage 2 assigns roles/meals); such a recipe is never selected.
-    meal_types: tuple[MealType, ...]
+    # Stage 2 classification (see classification.py). Empty roles = not a planning dish.
+    roles: tuple[CulinaryRole, ...]
+    dish_class: DishClass | None
+    meal_types: tuple[MealType, ...]  # derived from roles, never from one tag alone
+    classification_status: ClassificationStatus
+    classification_evidence: tuple[_NonBlank, ...]
     nutrition_per_serving: ServingNutrition
     dv_reference: _NonBlank  # which DvReference produced the gram/mg values
     # Unknown until a person verifies it (ADR 0001); None means unknown, never zero.

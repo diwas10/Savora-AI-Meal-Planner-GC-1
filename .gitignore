@@ -67,3 +67,4 @@ Data/Food.com/PP_*.csv
 Data/Food.com/interactions_*.csv
 Data/Food.com/*.pkl
 Data/catalogue/*_quarantine.json
+Data/catalogue/*_review.json
