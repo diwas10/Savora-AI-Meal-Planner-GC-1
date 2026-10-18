@@ -66,6 +66,10 @@ class ModelConfig:
     top_ingredients: int = 3000
     max_tags: int = 40
     max_ingredients: int = 30
+    # Ablation switches (experiments.py); the shipped model uses all three.
+    use_id: bool = True
+    use_content: bool = True
+    use_bias: bool = True
 
 
 @dataclass(frozen=True)
@@ -178,14 +182,17 @@ class SASRecContent(nn.Module):
         self.has_id.copy_(index.has_id)
 
     def item_vectors(self, rows: Tensor) -> Tensor:
-        id_part = self.item(rows) * self.has_id[rows].unsqueeze(-1)
-        return (
-            id_part
-            + _mean_bag(self.tag, self.feat_tags[rows])
-            + _mean_bag(self.ingredient, self.feat_ingredients[rows])
-        )
+        vector = torch.zeros(*rows.shape, self.config.dim, device=rows.device)
+        if self.config.use_id:
+            vector = vector + self.item(rows) * self.has_id[rows].unsqueeze(-1)
+        if self.config.use_content:
+            vector = vector + _mean_bag(self.tag, self.feat_tags[rows])
+            vector = vector + _mean_bag(self.ingredient, self.feat_ingredients[rows])
+        return vector
 
     def item_bias(self, rows: Tensor) -> Tensor:
+        if not self.config.use_bias:
+            return torch.zeros(rows.shape, device=rows.device)
         return self.bias(rows).squeeze(-1) * self.has_id[rows]
 
     def score(self, states: Tensor, rows: Tensor) -> Tensor:
@@ -265,6 +272,7 @@ def dense_ranks(
     tops: list[list[str]] | None = None,
     top_cases: int = 0,
     log_popularity: Tensor | None = None,  # added to every score when given (hybrid)
+    candidate_rows: Tensor | None = None,  # rank only among these rows (catalogue eval)
 ) -> list[int]:
     model.eval()
     vectors = model.all_item_vectors()
@@ -282,6 +290,10 @@ def dense_ranks(
         states = model.encode(seqs)[:, -1]
         scores = states @ vectors.T + bias
         scores[:, PAD] = float("-inf")
+        if candidate_rows is not None:
+            allowed = torch.zeros(scores.size(1), dtype=torch.bool, device=device)
+            allowed[candidate_rows.to(device)] = True
+            scores[:, ~allowed] = float("-inf")
         for b, case in enumerate(batch):
             row = scores[b]
             target = index.row[case.target]
