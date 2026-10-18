@@ -42,6 +42,7 @@ from savora_ai.core.food_data.classification import (
 )
 from savora_ai.core.food_data.models import CatalogueRecipe, QuarantinedRow, ServingMassOverride
 from savora_ai.core.food_data.nutrition_convert import DV_REFERENCES, FDA_1993
+from savora_ai.core.food_data.portions import serving_portions, with_portions
 from savora_ai.core.food_data.usda_staples import (
     DEFAULT_EXTRACT,
     DEFAULT_SPEC,
@@ -176,6 +177,7 @@ def build(
         selected = apply_serving_masses(
             selected, [ServingMassOverride.model_validate(o) for o in raw]
         )
+    selected = tuple(with_portions(r, serving_portions(r)) for r in selected)
 
     catalogue: dict[str, object] = {
         "catalogueVersion": version,

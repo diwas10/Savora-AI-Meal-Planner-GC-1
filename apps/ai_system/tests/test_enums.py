@@ -23,7 +23,16 @@ EXPECTED: dict[type[StrEnum], tuple[str, ...]] = {
         "FRUIT",
         "SUPPLEMENT",
     ),
-    enums.PortionUnit: ("PIECE", "BOWL", "CUP", "SLICE", "LOAF", "GRAM", "MILLILITER"),
+    enums.PortionUnit: (
+        "PIECE",
+        "BOWL",
+        "CUP",
+        "SLICE",
+        "LOAF",
+        "GRAM",
+        "MILLILITER",
+        "SERVING",
+    ),
     enums.PlanStatus: ("FEASIBLE", "INFEASIBLE", "TIMEOUT", "INSUFFICIENT_DATA"),
     enums.QuarantineReason: (
         "MALFORMED_NUTRITION",

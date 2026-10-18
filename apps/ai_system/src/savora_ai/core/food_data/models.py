@@ -16,6 +16,7 @@ from savora_ai.schemas.enums import (
     MealType,
     NutritionBasis,
     NutritionSource,
+    PortionUnit,
     QuarantineReason,
 )
 
@@ -78,6 +79,22 @@ class NutritionRecord(_FoodModel):
     quality_flags: tuple[_NonBlank, ...] = ()
 
 
+class PortionOption(_FoodModel):
+    """One discrete quantity of one dish, with its ABSOLUTE nutrients (ADR 0003 D2).
+
+    The CSP chooses among options and only adds their nutrient vectors, so it never needs
+    a dish's mass. `grams` is None when the mass is unknown (Food.com servings).
+    """
+
+    portion_id: _NonBlank  # "<dishId>:<quantity>x<unit>", e.g. "USDA_2707713:2xPIECE"
+    quantity: float = Field(gt=0)
+    unit: PortionUnit
+    grams: float | None = Field(default=None, gt=0)
+    label: _NonBlank
+    is_standard: bool
+    nutrients: NutrientVector
+
+
 class CatalogueRecipe(_FoodModel):
     recipe_id: _NonBlank  # "FC_<food.com id>"; ID format awaits team approval
     name: _NonBlank
@@ -95,12 +112,30 @@ class CatalogueRecipe(_FoodModel):
     serving_mass_g: float | None = Field(default=None, gt=0)
     serving_mass_source: _NonBlank | None = None
     provenance: tuple[_NonBlank, ...] = ()
+    # Stage 4: discrete options, increasing quantity, exactly one standard. Empty until the
+    # dish is selected for the catalogue (only selected dishes need portions).
+    portions: tuple[PortionOption, ...] = ()
 
     @model_validator(mode="after")
     def check_serving_mass_has_source(self) -> Self:
         # A mass without a source (or a source without a mass) cannot be audited.
         if (self.serving_mass_g is None) != (self.serving_mass_source is None):
             raise ValueError("servingMassG and servingMassSource must be set together")
+        return self
+
+    @model_validator(mode="after")
+    def check_portions(self) -> Self:
+        if not self.portions:
+            return self
+        quantities = [p.quantity for p in self.portions]
+        if quantities != sorted(set(quantities)):
+            raise ValueError("portions must have strictly increasing quantities")
+        if sum(p.is_standard for p in self.portions) != 1:
+            raise ValueError("exactly one portion must be the standard portion")
+        if len({p.unit for p in self.portions}) != 1:
+            raise ValueError("all portions of a dish use one unit")
+        if any(not p.portion_id.startswith(f"{self.recipe_id}:") for p in self.portions):
+            raise ValueError("portion IDs must start with the dish ID")
         return self
 
 

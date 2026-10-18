@@ -101,6 +101,12 @@ def scale(nutrition: NutrientVector, factor: float) -> NutrientVector:
     return NutrientVector(**{k: None if v is None else v * factor for k, v in values.items()})
 
 
+def rounded(nutrition: NutrientVector, places: int = 3) -> NutrientVector:
+    """Round known values for stable, readable exports; far below nutrient precision."""
+    values = {name: getattr(nutrition, name) for name in NUTRIENT_FIELDS}
+    return NutrientVector(**{k: None if v is None else round(v, places) for k, v in values.items()})
+
+
 def per_100g(nutrition: NutrientVector, serving_mass_g: float | None) -> NutrientVector | None:
     """Scale a serving to 100 g. Unknown serving mass gives None, never a guess."""
     if serving_mass_g is None:

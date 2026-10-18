@@ -71,6 +71,8 @@ class CulinaryRole(StrEnum):
 
 
 class PortionUnit(StrEnum):
+    """Household units. SERVING is one recipe serving, whose mass may be unknown."""
+
     PIECE = "PIECE"
     BOWL = "BOWL"
     CUP = "CUP"
@@ -78,6 +80,7 @@ class PortionUnit(StrEnum):
     LOAF = "LOAF"
     GRAM = "GRAM"
     MILLILITER = "MILLILITER"
+    SERVING = "SERVING"
 
 
 class PlanStatus(StrEnum):

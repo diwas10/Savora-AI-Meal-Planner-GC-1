@@ -31,6 +31,7 @@ from savora_ai.core.food_data.models import (
     _FoodModel,
     _NonBlank,
 )
+from savora_ai.core.food_data.portions import measured_portions, with_portions
 from savora_ai.schemas.enums import (
     ClassificationStatus,
     CulinaryRole,
@@ -239,10 +240,10 @@ def extract(spec: StapleSpecFile, usda_dir: Path) -> StapleExtractFile:
 
 
 def staple_dish(spec: StapleSpec, data: StapleExtract) -> CatalogueRecipe:
-    """A curated staple as a catalogue dish, with per-100 g USDA nutrition."""
+    """A curated staple as a catalogue dish, with per-100 g USDA nutrition and portions."""
     if spec.fdc_id != data.fdc_id:
         raise ValueError("spec and extract describe different foods")
-    return CatalogueRecipe(
+    dish = CatalogueRecipe(
         recipe_id=spec.dish_id,
         name=spec.name,
         ingredients=spec.ingredients,
@@ -267,6 +268,14 @@ def staple_dish(spec: StapleSpec, data: StapleExtract) -> CatalogueRecipe:
             f"(food_portion id {data.portion.portion_id})",
         ),
     )
+    portions = measured_portions(
+        dish,
+        spec.portion.unit,
+        data.portion.grams_per_unit,
+        spec.portion.allowed_quantities,
+        spec.portion.standard_quantity,
+    )
+    return with_portions(dish, portions)
 
 
 def load_spec(path: Path) -> StapleSpecFile:
