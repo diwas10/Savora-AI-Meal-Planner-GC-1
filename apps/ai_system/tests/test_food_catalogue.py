@@ -463,6 +463,11 @@ def test_cli_names_files_by_build_time_and_writes_quarantine_on_request(
     source = tmp_path / "RAW_recipes.csv"
     write_source(source)
     out_dir = tmp_path / "out"
+    interactions = tmp_path / "RAW_interactions.csv"
+    interactions.write_text(
+        'user_id,recipe_id,date,rating,review\n1,1,2005-01-01,5,"great,\nreally"\n',
+        encoding="utf-8",
+    )
     curation = tmp_path / "overrides.json"
     curation.write_text(
         '{"schemaVersion": "classification-overrides.v1", "note": "t", "overrides": []}',
@@ -476,6 +481,8 @@ def test_cli_names_files_by_build_time_and_writes_quarantine_on_request(
         str(out_dir),
         "--classification-overrides",
         str(curation),
+        "--interactions",
+        str(interactions),
         "--staples-spec",
         str(REPO / "Data/curated/usda_staples.json"),
         "--staples-extract",
@@ -488,7 +495,12 @@ def test_cli_names_files_by_build_time_and_writes_quarantine_on_request(
     match = re.fullmatch(r"(\d{8}T\d{6}Z)_catalogue\.json", catalogue_file.name)
     assert match is not None
     version = match.group(1)
-    assert json.loads(catalogue_file.read_text(encoding="utf-8"))["catalogueVersion"] == version
+    written = json.loads(catalogue_file.read_text(encoding="utf-8"))
+    assert written["catalogueVersion"] == version
+    assert written["independentOfHeldOutData"] is True
+    by_id = {r["recipeId"]: r for r in written["recipes"]}
+    assert by_id["FC_1"]["trainingInteractions"] == 1  # the multi-line review row counts
+    assert by_id["FC_2"]["trainingInteractions"] == 0
 
     monkeypatch.setattr("sys.argv", [*argv, "--with-quarantine"])
     build_catalogue.main()

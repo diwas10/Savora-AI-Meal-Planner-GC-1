@@ -24,7 +24,7 @@ import sys
 from collections import Counter
 from collections.abc import Sequence
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 from pathlib import Path
 
 from savora_ai.core.food_data.catalogue import (
@@ -42,6 +42,11 @@ from savora_ai.core.food_data.classification import (
 )
 from savora_ai.core.food_data.models import CatalogueRecipe, QuarantinedRow, ServingMassOverride
 from savora_ai.core.food_data.nutrition_convert import DV_REFERENCES, FDA_1993
+from savora_ai.core.food_data.popularity import (
+    DEFAULT_POPULARITY_CUTOFF,
+    PopularityTable,
+    load_popularity,
+)
 from savora_ai.core.food_data.portions import serving_portions, with_portions
 from savora_ai.core.food_data.usda_staples import (
     DEFAULT_EXTRACT,
@@ -100,6 +105,7 @@ def build(
     built_at: datetime,
     classification_overrides: Sequence[ClassificationOverride] = (),
     staples: Sequence[CatalogueRecipe] = (),
+    popularity: PopularityTable | None = None,
 ) -> BuildResult:
     version = catalogue_version(built_at)  # fail early on a naive timestamp
     ref = DV_REFERENCES[dv_name]
@@ -178,6 +184,8 @@ def build(
             selected, [ServingMassOverride.model_validate(o) for o in raw]
         )
     selected = tuple(with_portions(r, serving_portions(r)) for r in selected)
+    if popularity is not None:
+        selected = tuple(with_popularity(r, popularity.count(r.recipe_id)) for r in selected)
 
     catalogue: dict[str, object] = {
         "catalogueVersion": version,
@@ -185,6 +193,9 @@ def build(
         "seed": seed,
         "dvReference": ref.name,
         "quotas": {meal.value: n for meal, n in DEFAULT_QUOTAS.items()},
+        "popularity": None if popularity is None else popularity.report(),
+        # The catalogue never reads held-out interactions (ADR 0001 D6).
+        "independentOfHeldOutData": True,
         "report": {
             "rawRecipes": total,
             "accepted": len(candidates) + len(review) + non_meal,
@@ -219,6 +230,10 @@ def build(
     return BuildResult(catalogue=catalogue, quarantine=quarantine, review=review_queue)
 
 
+def with_popularity(recipe: CatalogueRecipe, count: int) -> CatalogueRecipe:
+    return CatalogueRecipe.model_validate({**recipe.model_dump(), "training_interactions": count})
+
+
 def _write_json(path: Path, data: dict[str, object]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8", newline="\n")
@@ -236,6 +251,12 @@ def main() -> None:
     parser.add_argument(
         "--classification-overrides", type=Path, default=DEFAULT_CLASSIFICATION_OVERRIDES
     )
+    parser.add_argument(
+        "--interactions", type=Path, default=Path("Data/Food.com/RAW_interactions.csv")
+    )
+    parser.add_argument(
+        "--popularity-cutoff", type=date.fromisoformat, default=DEFAULT_POPULARITY_CUTOFF
+    )
     parser.add_argument("--staples-spec", type=Path, default=DEFAULT_SPEC)
     parser.add_argument("--staples-extract", type=Path, default=DEFAULT_EXTRACT)
     args = parser.parse_args()
@@ -250,6 +271,7 @@ def main() -> None:
         built_at=datetime.now(UTC),  # the only clock read; build() itself stays testable
         classification_overrides=curated,
         staples=staples,
+        popularity=load_popularity(args.interactions, args.popularity_cutoff),
     )
     version = str(result.catalogue["catalogueVersion"])
     catalogue_path = args.output_dir / catalogue_filename(version)

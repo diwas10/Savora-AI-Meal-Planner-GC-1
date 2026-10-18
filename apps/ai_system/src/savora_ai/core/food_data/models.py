@@ -112,6 +112,9 @@ class CatalogueRecipe(_FoodModel):
     serving_mass_g: float | None = Field(default=None, gt=0)
     serving_mass_source: _NonBlank | None = None
     provenance: tuple[_NonBlank, ...] = ()
+    # Stage 5: Food.com interactions before the popularity cutoff (training only). None for
+    # USDA staples, which have no interaction data; never a guessed count.
+    training_interactions: int | None = Field(default=None, ge=0)
     # Stage 4: discrete options, increasing quantity, exactly one standard. Empty until the
     # dish is selected for the catalogue (only selected dishes need portions).
     portions: tuple[PortionOption, ...] = ()
