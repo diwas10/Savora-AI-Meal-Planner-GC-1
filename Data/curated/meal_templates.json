@@ -1,0 +1,140 @@
+{
+  "schemaVersion": "meal-templates.v1",
+  "note": "Allowed meal shapes, at most 3 dishes (ADR 0002 D1). Slots are filled in order; the first slot is the anchor whose cuisines become the meal's cuisines. Never assume a template is universal: one-dish meals stay valid.",
+  "templates": [
+    {
+      "templateId": "ONE_DISH",
+      "mealTypes": [
+        "LUNCH",
+        "DINNER"
+      ],
+      "slots": [
+        {
+          "slot": "COMPLETE",
+          "role": "MAIN_DISH",
+          "dishClasses": [
+            "COMPLETE_MEAL"
+          ]
+        }
+      ],
+      "rationale": "a complete dish such as biryani, momo or pad thai stands alone"
+    },
+    {
+      "templateId": "MAIN_STAPLE",
+      "mealTypes": [
+        "LUNCH",
+        "DINNER"
+      ],
+      "slots": [
+        {
+          "slot": "MAIN",
+          "role": "MAIN_DISH",
+          "dishClasses": [
+            "REQUIRES_ACCOMPANIMENT"
+          ]
+        },
+        {
+          "slot": "STAPLE",
+          "role": "STAPLE",
+          "dishClasses": [
+            "COMPONENT"
+          ]
+        }
+      ],
+      "rationale": "dal with rice, curry with roti, stir-fry with noodles"
+    },
+    {
+      "templateId": "MAIN_STAPLE_VEGETABLE",
+      "mealTypes": [
+        "LUNCH",
+        "DINNER"
+      ],
+      "slots": [
+        {
+          "slot": "MAIN",
+          "role": "MAIN_DISH",
+          "dishClasses": [
+            "REQUIRES_ACCOMPANIMENT"
+          ]
+        },
+        {
+          "slot": "STAPLE",
+          "role": "STAPLE",
+          "dishClasses": [
+            "COMPONENT"
+          ]
+        },
+        {
+          "slot": "VEGETABLE",
+          "role": "VEGETABLE",
+          "dishClasses": [
+            "COMPONENT"
+          ]
+        }
+      ],
+      "rationale": "dal bhat tarkari: main, staple and a vegetable side"
+    },
+    {
+      "templateId": "BREAKFAST",
+      "mealTypes": [
+        "BREAKFAST"
+      ],
+      "slots": [
+        {
+          "slot": "BASE",
+          "role": "BREAKFAST_BASE",
+          "dishClasses": [
+            "COMPLETE_MEAL"
+          ]
+        }
+      ],
+      "rationale": "a breakfast dish stands alone"
+    },
+    {
+      "templateId": "BREAKFAST_FRUIT",
+      "mealTypes": [
+        "BREAKFAST"
+      ],
+      "slots": [
+        {
+          "slot": "BASE",
+          "role": "BREAKFAST_BASE",
+          "dishClasses": [
+            "COMPLETE_MEAL"
+          ]
+        },
+        {
+          "slot": "FRUIT",
+          "role": "FRUIT",
+          "dishClasses": [
+            "COMPONENT"
+          ]
+        }
+      ],
+      "rationale": "breakfast base with optional fruit"
+    },
+    {
+      "templateId": "BREAKFAST_PROTEIN",
+      "mealTypes": [
+        "BREAKFAST"
+      ],
+      "slots": [
+        {
+          "slot": "BASE",
+          "role": "BREAKFAST_BASE",
+          "dishClasses": [
+            "COMPLETE_MEAL"
+          ]
+        },
+        {
+          "slot": "PROTEIN",
+          "role": "PROTEIN_SOURCE",
+          "dishClasses": [
+            "COMPONENT"
+          ]
+        }
+      ],
+      "rationale": "breakfast base with optional protein (boiled egg)"
+    }
+  ]
+}

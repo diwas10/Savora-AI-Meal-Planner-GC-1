@@ -130,3 +130,13 @@ class NutritionBasis(StrEnum):
 
     PER_SERVING = "PER_SERVING"  # one recipe serving; its mass may be unknown
     PER_100_G = "PER_100_G"
+
+
+class PortionPreset(StrEnum):
+    """Curated whole-meal portion configurations (ADR 0002 D2), not proportional scaling."""
+
+    STANDARD = "STANDARD"
+    HIGHER_PROTEIN = "HIGHER_PROTEIN"
+    LOWER_CARB = "LOWER_CARB"
+    HIGHER_ENERGY = "HIGHER_ENERGY"
+    LOWER_ENERGY = "LOWER_ENERGY"

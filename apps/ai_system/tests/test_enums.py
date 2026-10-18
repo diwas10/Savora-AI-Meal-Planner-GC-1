@@ -49,6 +49,13 @@ EXPECTED: dict[type[StrEnum], tuple[str, ...]] = {
         "CURATED",
     ),
     enums.NutritionBasis: ("PER_SERVING", "PER_100_G"),
+    enums.PortionPreset: (
+        "STANDARD",
+        "HIGHER_PROTEIN",
+        "LOWER_CARB",
+        "HIGHER_ENERGY",
+        "LOWER_ENERGY",
+    ),
 }
 
 
