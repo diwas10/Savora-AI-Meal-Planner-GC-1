@@ -42,6 +42,13 @@ from savora_ai.core.food_data.classification import (
 )
 from savora_ai.core.food_data.models import CatalogueRecipe, QuarantinedRow, ServingMassOverride
 from savora_ai.core.food_data.nutrition_convert import DV_REFERENCES, FDA_1993
+from savora_ai.core.food_data.usda_staples import (
+    DEFAULT_EXTRACT,
+    DEFAULT_SPEC,
+    load_extract,
+    load_spec,
+    staple_dishes,
+)
 from savora_ai.schemas.enums import ClassificationStatus, QuarantineReason
 
 _REQUIRED_COLUMNS = {"id", "name", "tags", "nutrition", "ingredients"}
@@ -91,6 +98,7 @@ def build(
     overrides_path: Path | None,
     built_at: datetime,
     classification_overrides: Sequence[ClassificationOverride] = (),
+    staples: Sequence[CatalogueRecipe] = (),
 ) -> BuildResult:
     version = catalogue_version(built_at)  # fail early on a naive timestamp
     ref = DV_REFERENCES[dv_name]
@@ -190,9 +198,11 @@ def build(
             # A row can carry two reasons, so these may add up to more than quarantinedRows.
             "quarantineReasons": dict(sorted(reason_counts.items())),
             "selected": len(selected),
+            "usdaStaples": len(staples),
             "withVerifiedServingMass": sum(r.serving_mass_g is not None for r in selected),
         },
-        "recipes": [r.model_dump(mode="json", by_alias=True) for r in selected],
+        # Food.com selection first, then the curated USDA staples (ADR 0003 D1).
+        "recipes": [r.model_dump(mode="json", by_alias=True) for r in (*selected, *staples)],
     }
     quarantine: dict[str, object] = {
         "catalogueVersion": version,
@@ -224,9 +234,12 @@ def main() -> None:
     parser.add_argument(
         "--classification-overrides", type=Path, default=DEFAULT_CLASSIFICATION_OVERRIDES
     )
+    parser.add_argument("--staples-spec", type=Path, default=DEFAULT_SPEC)
+    parser.add_argument("--staples-extract", type=Path, default=DEFAULT_EXTRACT)
     args = parser.parse_args()
     # A missing curation file is an error, not "no curation": it would silently drop overrides.
     curated = load_classification_overrides(args.classification_overrides)
+    staples = staple_dishes(load_spec(args.staples_spec), load_extract(args.staples_extract))
     result = build(
         args.source,
         seed=args.seed,
@@ -234,6 +247,7 @@ def main() -> None:
         overrides_path=args.overrides,
         built_at=datetime.now(UTC),  # the only clock read; build() itself stays testable
         classification_overrides=curated,
+        staples=staples,
     )
     version = str(result.catalogue["catalogueVersion"])
     catalogue_path = args.output_dir / catalogue_filename(version)

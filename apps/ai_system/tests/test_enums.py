@@ -32,6 +32,14 @@ EXPECTED: dict[type[StrEnum], tuple[str, ...]] = {
         "ENERGY_INCONSISTENT",
     ),
     enums.ClassificationStatus: ("AUTO", "CURATED", "REQUIRES_REVIEW"),
+    enums.NutritionSource: (
+        "FOODCOM_DERIVED",
+        "USDA_FNDDS",
+        "USDA_SR_LEGACY",
+        "USDA_FOUNDATION",
+        "CURATED",
+    ),
+    enums.NutritionBasis: ("PER_SERVING", "PER_100_G"),
 }
 
 

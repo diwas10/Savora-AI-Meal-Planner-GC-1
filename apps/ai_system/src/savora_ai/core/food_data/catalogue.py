@@ -13,9 +13,10 @@ from savora_ai.core.food_data.foodcom_cuisines import get_cuisines, normalize_ta
 from savora_ai.core.food_data.models import (
     CatalogueRecipe,
     DvReference,
+    NutrientVector,
+    NutritionRecord,
     QuarantinedRow,
     ServingMassOverride,
-    ServingNutrition,
 )
 from savora_ai.core.food_data.nutrition_convert import (
     energy_ratio,
@@ -23,7 +24,7 @@ from savora_ai.core.food_data.nutrition_convert import (
     parse_nutrition,
     to_serving_nutrition,
 )
-from savora_ai.schemas.enums import MealType, QuarantineReason
+from savora_ai.schemas.enums import MealType, NutritionBasis, NutritionSource, QuarantineReason
 
 # --- PROVISIONAL sanity limits (one recipe serving) ---------------------------------
 # Below this a serving is seasoning, water or a data error, whatever its role. Meal dishes
@@ -61,12 +62,13 @@ def parse_string_list(value: object) -> tuple[str, ...]:
     return tuple(item.strip() for item in value if item.strip())
 
 
-def energy_consistent(nutrition: ServingNutrition) -> bool:
+def energy_consistent(nutrition: NutrientVector) -> bool:
     """Stated energy agrees with the macros within the ratio band or the rounding gap."""
     ratio = energy_ratio(nutrition)
-    if ratio is None:
+    implied = implied_energy_kcal(nutrition)
+    if ratio is None or implied is None or nutrition.energy_kcal is None:
         return False
-    gap = abs(implied_energy_kcal(nutrition) - nutrition.energy_kcal)
+    gap = abs(implied - nutrition.energy_kcal)
     return ENERGY_RATIO_RANGE[0] <= ratio <= ENERGY_RATIO_RANGE[1] or (
         gap <= ENERGY_ABS_TOLERANCE_KCAL
     )
@@ -130,7 +132,7 @@ def build_recipe(
     if reasons or nutrition is None:
         return QuarantinedRow(source_id=str(source_id), name=name, reasons=tuple(reasons))
 
-    classification = classify(name, tags, nutrition.energy_kcal)
+    classification = classify(name, tags, nutrition.energy_kcal or 0.0)
     return CatalogueRecipe(
         recipe_id=f"FC_{source_id}",
         name=name.strip(),
@@ -142,8 +144,12 @@ def build_recipe(
         meal_types=classification.meal_types,
         classification_status=classification.status,
         classification_evidence=classification.evidence,
-        nutrition_per_serving=nutrition,
-        dv_reference=ref.name,
+        nutrition=NutritionRecord(
+            source=NutritionSource.FOODCOM_DERIVED,
+            basis=NutritionBasis.PER_SERVING,
+            values=nutrition,
+            source_reference=ref.name,
+        ),
         provenance=(
             "Food.com RAW_recipes.csv",
             f"%DV converted with {ref.name}; sugar left unknown",

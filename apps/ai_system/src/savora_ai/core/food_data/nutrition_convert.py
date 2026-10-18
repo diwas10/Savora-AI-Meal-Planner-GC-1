@@ -8,7 +8,7 @@ source is verified in docs/adr/0001-catalogue-v0-and-nutrition-basis.md.
 
 import ast
 
-from savora_ai.core.food_data.models import DvReference, ServingNutrition
+from savora_ai.core.food_data.models import NUTRIENT_FIELDS, DvReference, NutrientVector
 
 # FDA labelling table in force before 2016 (2,000 kcal diet). Best fit to Food.com:
 # see ADR 0001 for the energy-consistency evidence. Sodium and saturated fat are
@@ -63,10 +63,10 @@ def parse_nutrition(value: object) -> tuple[float, float, float, float, float, f
 
 def to_serving_nutrition(
     raw: tuple[float, float, float, float, float, float, float], ref: DvReference
-) -> ServingNutrition:
+) -> NutrientVector:
     """Turn %DV into grams/mg per serving. Sugar stays unknown (no verified reference)."""
     calories, fat, _sugar, sodium, protein, sat_fat, carbs = raw
-    return ServingNutrition(
+    return NutrientVector(
         energy_kcal=calories,
         fat_g=fat / 100.0 * ref.fat_g,
         saturated_fat_g=sat_fat / 100.0 * ref.saturated_fat_g,
@@ -77,33 +77,32 @@ def to_serving_nutrition(
     )
 
 
-def implied_energy_kcal(nutrition: ServingNutrition) -> float:
-    """Energy implied by the macros; used only as a data-consistency check."""
-    return (
-        _KCAL_PER_G_FAT * nutrition.fat_g
-        + _KCAL_PER_G_CARBOHYDRATE * nutrition.carbohydrate_g
-        + _KCAL_PER_G_PROTEIN * nutrition.protein_g
-    )
-
-
-def energy_ratio(nutrition: ServingNutrition) -> float | None:
-    """Implied / stated energy. None when stated energy is zero (ratio undefined)."""
-    if nutrition.energy_kcal <= 0:
+def implied_energy_kcal(nutrition: NutrientVector) -> float | None:
+    """Energy implied by the macros; None if any macro is unknown. A consistency check only."""
+    fat, carbs, protein = nutrition.fat_g, nutrition.carbohydrate_g, nutrition.protein_g
+    if fat is None or carbs is None or protein is None:
         return None
-    return implied_energy_kcal(nutrition) / nutrition.energy_kcal
+    return _KCAL_PER_G_FAT * fat + _KCAL_PER_G_CARBOHYDRATE * carbs + _KCAL_PER_G_PROTEIN * protein
 
 
-def per_100g(nutrition: ServingNutrition, serving_mass_g: float | None) -> ServingNutrition | None:
+def energy_ratio(nutrition: NutrientVector) -> float | None:
+    """Implied / stated energy. None when either side is unknown or stated energy is 0."""
+    implied = implied_energy_kcal(nutrition)
+    if implied is None or nutrition.energy_kcal is None or nutrition.energy_kcal <= 0:
+        return None
+    return implied / nutrition.energy_kcal
+
+
+def scale(nutrition: NutrientVector, factor: float) -> NutrientVector:
+    """Multiply every known nutrient by `factor`; unknown stays unknown."""
+    if factor < 0:
+        raise ValueError("scale factor must be non-negative")
+    values = {name: getattr(nutrition, name) for name in NUTRIENT_FIELDS}
+    return NutrientVector(**{k: None if v is None else v * factor for k, v in values.items()})
+
+
+def per_100g(nutrition: NutrientVector, serving_mass_g: float | None) -> NutrientVector | None:
     """Scale a serving to 100 g. Unknown serving mass gives None, never a guess."""
     if serving_mass_g is None:
         return None
-    factor = 100.0 / serving_mass_g
-    return ServingNutrition(
-        energy_kcal=nutrition.energy_kcal * factor,
-        fat_g=nutrition.fat_g * factor,
-        saturated_fat_g=nutrition.saturated_fat_g * factor,
-        carbohydrate_g=nutrition.carbohydrate_g * factor,
-        protein_g=nutrition.protein_g * factor,
-        sodium_mg=nutrition.sodium_mg * factor,
-        sugars_g=None if nutrition.sugars_g is None else nutrition.sugars_g * factor,
-    )
+    return scale(nutrition, 100.0 / serving_mass_g)

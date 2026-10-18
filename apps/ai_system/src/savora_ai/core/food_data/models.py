@@ -14,6 +14,8 @@ from savora_ai.schemas.enums import (
     CulinaryRole,
     DishClass,
     MealType,
+    NutritionBasis,
+    NutritionSource,
     QuarantineReason,
 )
 
@@ -44,17 +46,36 @@ class DvReference(_FoodModel):
     sodium_mg: float = Field(gt=0)
 
 
-class ServingNutrition(_FoodModel):
-    """Nutrition of ONE recipe serving in canonical units. Mass of a serving is separate."""
+class NutrientVector(_FoodModel):
+    """Nutrient amounts for one basis quantity, in canonical units.
 
-    energy_kcal: float = Field(ge=0)
-    fat_g: float = Field(ge=0)
-    saturated_fat_g: float = Field(ge=0)
-    carbohydrate_g: float = Field(ge=0)
-    protein_g: float = Field(ge=0)
-    sodium_mg: float = Field(ge=0)
-    # Sugar %DV has no verified reference yet, so grams stay unknown (None, never 0).
+    Every field is optional because sources differ: None means UNKNOWN and is never
+    treated as zero (ARCHITECTURE.md section 3). Food.com sugar is always None (ADR 0001).
+    """
+
+    energy_kcal: float | None = Field(default=None, ge=0)
+    fat_g: float | None = Field(default=None, ge=0)
+    saturated_fat_g: float | None = Field(default=None, ge=0)
+    carbohydrate_g: float | None = Field(default=None, ge=0)
+    protein_g: float | None = Field(default=None, ge=0)
+    sodium_mg: float | None = Field(default=None, ge=0)
     sugars_g: float | None = Field(default=None, ge=0)
+
+
+# Canonical nutrient keys, in a fixed order, for summing and reporting.
+NUTRIENT_FIELDS: tuple[str, ...] = tuple(NutrientVector.model_fields)
+
+
+class NutritionRecord(_FoodModel):
+    """A dish's nutrition with its provenance (ADR 0003 D1-D3)."""
+
+    source: NutritionSource
+    basis: NutritionBasis
+    values: NutrientVector
+    # The exact origin: a DV table name for Food.com, "fdc:<id>" for a USDA food.
+    source_reference: _NonBlank
+    # Problems found in the source values, e.g. a negative value set to unknown.
+    quality_flags: tuple[_NonBlank, ...] = ()
 
 
 class CatalogueRecipe(_FoodModel):
@@ -69,8 +90,7 @@ class CatalogueRecipe(_FoodModel):
     meal_types: tuple[MealType, ...]  # derived from roles, never from one tag alone
     classification_status: ClassificationStatus
     classification_evidence: tuple[_NonBlank, ...]
-    nutrition_per_serving: ServingNutrition
-    dv_reference: _NonBlank  # which DvReference produced the gram/mg values
+    nutrition: NutritionRecord  # Food.com: PER_SERVING; USDA staple: PER_100_G
     # Unknown until a person verifies it (ADR 0001); None means unknown, never zero.
     serving_mass_g: float | None = Field(default=None, gt=0)
     serving_mass_source: _NonBlank | None = None

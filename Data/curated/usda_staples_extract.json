@@ -1,0 +1,512 @@
+{
+  "schemaVersion": "usda-staples-extract.v1",
+  "specSha": "1dd1eb120bedb439f26170639ab3bb2072887b31e3734f9b02af3687452680a9",
+  "staples": [
+    {
+      "fdcId": 169757,
+      "dataType": "sr_legacy_food",
+      "description": "Rice, white, long-grain, regular, unenriched, cooked without salt",
+      "publicationDate": "2019-04-01",
+      "per100G": {
+        "energyKcal": 130.0,
+        "fatG": 0.28,
+        "saturatedFatG": 0.077,
+        "carbohydrateG": 28.17,
+        "proteinG": 2.69,
+        "sodiumMg": 1.0,
+        "sugarsG": 0.05
+      },
+      "qualityFlags": [],
+      "portion": {
+        "portionId": 85462,
+        "label": "1 cup",
+        "amount": 1.0,
+        "gramWeight": 158.0,
+        "gramsPerUnit": 158.0
+      }
+    },
+    {
+      "fdcId": 169704,
+      "dataType": "sr_legacy_food",
+      "description": "Rice, brown, long-grain, cooked (Includes foods for USDA's Food Distribution Program)",
+      "publicationDate": "2019-04-01",
+      "per100G": {
+        "energyKcal": 123.0,
+        "fatG": 0.97,
+        "saturatedFatG": 0.26,
+        "carbohydrateG": 25.58,
+        "proteinG": 2.74,
+        "sodiumMg": 4.0,
+        "sugarsG": 0.24
+      },
+      "qualityFlags": [],
+      "portion": {
+        "portionId": 85378,
+        "label": "1 cup",
+        "amount": 1.0,
+        "gramWeight": 202.0,
+        "gramsPerUnit": 202.0
+      }
+    },
+    {
+      "fdcId": 2707713,
+      "dataType": "survey_fndds_food",
+      "description": "Bread, chappatti or roti",
+      "publicationDate": "2024-10-31",
+      "per100G": {
+        "energyKcal": 299.0,
+        "fatG": 9.2,
+        "saturatedFatG": 3.311,
+        "carbohydrateG": 46.13,
+        "proteinG": 7.85,
+        "sodiumMg": 298.0,
+        "sugarsG": 2.93
+      },
+      "qualityFlags": [],
+      "portion": {
+        "portionId": 299423,
+        "label": "1 medium chappatti or roti (7\")",
+        "amount": 1.0,
+        "gramWeight": 40.0,
+        "gramsPerUnit": 40.0
+      }
+    },
+    {
+      "fdcId": 2707613,
+      "dataType": "survey_fndds_food",
+      "description": "Bread, naan",
+      "publicationDate": "2024-10-31",
+      "per100G": {
+        "energyKcal": 311.0,
+        "fatG": 7.28,
+        "saturatedFatG": 3.16,
+        "carbohydrateG": 50.23,
+        "proteinG": 11.09,
+        "sodiumMg": 508.0,
+        "sugarsG": 3.7
+      },
+      "qualityFlags": [],
+      "portion": {
+        "portionId": 298897,
+        "label": "1 piece (1/4 of 10\" dia)",
+        "amount": 1.0,
+        "gramWeight": 44.0,
+        "gramsPerUnit": 44.0
+      }
+    },
+    {
+      "fdcId": 168914,
+      "dataType": "sr_legacy_food",
+      "description": "Rice noodles, cooked",
+      "publicationDate": "2019-04-01",
+      "per100G": {
+        "energyKcal": 108.0,
+        "fatG": 0.2,
+        "saturatedFatG": 0.023,
+        "carbohydrateG": 24.01,
+        "proteinG": 1.79,
+        "sodiumMg": 19.0,
+        "sugarsG": 0.03
+      },
+      "qualityFlags": [],
+      "portion": {
+        "portionId": 83974,
+        "label": "1 cup",
+        "amount": 1.0,
+        "gramWeight": 176.0,
+        "gramsPerUnit": 176.0
+      }
+    },
+    {
+      "fdcId": 169737,
+      "dataType": "sr_legacy_food",
+      "description": "Pasta, cooked, enriched, without added salt",
+      "publicationDate": "2019-04-01",
+      "per100G": {
+        "energyKcal": 158.0,
+        "fatG": 0.93,
+        "saturatedFatG": 0.176,
+        "carbohydrateG": 30.86,
+        "proteinG": 5.8,
+        "sodiumMg": 1.0,
+        "sugarsG": 0.56
+      },
+      "qualityFlags": [],
+      "portion": {
+        "portionId": 85420,
+        "label": "1 cup spaghetti not packed",
+        "amount": 1.0,
+        "gramWeight": 124.0,
+        "gramsPerUnit": 124.0
+      }
+    },
+    {
+      "fdcId": 2707824,
+      "dataType": "survey_fndds_food",
+      "description": "Tortilla, flour",
+      "publicationDate": "2024-10-31",
+      "per100G": {
+        "energyKcal": 306.0,
+        "fatG": 7.99,
+        "saturatedFatG": 2.924,
+        "carbohydrateG": 49.38,
+        "proteinG": 8.2,
+        "sodiumMg": 700.0,
+        "sugarsG": 3.71
+      },
+      "qualityFlags": [],
+      "portion": {
+        "portionId": 299971,
+        "label": "1 medium",
+        "amount": 1.0,
+        "gramWeight": 45.0,
+        "gramsPerUnit": 45.0
+      }
+    },
+    {
+      "fdcId": 2707823,
+      "dataType": "survey_fndds_food",
+      "description": "Tortilla, corn",
+      "publicationDate": "2024-10-31",
+      "per100G": {
+        "energyKcal": 218.0,
+        "fatG": 2.85,
+        "saturatedFatG": 0.453,
+        "carbohydrateG": 44.64,
+        "proteinG": 5.7,
+        "sodiumMg": 45.0,
+        "sugarsG": 0.88
+      },
+      "qualityFlags": [],
+      "portion": {
+        "portionId": 299966,
+        "label": "1 medium",
+        "amount": 1.0,
+        "gramWeight": 28.0,
+        "gramsPerUnit": 28.0
+      }
+    },
+    {
+      "fdcId": 2707598,
+      "dataType": "survey_fndds_food",
+      "description": "Bread, white",
+      "publicationDate": "2024-10-31",
+      "per100G": {
+        "energyKcal": 267.0,
+        "fatG": 3.59,
+        "saturatedFatG": 0.821,
+        "carbohydrateG": 49.2,
+        "proteinG": 9.43,
+        "sodiumMg": 450.0,
+        "sugarsG": 5.34
+      },
+      "qualityFlags": [],
+      "portion": {
+        "portionId": 298810,
+        "label": "1 medium or regular slice",
+        "amount": 1.0,
+        "gramWeight": 28.0,
+        "gramsPerUnit": 28.0
+      }
+    },
+    {
+      "fdcId": 2707709,
+      "dataType": "survey_fndds_food",
+      "description": "Bread, whole wheat",
+      "publicationDate": "2024-10-31",
+      "per100G": {
+        "energyKcal": 254.0,
+        "fatG": 3.55,
+        "saturatedFatG": 0.732,
+        "carbohydrateG": 43.1,
+        "proteinG": 12.3,
+        "sodiumMg": 430.0,
+        "sugarsG": 4.41
+      },
+      "qualityFlags": [],
+      "portion": {
+        "portionId": 299397,
+        "label": "1 medium or regular slice",
+        "amount": 1.0,
+        "gramWeight": 36.0,
+        "gramsPerUnit": 36.0
+      }
+    },
+    {
+      "fdcId": 170440,
+      "dataType": "sr_legacy_food",
+      "description": "Potatoes, boiled, cooked without skin, flesh, without salt",
+      "publicationDate": "2019-04-01",
+      "per100G": {
+        "energyKcal": 86.0,
+        "fatG": 0.1,
+        "saturatedFatG": 0.026,
+        "carbohydrateG": 20.01,
+        "proteinG": 1.71,
+        "sodiumMg": 5.0,
+        "sugarsG": 0.89
+      },
+      "qualityFlags": [],
+      "portion": {
+        "portionId": 86653,
+        "label": "1 medium (2-1/4\" to 3-1/4\" dia.)",
+        "amount": 1.0,
+        "gramWeight": 167.0,
+        "gramsPerUnit": 167.0
+      }
+    },
+    {
+      "fdcId": 169967,
+      "dataType": "sr_legacy_food",
+      "description": "Broccoli, cooked, boiled, drained, without salt",
+      "publicationDate": "2019-04-01",
+      "per100G": {
+        "energyKcal": 35.0,
+        "fatG": 0.41,
+        "saturatedFatG": 0.079,
+        "carbohydrateG": 7.18,
+        "proteinG": 2.38,
+        "sodiumMg": 41.0,
+        "sugarsG": 1.39
+      },
+      "qualityFlags": [],
+      "portion": {
+        "portionId": 85772,
+        "label": "0.5 cup, chopped",
+        "amount": 0.5,
+        "gramWeight": 78.0,
+        "gramsPerUnit": 156.0
+      }
+    },
+    {
+      "fdcId": 168463,
+      "dataType": "sr_legacy_food",
+      "description": "Spinach, cooked, boiled, drained, without salt",
+      "publicationDate": "2019-04-01",
+      "per100G": {
+        "energyKcal": 23.0,
+        "fatG": 0.26,
+        "saturatedFatG": 0.043,
+        "carbohydrateG": 3.75,
+        "proteinG": 2.97,
+        "sodiumMg": 70.0,
+        "sugarsG": 0.43
+      },
+      "qualityFlags": [],
+      "portion": {
+        "portionId": 83136,
+        "label": "1 cup",
+        "amount": 1.0,
+        "gramWeight": 180.0,
+        "gramsPerUnit": 180.0
+      }
+    },
+    {
+      "fdcId": 169141,
+      "dataType": "sr_legacy_food",
+      "description": "Beans, snap, green, cooked, boiled, drained, without salt",
+      "publicationDate": "2019-04-01",
+      "per100G": {
+        "energyKcal": 35.0,
+        "fatG": 0.28,
+        "saturatedFatG": 0.064,
+        "carbohydrateG": 7.88,
+        "proteinG": 1.89,
+        "sodiumMg": 1.0,
+        "sugarsG": 3.63
+      },
+      "qualityFlags": [],
+      "portion": {
+        "portionId": 84317,
+        "label": "1 cup",
+        "amount": 1.0,
+        "gramWeight": 125.0,
+        "gramsPerUnit": 125.0
+      }
+    },
+    {
+      "fdcId": 170391,
+      "dataType": "sr_legacy_food",
+      "description": "Cabbage, chinese (pak-choi), cooked, boiled, drained, without salt",
+      "publicationDate": "2019-04-01",
+      "per100G": {
+        "energyKcal": 12.0,
+        "fatG": 0.16,
+        "saturatedFatG": 0.021,
+        "carbohydrateG": 1.78,
+        "proteinG": 1.56,
+        "sodiumMg": 34.0,
+        "sugarsG": 0.83
+      },
+      "qualityFlags": [],
+      "portion": {
+        "portionId": 86553,
+        "label": "1 cup, shredded",
+        "amount": 1.0,
+        "gramWeight": 170.0,
+        "gramsPerUnit": 170.0
+      }
+    },
+    {
+      "fdcId": 2709224,
+      "dataType": "survey_fndds_food",
+      "description": "Banana, raw",
+      "publicationDate": "2024-10-31",
+      "per100G": {
+        "energyKcal": 97.0,
+        "fatG": 0.28,
+        "saturatedFatG": 0.112,
+        "carbohydrateG": 22.71,
+        "proteinG": 0.74,
+        "sodiumMg": 0.0,
+        "sugarsG": 15.8
+      },
+      "qualityFlags": [],
+      "portion": {
+        "portionId": 306100,
+        "label": "1 banana",
+        "amount": 1.0,
+        "gramWeight": 126.0,
+        "gramsPerUnit": 126.0
+      }
+    },
+    {
+      "fdcId": 2709215,
+      "dataType": "survey_fndds_food",
+      "description": "Apple, raw",
+      "publicationDate": "2024-10-31",
+      "per100G": {
+        "energyKcal": 61.0,
+        "fatG": 0.15,
+        "saturatedFatG": 0.028,
+        "carbohydrateG": 14.8,
+        "proteinG": 0.17,
+        "sodiumMg": 0.0,
+        "sugarsG": 12.08
+      },
+      "qualityFlags": [],
+      "portion": {
+        "portionId": 306064,
+        "label": "1 medium",
+        "amount": 1.0,
+        "gramWeight": 200.0,
+        "gramsPerUnit": 200.0
+      }
+    },
+    {
+      "fdcId": 2709171,
+      "dataType": "survey_fndds_food",
+      "description": "Orange, raw",
+      "publicationDate": "2024-10-31",
+      "per100G": {
+        "energyKcal": 50.0,
+        "fatG": 0.14,
+        "saturatedFatG": 0.015,
+        "carbohydrateG": 11.78,
+        "proteinG": 0.92,
+        "sodiumMg": 4.0,
+        "sugarsG": 8.96
+      },
+      "qualityFlags": [],
+      "portion": {
+        "portionId": 305872,
+        "label": "1 fruit",
+        "amount": 1.0,
+        "gramWeight": 154.0,
+        "gramsPerUnit": 154.0
+      }
+    },
+    {
+      "fdcId": 2709242,
+      "dataType": "survey_fndds_food",
+      "description": "Mango, raw",
+      "publicationDate": "2024-10-31",
+      "per100G": {
+        "energyKcal": 60.0,
+        "fatG": 0.38,
+        "saturatedFatG": 0.092,
+        "carbohydrateG": 14.98,
+        "proteinG": 0.82,
+        "sodiumMg": 1.0,
+        "sugarsG": 13.66
+      },
+      "qualityFlags": [],
+      "portion": {
+        "portionId": 306174,
+        "label": "1 cup",
+        "amount": 1.0,
+        "gramWeight": 165.0,
+        "gramsPerUnit": 165.0
+      }
+    },
+    {
+      "fdcId": 2709246,
+      "dataType": "survey_fndds_food",
+      "description": "Papaya, raw",
+      "publicationDate": "2024-10-31",
+      "per100G": {
+        "energyKcal": 43.0,
+        "fatG": 0.26,
+        "saturatedFatG": 0.081,
+        "carbohydrateG": 10.82,
+        "proteinG": 0.47,
+        "sodiumMg": 8.0,
+        "sugarsG": 7.82
+      },
+      "qualityFlags": [],
+      "portion": {
+        "portionId": 306189,
+        "label": "1 cup",
+        "amount": 1.0,
+        "gramWeight": 165.0,
+        "gramsPerUnit": 165.0
+      }
+    },
+    {
+      "fdcId": 2709283,
+      "dataType": "survey_fndds_food",
+      "description": "Strawberries, raw",
+      "publicationDate": "2024-10-31",
+      "per100G": {
+        "energyKcal": 36.0,
+        "fatG": 0.22,
+        "saturatedFatG": 0.0,
+        "carbohydrateG": 7.96,
+        "proteinG": 0.64,
+        "sodiumMg": 0.0,
+        "sugarsG": 4.86
+      },
+      "qualityFlags": [],
+      "portion": {
+        "portionId": 306326,
+        "label": "1 cup",
+        "amount": 1.0,
+        "gramWeight": 150.0,
+        "gramsPerUnit": 150.0
+      }
+    },
+    {
+      "fdcId": 2707154,
+      "dataType": "survey_fndds_food",
+      "description": "Egg, whole, boiled or poached",
+      "publicationDate": "2024-10-31",
+      "per100G": {
+        "energyKcal": 143.0,
+        "fatG": 9.96,
+        "saturatedFatG": 3.2,
+        "carbohydrateG": 0.96,
+        "proteinG": 12.4,
+        "sodiumMg": 129.0,
+        "sugarsG": 0.2
+      },
+      "qualityFlags": [],
+      "portion": {
+        "portionId": 297269,
+        "label": "1 egg",
+        "amount": 1.0,
+        "gramWeight": 50.0,
+        "gramsPerUnit": 50.0
+      }
+    }
+  ]
+}

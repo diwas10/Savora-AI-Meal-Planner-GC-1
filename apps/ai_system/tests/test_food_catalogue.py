@@ -31,6 +31,8 @@ from savora_ai.schemas.enums import (
     CulinaryRole,
     DishClass,
     MealType,
+    NutritionBasis,
+    NutritionSource,
     QuarantineReason,
 )
 
@@ -121,6 +123,10 @@ def test_good_row_becomes_catalogue_entry() -> None:
     assert recipe.meal_types == (MealType.LUNCH, MealType.DINNER)  # a main suits both
     assert recipe.classification_status is ClassificationStatus.AUTO
     assert recipe.serving_mass_g is None and recipe.serving_mass_source is None
+    assert recipe.nutrition.source is NutritionSource.FOODCOM_DERIVED
+    assert recipe.nutrition.basis is NutritionBasis.PER_SERVING
+    assert recipe.nutrition.source_reference == FDA_1993.name
+    assert recipe.nutrition.values.sugars_g is None
 
 
 @pytest.mark.parametrize(
@@ -253,6 +259,7 @@ def test_mass_without_source_is_rejected() -> None:
 # --- end to end ---------------------------------------------------------------------
 
 BUILT_AT = datetime(2026, 10, 18, 15, 30, 45, tzinfo=UTC)
+REPO = Path(__file__).parents[3]
 
 
 def write_source(path: Path) -> None:
@@ -469,6 +476,10 @@ def test_cli_names_files_by_build_time_and_writes_quarantine_on_request(
         str(out_dir),
         "--classification-overrides",
         str(curation),
+        "--staples-spec",
+        str(REPO / "Data/curated/usda_staples.json"),
+        "--staples-extract",
+        str(REPO / "Data/curated/usda_staples_extract.json"),
     ]
 
     monkeypatch.setattr("sys.argv", argv)

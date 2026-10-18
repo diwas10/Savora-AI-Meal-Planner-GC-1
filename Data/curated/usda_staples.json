@@ -1,0 +1,808 @@
+{
+  "schemaVersion": "usda-staples.v1",
+  "note": "Curated USDA foods used as catalogue dishes ONLY when the USDA record is the same food (ADR 0003 D1). Ingredients are the typical ingredients of the plain food, curated, not taken from USDA. curatedBy 'ai-review:claude' means AI judgement at the project lead's request, not yet confirmed by a person. Empty cuisines = cuisine-neutral (pairs with any cuisine).",
+  "staples": [
+    {
+      "dishId": "USDA_169757",
+      "fdcId": 169757,
+      "name": "steamed white rice",
+      "expectedDescription": "Rice, white, long-grain, regular, unenriched, cooked without salt",
+      "roles": [
+        "STAPLE"
+      ],
+      "dishClass": "COMPONENT",
+      "mealTypes": [
+        "LUNCH",
+        "DINNER"
+      ],
+      "cuisines": [
+        "Indian",
+        "Nepali",
+        "Chinese",
+        "Thai",
+        "Mexican"
+      ],
+      "dietTags": [
+        "vegan",
+        "vegetarian"
+      ],
+      "ingredients": [
+        "white rice",
+        "water"
+      ],
+      "portion": {
+        "unit": "CUP",
+        "usdaPortionId": 85462,
+        "allowedQuantities": [
+          0.5,
+          0.75,
+          1.0,
+          1.5
+        ],
+        "standardQuantity": 1.0
+      },
+      "rationale": "plain boiled rice is the same food as the FNDDS record; staple for curries, dal and stir-fries",
+      "curatedBy": "ai-review:claude"
+    },
+    {
+      "dishId": "USDA_169704",
+      "fdcId": 169704,
+      "name": "steamed brown rice",
+      "expectedDescription": "Rice, brown, long-grain, cooked (Includes foods for USDA's Food Distribution Program)",
+      "roles": [
+        "STAPLE"
+      ],
+      "dishClass": "COMPONENT",
+      "mealTypes": [
+        "LUNCH",
+        "DINNER"
+      ],
+      "cuisines": [
+        "Indian",
+        "Nepali",
+        "Chinese",
+        "Thai",
+        "Mexican"
+      ],
+      "dietTags": [
+        "vegan",
+        "vegetarian"
+      ],
+      "ingredients": [
+        "brown rice",
+        "water"
+      ],
+      "portion": {
+        "unit": "CUP",
+        "usdaPortionId": 85378,
+        "allowedQuantities": [
+          0.5,
+          0.75,
+          1.0,
+          1.5
+        ],
+        "standardQuantity": 1.0
+      },
+      "rationale": "plain brown rice, exact SR Legacy identity, cooked without salt (the FNDDS 'cooked' record assumes salted water, about 120-260 mg sodium per 100 g); higher-fibre staple option",
+      "curatedBy": "ai-review:claude"
+    },
+    {
+      "dishId": "USDA_2707713",
+      "fdcId": 2707713,
+      "name": "roti (chapati)",
+      "expectedDescription": "Bread, chappatti or roti",
+      "roles": [
+        "STAPLE"
+      ],
+      "dishClass": "COMPONENT",
+      "mealTypes": [
+        "LUNCH",
+        "DINNER"
+      ],
+      "cuisines": [
+        "Indian",
+        "Nepali"
+      ],
+      "dietTags": [
+        "vegan",
+        "vegetarian"
+      ],
+      "ingredients": [
+        "whole wheat flour",
+        "water",
+        "salt"
+      ],
+      "portion": {
+        "unit": "PIECE",
+        "usdaPortionId": 299423,
+        "allowedQuantities": [
+          1.0,
+          2.0,
+          3.0,
+          4.0
+        ],
+        "standardQuantity": 2.0
+      },
+      "rationale": "plain whole-wheat flatbread, exact FNDDS identity; eaten with dal, curry and sabzi",
+      "curatedBy": "ai-review:claude"
+    },
+    {
+      "dishId": "USDA_2707613",
+      "fdcId": 2707613,
+      "name": "naan",
+      "expectedDescription": "Bread, naan",
+      "roles": [
+        "STAPLE"
+      ],
+      "dishClass": "COMPONENT",
+      "mealTypes": [
+        "LUNCH",
+        "DINNER"
+      ],
+      "cuisines": [
+        "Indian"
+      ],
+      "dietTags": [
+        "vegetarian"
+      ],
+      "ingredients": [
+        "wheat flour",
+        "yogurt",
+        "yeast",
+        "water",
+        "salt",
+        "oil"
+      ],
+      "portion": {
+        "unit": "PIECE",
+        "usdaPortionId": 298897,
+        "allowedQuantities": [
+          1.0,
+          2.0,
+          3.0,
+          4.0
+        ],
+        "standardQuantity": 2.0
+      },
+      "rationale": "plain naan, exact FNDDS identity; contains dairy (yogurt), so vegetarian not vegan",
+      "curatedBy": "ai-review:claude"
+    },
+    {
+      "dishId": "USDA_168914",
+      "fdcId": 168914,
+      "name": "rice noodles",
+      "expectedDescription": "Rice noodles, cooked",
+      "roles": [
+        "STAPLE"
+      ],
+      "dishClass": "COMPONENT",
+      "mealTypes": [
+        "LUNCH",
+        "DINNER"
+      ],
+      "cuisines": [
+        "Thai",
+        "Chinese"
+      ],
+      "dietTags": [
+        "vegan",
+        "vegetarian"
+      ],
+      "ingredients": [
+        "rice flour",
+        "water"
+      ],
+      "portion": {
+        "unit": "CUP",
+        "usdaPortionId": 83974,
+        "allowedQuantities": [
+          0.5,
+          0.75,
+          1.0,
+          1.5
+        ],
+        "standardQuantity": 1.0
+      },
+      "rationale": "plain cooked rice noodles, exact SR Legacy identity, cooked without salt (the FNDDS 'cooked' record assumes salted water, about 120-260 mg sodium per 100 g); staple for Thai and Chinese mains",
+      "curatedBy": "ai-review:claude"
+    },
+    {
+      "dishId": "USDA_169737",
+      "fdcId": 169737,
+      "name": "cooked pasta",
+      "expectedDescription": "Pasta, cooked, enriched, without added salt",
+      "roles": [
+        "STAPLE"
+      ],
+      "dishClass": "COMPONENT",
+      "mealTypes": [
+        "LUNCH",
+        "DINNER"
+      ],
+      "cuisines": [
+        "Italian"
+      ],
+      "dietTags": [
+        "vegan",
+        "vegetarian"
+      ],
+      "ingredients": [
+        "durum wheat semolina",
+        "water"
+      ],
+      "portion": {
+        "unit": "CUP",
+        "usdaPortionId": 85420,
+        "allowedQuantities": [
+          0.5,
+          0.75,
+          1.0,
+          1.5
+        ],
+        "standardQuantity": 1.0
+      },
+      "rationale": "plain cooked dried pasta, exact SR Legacy identity, cooked without salt (the FNDDS 'cooked' record assumes salted water, about 120-260 mg sodium per 100 g); base for Italian sauces",
+      "curatedBy": "ai-review:claude"
+    },
+    {
+      "dishId": "USDA_2707824",
+      "fdcId": 2707824,
+      "name": "flour tortilla",
+      "expectedDescription": "Tortilla, flour",
+      "roles": [
+        "STAPLE"
+      ],
+      "dishClass": "COMPONENT",
+      "mealTypes": [
+        "LUNCH",
+        "DINNER"
+      ],
+      "cuisines": [
+        "Mexican"
+      ],
+      "dietTags": [],
+      "ingredients": [
+        "wheat flour",
+        "water",
+        "fat",
+        "salt",
+        "baking powder"
+      ],
+      "portion": {
+        "unit": "PIECE",
+        "usdaPortionId": 299971,
+        "allowedQuantities": [
+          1.0,
+          2.0,
+          3.0,
+          4.0
+        ],
+        "standardQuantity": 2.0
+      },
+      "rationale": "plain flour tortilla, exact FNDDS identity; the fat may be lard, so no diet tag is claimed",
+      "curatedBy": "ai-review:claude"
+    },
+    {
+      "dishId": "USDA_2707823",
+      "fdcId": 2707823,
+      "name": "corn tortilla",
+      "expectedDescription": "Tortilla, corn",
+      "roles": [
+        "STAPLE"
+      ],
+      "dishClass": "COMPONENT",
+      "mealTypes": [
+        "LUNCH",
+        "DINNER"
+      ],
+      "cuisines": [
+        "Mexican"
+      ],
+      "dietTags": [
+        "vegan",
+        "vegetarian"
+      ],
+      "ingredients": [
+        "corn masa",
+        "water",
+        "lime"
+      ],
+      "portion": {
+        "unit": "PIECE",
+        "usdaPortionId": 299966,
+        "allowedQuantities": [
+          2.0,
+          3.0,
+          4.0,
+          5.0
+        ],
+        "standardQuantity": 3.0
+      },
+      "rationale": "plain corn tortilla, exact FNDDS identity",
+      "curatedBy": "ai-review:claude"
+    },
+    {
+      "dishId": "USDA_2707598",
+      "fdcId": 2707598,
+      "name": "white bread",
+      "expectedDescription": "Bread, white",
+      "roles": [
+        "STAPLE"
+      ],
+      "dishClass": "COMPONENT",
+      "mealTypes": [
+        "LUNCH",
+        "DINNER"
+      ],
+      "cuisines": [
+        "American",
+        "Italian"
+      ],
+      "dietTags": [
+        "vegetarian"
+      ],
+      "ingredients": [
+        "wheat flour",
+        "water",
+        "yeast",
+        "sugar",
+        "salt",
+        "oil"
+      ],
+      "portion": {
+        "unit": "SLICE",
+        "usdaPortionId": 298810,
+        "allowedQuantities": [
+          1.0,
+          2.0,
+          3.0
+        ],
+        "standardQuantity": 2.0
+      },
+      "rationale": "plain sliced white bread, exact FNDDS identity; may contain milk, so vegetarian only",
+      "curatedBy": "ai-review:claude"
+    },
+    {
+      "dishId": "USDA_2707709",
+      "fdcId": 2707709,
+      "name": "whole wheat bread",
+      "expectedDescription": "Bread, whole wheat",
+      "roles": [
+        "STAPLE"
+      ],
+      "dishClass": "COMPONENT",
+      "mealTypes": [
+        "LUNCH",
+        "DINNER"
+      ],
+      "cuisines": [
+        "American"
+      ],
+      "dietTags": [
+        "vegetarian"
+      ],
+      "ingredients": [
+        "whole wheat flour",
+        "water",
+        "yeast",
+        "sugar",
+        "salt",
+        "oil"
+      ],
+      "portion": {
+        "unit": "SLICE",
+        "usdaPortionId": 299397,
+        "allowedQuantities": [
+          1.0,
+          2.0,
+          3.0
+        ],
+        "standardQuantity": 2.0
+      },
+      "rationale": "plain sliced whole-wheat bread, exact FNDDS identity; may contain milk",
+      "curatedBy": "ai-review:claude"
+    },
+    {
+      "dishId": "USDA_170440",
+      "fdcId": 170440,
+      "name": "boiled potato",
+      "expectedDescription": "Potatoes, boiled, cooked without skin, flesh, without salt",
+      "roles": [
+        "STAPLE"
+      ],
+      "dishClass": "COMPONENT",
+      "mealTypes": [
+        "LUNCH",
+        "DINNER"
+      ],
+      "cuisines": [
+        "American"
+      ],
+      "dietTags": [
+        "vegan",
+        "vegetarian"
+      ],
+      "ingredients": [
+        "potato",
+        "water"
+      ],
+      "portion": {
+        "unit": "PIECE",
+        "usdaPortionId": 86653,
+        "allowedQuantities": [
+          0.5,
+          1.0,
+          1.5,
+          2.0
+        ],
+        "standardQuantity": 1.0
+      },
+      "rationale": "plain boiled potato, exact SR Legacy identity, cooked without salt (the FNDDS 'cooked' record assumes salted water, about 120-260 mg sodium per 100 g); western starch side",
+      "curatedBy": "ai-review:claude"
+    },
+    {
+      "dishId": "USDA_169967",
+      "fdcId": 169967,
+      "name": "steamed broccoli",
+      "expectedDescription": "Broccoli, cooked, boiled, drained, without salt",
+      "roles": [
+        "VEGETABLE"
+      ],
+      "dishClass": "COMPONENT",
+      "mealTypes": [
+        "LUNCH",
+        "DINNER"
+      ],
+      "cuisines": [],
+      "dietTags": [
+        "vegan",
+        "vegetarian"
+      ],
+      "ingredients": [
+        "broccoli",
+        "water"
+      ],
+      "portion": {
+        "unit": "CUP",
+        "usdaPortionId": 85772,
+        "allowedQuantities": [
+          0.5,
+          1.0,
+          1.5
+        ],
+        "standardQuantity": 1.0
+      },
+      "rationale": "plain cooked broccoli, exact SR Legacy identity, cooked without salt (the FNDDS 'cooked' record assumes salted water, about 120-260 mg sodium per 100 g); cuisine-neutral vegetable side",
+      "curatedBy": "ai-review:claude"
+    },
+    {
+      "dishId": "USDA_168463",
+      "fdcId": 168463,
+      "name": "cooked spinach",
+      "expectedDescription": "Spinach, cooked, boiled, drained, without salt",
+      "roles": [
+        "VEGETABLE"
+      ],
+      "dishClass": "COMPONENT",
+      "mealTypes": [
+        "LUNCH",
+        "DINNER"
+      ],
+      "cuisines": [],
+      "dietTags": [
+        "vegan",
+        "vegetarian"
+      ],
+      "ingredients": [
+        "spinach",
+        "water"
+      ],
+      "portion": {
+        "unit": "CUP",
+        "usdaPortionId": 83136,
+        "allowedQuantities": [
+          0.5,
+          0.75,
+          1.0
+        ],
+        "standardQuantity": 0.5
+      },
+      "rationale": "plain cooked spinach, exact SR Legacy identity, cooked without salt (the FNDDS 'cooked' record assumes salted water, about 120-260 mg sodium per 100 g); cuisine-neutral vegetable side",
+      "curatedBy": "ai-review:claude"
+    },
+    {
+      "dishId": "USDA_169141",
+      "fdcId": 169141,
+      "name": "cooked green beans",
+      "expectedDescription": "Beans, snap, green, cooked, boiled, drained, without salt",
+      "roles": [
+        "VEGETABLE"
+      ],
+      "dishClass": "COMPONENT",
+      "mealTypes": [
+        "LUNCH",
+        "DINNER"
+      ],
+      "cuisines": [],
+      "dietTags": [
+        "vegan",
+        "vegetarian"
+      ],
+      "ingredients": [
+        "green beans",
+        "water"
+      ],
+      "portion": {
+        "unit": "CUP",
+        "usdaPortionId": 84317,
+        "allowedQuantities": [
+          0.5,
+          1.0,
+          1.5
+        ],
+        "standardQuantity": 1.0
+      },
+      "rationale": "plain cooked green beans, exact SR Legacy identity, cooked without salt (the FNDDS 'cooked' record assumes salted water, about 120-260 mg sodium per 100 g); cuisine-neutral vegetable side",
+      "curatedBy": "ai-review:claude"
+    },
+    {
+      "dishId": "USDA_170391",
+      "fdcId": 170391,
+      "name": "cooked bok choy",
+      "expectedDescription": "Cabbage, chinese (pak-choi), cooked, boiled, drained, without salt",
+      "roles": [
+        "VEGETABLE"
+      ],
+      "dishClass": "COMPONENT",
+      "mealTypes": [
+        "LUNCH",
+        "DINNER"
+      ],
+      "cuisines": [],
+      "dietTags": [
+        "vegan",
+        "vegetarian"
+      ],
+      "ingredients": [
+        "chinese cabbage",
+        "water"
+      ],
+      "portion": {
+        "unit": "CUP",
+        "usdaPortionId": 86553,
+        "allowedQuantities": [
+          0.5,
+          1.0,
+          1.5
+        ],
+        "standardQuantity": 1.0
+      },
+      "rationale": "plain cooked Chinese cabbage (bok choy), exact SR Legacy identity, cooked without salt (the FNDDS 'cooked' record assumes salted water, about 120-260 mg sodium per 100 g); cuisine-neutral vegetable side",
+      "curatedBy": "ai-review:claude"
+    },
+    {
+      "dishId": "USDA_2709224",
+      "fdcId": 2709224,
+      "name": "banana",
+      "expectedDescription": "Banana, raw",
+      "roles": [
+        "FRUIT"
+      ],
+      "dishClass": "COMPONENT",
+      "mealTypes": [
+        "BREAKFAST"
+      ],
+      "cuisines": [],
+      "dietTags": [
+        "vegan",
+        "vegetarian"
+      ],
+      "ingredients": [
+        "banana"
+      ],
+      "portion": {
+        "unit": "PIECE",
+        "usdaPortionId": 306100,
+        "allowedQuantities": [
+          0.5,
+          1.0
+        ],
+        "standardQuantity": 1.0
+      },
+      "rationale": "whole raw fruit, exact FNDDS identity; optional breakfast fruit",
+      "curatedBy": "ai-review:claude"
+    },
+    {
+      "dishId": "USDA_2709215",
+      "fdcId": 2709215,
+      "name": "apple",
+      "expectedDescription": "Apple, raw",
+      "roles": [
+        "FRUIT"
+      ],
+      "dishClass": "COMPONENT",
+      "mealTypes": [
+        "BREAKFAST"
+      ],
+      "cuisines": [],
+      "dietTags": [
+        "vegan",
+        "vegetarian"
+      ],
+      "ingredients": [
+        "apple"
+      ],
+      "portion": {
+        "unit": "PIECE",
+        "usdaPortionId": 306064,
+        "allowedQuantities": [
+          0.5,
+          1.0
+        ],
+        "standardQuantity": 1.0
+      },
+      "rationale": "whole raw fruit, exact FNDDS identity; optional breakfast fruit",
+      "curatedBy": "ai-review:claude"
+    },
+    {
+      "dishId": "USDA_2709171",
+      "fdcId": 2709171,
+      "name": "orange",
+      "expectedDescription": "Orange, raw",
+      "roles": [
+        "FRUIT"
+      ],
+      "dishClass": "COMPONENT",
+      "mealTypes": [
+        "BREAKFAST"
+      ],
+      "cuisines": [],
+      "dietTags": [
+        "vegan",
+        "vegetarian"
+      ],
+      "ingredients": [
+        "orange"
+      ],
+      "portion": {
+        "unit": "PIECE",
+        "usdaPortionId": 305872,
+        "allowedQuantities": [
+          1.0,
+          2.0
+        ],
+        "standardQuantity": 1.0
+      },
+      "rationale": "whole raw fruit, exact FNDDS identity; optional breakfast fruit",
+      "curatedBy": "ai-review:claude"
+    },
+    {
+      "dishId": "USDA_2709242",
+      "fdcId": 2709242,
+      "name": "mango",
+      "expectedDescription": "Mango, raw",
+      "roles": [
+        "FRUIT"
+      ],
+      "dishClass": "COMPONENT",
+      "mealTypes": [
+        "BREAKFAST"
+      ],
+      "cuisines": [],
+      "dietTags": [
+        "vegan",
+        "vegetarian"
+      ],
+      "ingredients": [
+        "mango"
+      ],
+      "portion": {
+        "unit": "CUP",
+        "usdaPortionId": 306174,
+        "allowedQuantities": [
+          0.5,
+          1.0
+        ],
+        "standardQuantity": 1.0
+      },
+      "rationale": "raw fruit pieces, exact FNDDS identity; optional breakfast fruit",
+      "curatedBy": "ai-review:claude"
+    },
+    {
+      "dishId": "USDA_2709246",
+      "fdcId": 2709246,
+      "name": "papaya",
+      "expectedDescription": "Papaya, raw",
+      "roles": [
+        "FRUIT"
+      ],
+      "dishClass": "COMPONENT",
+      "mealTypes": [
+        "BREAKFAST"
+      ],
+      "cuisines": [],
+      "dietTags": [
+        "vegan",
+        "vegetarian"
+      ],
+      "ingredients": [
+        "papaya"
+      ],
+      "portion": {
+        "unit": "CUP",
+        "usdaPortionId": 306189,
+        "allowedQuantities": [
+          0.5,
+          1.0
+        ],
+        "standardQuantity": 1.0
+      },
+      "rationale": "raw fruit pieces, exact FNDDS identity; optional breakfast fruit",
+      "curatedBy": "ai-review:claude"
+    },
+    {
+      "dishId": "USDA_2709283",
+      "fdcId": 2709283,
+      "name": "strawberries",
+      "expectedDescription": "Strawberries, raw",
+      "roles": [
+        "FRUIT"
+      ],
+      "dishClass": "COMPONENT",
+      "mealTypes": [
+        "BREAKFAST"
+      ],
+      "cuisines": [],
+      "dietTags": [
+        "vegan",
+        "vegetarian"
+      ],
+      "ingredients": [
+        "strawberries"
+      ],
+      "portion": {
+        "unit": "CUP",
+        "usdaPortionId": 306326,
+        "allowedQuantities": [
+          0.5,
+          1.0
+        ],
+        "standardQuantity": 1.0
+      },
+      "rationale": "raw fruit, exact FNDDS identity; optional breakfast fruit",
+      "curatedBy": "ai-review:claude"
+    },
+    {
+      "dishId": "USDA_2707154",
+      "fdcId": 2707154,
+      "name": "boiled egg",
+      "expectedDescription": "Egg, whole, boiled or poached",
+      "roles": [
+        "PROTEIN_SOURCE"
+      ],
+      "dishClass": "COMPONENT",
+      "mealTypes": [
+        "BREAKFAST"
+      ],
+      "cuisines": [],
+      "dietTags": [
+        "vegetarian"
+      ],
+      "ingredients": [
+        "egg"
+      ],
+      "portion": {
+        "unit": "PIECE",
+        "usdaPortionId": 297269,
+        "allowedQuantities": [
+          1.0,
+          2.0,
+          3.0
+        ],
+        "standardQuantity": 2.0
+      },
+      "rationale": "whole boiled egg, exact FNDDS identity; optional breakfast protein. Ovo-vegetarian: some vegetarians exclude eggs, so the Rule Engine must decide from the ingredient",
+      "curatedBy": "ai-review:claude"
+    }
+  ]
+}

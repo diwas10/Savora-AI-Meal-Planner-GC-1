@@ -110,3 +110,20 @@ class ClassificationStatus(StrEnum):
     AUTO = "AUTO"
     CURATED = "CURATED"
     REQUIRES_REVIEW = "REQUIRES_REVIEW"
+
+
+class NutritionSource(StrEnum):
+    """Where a nutrient value came from (ADR 0003 D1). A dish keeps its own source."""
+
+    FOODCOM_DERIVED = "FOODCOM_DERIVED"  # kcal + %DV converted with a named DV table
+    USDA_FNDDS = "USDA_FNDDS"
+    USDA_SR_LEGACY = "USDA_SR_LEGACY"
+    USDA_FOUNDATION = "USDA_FOUNDATION"
+    CURATED = "CURATED"
+
+
+class NutritionBasis(StrEnum):
+    """What quantity the values describe. Tokens match Member 2's MeasurementBasis."""
+
+    PER_SERVING = "PER_SERVING"  # one recipe serving; its mass may be unknown
+    PER_100_G = "PER_100_G"

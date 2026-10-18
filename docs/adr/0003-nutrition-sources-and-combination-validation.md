@@ -62,6 +62,28 @@ After combinations are built, each is validated before handoff:
 
 This is a formal acceptance test before the catalogue is handed to Member 2.
 
+## Implemented (Stage 3, `core/food_data/usda_staples.py`)
+
+- `Data/curated/usda_staples.json` lists 22 curated foods: 11 staples (white and brown
+  rice, roti, naan, rice noodles, pasta, flour and corn tortillas, white and whole-wheat
+  bread, boiled potato), 4 plain vegetables, 6 fruits and a boiled egg. Each entry pins an
+  `fdcId`, the exact USDA description (an identity guard), a `food_portion.csv` row ID and
+  curated roles, meals, cuisines (empty = cuisine-neutral) and typical ingredients.
+- The extraction tool streams the raw USDA CSVs once and writes the committed
+  `Data/curated/usda_staples_extract.json` (per-100 g values, portion grams, flags, spec
+  hash). Builds read only the extract; an extract made from an older spec fails the build,
+  and `--check` detects a stale extract in CI.
+- **Salt finding.** FNDDS "cooked" records assume salted cooking water: white rice
+  "cooked, no added fat" has 245 mg sodium per 100 g and plain vegetables 121 to 262 mg.
+  Asian steamed rice and plain vegetables are normally unsalted, so those identities use
+  SR Legacy "cooked without salt" records (white rice 1 mg). Breads, tortillas, fruit and
+  egg keep FNDDS, whose salt is part of the food.
+- USDA portions come in two shapes: FNDDS writes "1 medium chappatti or roti (7")" in the
+  description; SR Legacy writes amount 0.5 plus modifier "cup, chopped". Both reduce to
+  grams per one unit.
+- A missing USDA nutrient stays `None` and is flagged; a negative value (carbohydrate by
+  difference) is flagged and set to `None`, never clamped to 0.
+
 ## Consequences
 
 - No silent precedence rule can overwrite a dish with a different food.
