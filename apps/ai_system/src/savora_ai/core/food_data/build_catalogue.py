@@ -27,12 +27,7 @@ from dataclasses import dataclass
 from datetime import UTC, date, datetime
 from pathlib import Path
 
-from savora_ai.core.food_data.catalogue import (
-    DEFAULT_QUOTAS,
-    apply_serving_masses,
-    build_recipe,
-    select_catalogue,
-)
+from savora_ai.core.food_data.catalogue import apply_serving_masses, build_recipe
 from savora_ai.core.food_data.classification import (
     ClassificationOverride,
     ClassificationOverrideFile,
@@ -48,6 +43,7 @@ from savora_ai.core.food_data.popularity import (
     load_popularity,
 )
 from savora_ai.core.food_data.portions import serving_portions, with_portions
+from savora_ai.core.food_data.selection import TARGET_CUISINES, select_stratified
 from savora_ai.core.food_data.usda_staples import (
     DEFAULT_EXTRACT,
     DEFAULT_SPEC,
@@ -177,7 +173,8 @@ def build(
         # An override for a quarantined or unknown recipe is a curation error, not a no-op.
         raise ValueError(f"classification overrides match no accepted recipe: {missing}")
 
-    selected = select_catalogue(candidates, DEFAULT_QUOTAS, seed)
+    selection = select_stratified(candidates, {} if popularity is None else popularity.counts, seed)
+    selected = selection.recipes
     if overrides_path is not None:
         raw = json.loads(overrides_path.read_text(encoding="utf-8"))
         selected = apply_serving_masses(
@@ -192,7 +189,7 @@ def build(
         "source": {"file": source.name, "sha256": source_sha256},
         "seed": seed,
         "dvReference": ref.name,
-        "quotas": {meal.value: n for meal, n in DEFAULT_QUOTAS.items()},
+        "targetCuisines": list(TARGET_CUISINES),
         "popularity": None if popularity is None else popularity.report(),
         # The catalogue never reads held-out interactions (ADR 0001 D6).
         "independentOfHeldOutData": True,
@@ -213,6 +210,8 @@ def build(
             "selected": len(selected),
             "usdaStaples": len(staples),
             "withVerifiedServingMass": sum(r.serving_mass_g is not None for r in selected),
+            "strata": [stratum.as_json() for stratum in selection.strata],
+            "strataWithShortfall": sum(s.selected < s.quota for s in selection.strata),
         },
         # Food.com selection first, then the curated USDA staples (ADR 0003 D1).
         "recipes": [r.model_dump(mode="json", by_alias=True) for r in (*selected, *staples)],

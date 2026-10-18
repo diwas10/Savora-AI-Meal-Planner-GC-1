@@ -1,14 +1,13 @@
-"""Validate raw Food.com rows, classify them and pick a reproducible catalogue.
+"""Validate raw Food.com rows and classify them; selection lives in selection.py.
 
 Pure functions over plain values so they can be tested without pandas or the dataset.
 The thresholds below are PROVISIONAL (ADR 0001) and are named so they can change in one place.
 """
 
 import ast
-import hashlib
-from collections.abc import Iterable, Mapping, Sequence
+from collections.abc import Iterable, Sequence
 
-from savora_ai.core.food_data.classification import classify, is_plannable
+from savora_ai.core.food_data.classification import classify
 from savora_ai.core.food_data.foodcom_cuisines import get_cuisines, normalize_tags
 from savora_ai.core.food_data.models import (
     CatalogueRecipe,
@@ -24,7 +23,7 @@ from savora_ai.core.food_data.nutrition_convert import (
     parse_nutrition,
     to_serving_nutrition,
 )
-from savora_ai.schemas.enums import MealType, NutritionBasis, NutritionSource, QuarantineReason
+from savora_ai.schemas.enums import NutritionBasis, NutritionSource, QuarantineReason
 
 # --- PROVISIONAL sanity limits (one recipe serving) ---------------------------------
 # Below this a serving is seasoning, water or a data error, whatever its role. Meal dishes
@@ -41,13 +40,6 @@ ENERGY_ABS_TOLERANCE_KCAL = 10.0
 
 # Diet labels we keep as unverified metadata for later rule-engine use.
 DIET_TAGS = frozenset({"vegetarian", "vegan"})
-
-# PROVISIONAL catalogue size per meal type (a recipe is counted once overall).
-DEFAULT_QUOTAS: dict[MealType, int] = {
-    MealType.BREAKFAST: 60,
-    MealType.LUNCH: 90,
-    MealType.DINNER: 90,
-}
 
 
 def parse_string_list(value: object) -> tuple[str, ...]:
@@ -72,12 +64,6 @@ def energy_consistent(nutrition: NutrientVector) -> bool:
     return ENERGY_RATIO_RANGE[0] <= ratio <= ENERGY_RATIO_RANGE[1] or (
         gap <= ENERGY_ABS_TOLERANCE_KCAL
     )
-
-
-def _order_key(recipe: CatalogueRecipe, seed: str) -> tuple[bool, str]:
-    """Cuisine-labelled recipes first (cuisine policies need them), then a seeded hash."""
-    digest = hashlib.sha256(f"{seed}:{recipe.recipe_id}".encode()).hexdigest()
-    return not recipe.cuisines, digest
 
 
 def build_recipe(
@@ -156,29 +142,6 @@ def build_recipe(
             "serving mass unverified",
         ),
     )
-
-
-def select_catalogue(
-    candidates: Iterable[CatalogueRecipe],
-    quotas: Mapping[MealType, int],
-    seed: str,
-) -> tuple[CatalogueRecipe, ...]:
-    """Pick a reproducible subset: same candidates + quotas + seed => same result."""
-    ordered = sorted(candidates, key=lambda r: _order_key(r, seed))
-    chosen: dict[str, CatalogueRecipe] = {}
-    for meal in MealType:
-        taken = sum(1 for r in chosen.values() if meal in r.meal_types)
-        for recipe in ordered:
-            if taken >= quotas.get(meal, 0):
-                break
-            if (
-                is_plannable(recipe)
-                and meal in recipe.meal_types
-                and recipe.recipe_id not in chosen
-            ):
-                chosen[recipe.recipe_id] = recipe
-                taken += 1
-    return tuple(sorted(chosen.values(), key=lambda r: r.recipe_id))
 
 
 def apply_serving_masses(

@@ -15,7 +15,6 @@ from savora_ai.core.food_data.catalogue import (
     apply_serving_masses,
     build_recipe,
     parse_string_list,
-    select_catalogue,
 )
 from savora_ai.core.food_data.classification import ClassificationOverride
 from savora_ai.core.food_data.models import CatalogueRecipe, QuarantinedRow, ServingMassOverride
@@ -197,42 +196,6 @@ def test_quarantined_row_keeps_defective_raw_values() -> None:
     assert row.source_id == "abc" and row.name == ""
 
 
-# --- selection ----------------------------------------------------------------------
-
-
-def pool(n: int) -> list[CatalogueRecipe]:
-    return [make_ok(i, tags=["main-dish", "breakfast"]) for i in range(1, n + 1)]
-
-
-def test_selection_is_deterministic_and_seed_sensitive() -> None:
-    quotas = {MealType.BREAKFAST: 3, MealType.LUNCH: 0, MealType.DINNER: 2}
-    a = select_catalogue(pool(30), quotas, "seed-a")
-    assert a == select_catalogue(list(reversed(pool(30))), quotas, "seed-a")
-    assert a != select_catalogue(pool(30), quotas, "seed-b")
-
-
-def test_selection_respects_quotas_and_counts_each_recipe_once() -> None:
-    quotas = {MealType.BREAKFAST: 3, MealType.LUNCH: 0, MealType.DINNER: 2}
-    chosen = select_catalogue(pool(30), quotas, "s")
-    assert len({r.recipe_id for r in chosen}) == len(chosen)
-    assert sum(MealType.BREAKFAST in r.meal_types for r in chosen) >= 3
-    assert len(chosen) == 3  # the 2 dinner slots are filled by already-chosen dishes
-
-
-def test_cuisine_labelled_recipes_are_preferred() -> None:
-    labelled = make_ok(1, tags=["main-dish", "thai"])
-    plain = [make_ok(i, tags=["main-dish"]) for i in range(2, 20)]
-    chosen = select_catalogue([*plain, labelled], {MealType.DINNER: 1}, "s")
-    assert chosen == (labelled,)
-
-
-def test_unclassified_recipes_are_never_selected() -> None:
-    unclassified = make_ok(1, tags=["dessert", "thai"])
-    classified = make_ok(2, tags=["main-dish"])
-    chosen = select_catalogue([unclassified, classified], {MealType.DINNER: 5}, "s")
-    assert chosen == (classified,)
-
-
 # --- serving mass overrides ---------------------------------------------------------
 
 
@@ -270,7 +233,7 @@ def write_source(path: Path) -> None:
         for i in range(1, 6):  # five accepted and classified
             writer.writerow(
                 {
-                    "name": f"dish {i}",
+                    "name": f"dal {'abcde'[i - 1]}",  # distinct names: no near-duplicates
                     "id": str(i),
                     "tags": str(GOOD_TAGS),
                     "nutrition": str(GOOD_NUTRITION),
