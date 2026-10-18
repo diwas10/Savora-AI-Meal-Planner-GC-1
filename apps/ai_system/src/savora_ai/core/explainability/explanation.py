@@ -169,6 +169,14 @@ def _ranking_reason(
             f"personalise from yet.{position}",
             references=(model_version,),
         )
+    if fallback is FallbackReason.CANDIDATES_UNKNOWN_TO_MODEL:
+        return Reason(
+            kind=ReasonKind.RANKING,
+            code="RANKING_FALLBACK_CANDIDATES_UNKNOWN",
+            message=f"Ordered by overall popularity; the personal model has no data on these "
+            f"dishes.{position}",
+            references=(model_version,),
+        )
     if fallback is FallbackReason.MODEL_UNAVAILABLE:
         return Reason(
             kind=ReasonKind.RANKING,
@@ -177,11 +185,12 @@ def _ranking_reason(
             f"available.{position}",
             references=(model_version,),
         )
+    blend = ", blended with popularity" if "+pop" in model_version else ""
     return Reason(
         kind=ReasonKind.RANKING,
         code="RANKING_PERSONALISED",
-        message="Ordered by a model of the dishes you liked, blended with popularity. Scores "
-        f"are relative, not a rating or a health estimate.{position}",
+        message=f"Ordered by a model of the dishes you liked{blend}. Scores are relative, not "
+        f"a rating or a health estimate.{position}",
         references=(model_version,),
     )
 
@@ -211,6 +220,31 @@ def _rule_reason(rules: RuleOutcome) -> Reason:
         message=f"Could not be confirmed for {len(rules.unknown_rules)} of {n} checks "
         "because required information is missing; it is not treated as passing.",
         references=refs,
+    )
+
+
+_PLANNING_TEXT = {
+    "FEASIBLE": "Chosen for {slot} by the planner, which kept the day within {c} "
+    "({n} search steps).",
+    "INFEASIBLE": "The planner found NO day for {slot} that keeps within {c} ({n} search "
+    "steps); this meal is not a confirmed fit.",
+    "TIMEOUT": "The planner stopped before finishing {slot} ({n} search steps); this meal is "
+    "not a confirmed fit for {c}.",
+    "INSUFFICIENT_DATA": "The planner could not check {slot} against {c} because required "
+    "data is missing; this meal is not a confirmed fit.",
+}
+
+
+def _planning_reason(planning: PlanningOutcome) -> Reason:
+    """Only FEASIBLE claims the constraints were met; every other outcome says it was not."""
+    constraints = "; ".join(planning.constraints) or "the day's constraints"
+    return Reason(
+        kind=ReasonKind.PLANNING,
+        code=f"PLANNING_{planning.outcome}",
+        message=_PLANNING_TEXT[planning.outcome].format(
+            slot=planning.slot_id, c=constraints, n=planning.search_nodes
+        ),
+        references=(planning.slot_id,),
     )
 
 
@@ -296,16 +330,7 @@ def explain_meal(
     if rules is not None:
         reasons.append(_rule_reason(rules))
     if planning is not None:
-        constraints = "; ".join(planning.constraints) or "the day's constraints"
-        reasons.append(
-            Reason(
-                kind=ReasonKind.PLANNING,
-                code=f"PLANNING_{planning.outcome}",
-                message=f"Chosen for {planning.slot_id} by the planner, which kept the day within "
-                f"{constraints} ({planning.search_nodes} search steps).",
-                references=(planning.slot_id,),
-            )
-        )
+        reasons.append(_planning_reason(planning))
     reasons.extend(_limitations(parts, configuration.nutrition.unknown_nutrients))
     return MealExplanation(
         combination_id=combination.combination_id,

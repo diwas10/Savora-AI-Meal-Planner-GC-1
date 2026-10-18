@@ -159,3 +159,28 @@ def test_generate_meal_combinations_matches_the_committed_export() -> None:
     )
     assert [m.combination_id for m in result.combinations] == [m.combination_id for m in MEALS]
     assert result.validation_report["combinationsKept"] == len(MEALS)
+
+
+# --- review regressions -------------------------------------------------------------
+
+
+@pytest.mark.parametrize("outcome", ["INFEASIBLE", "TIMEOUT", "INSUFFICIENT_DATA"])
+def test_only_a_feasible_plan_claims_the_constraints_were_met(outcome: str) -> None:
+    planning = PlanningOutcome(
+        outcome=outcome,  # type: ignore[arg-type]
+        slot_id="D2_LUNCH",
+        search_nodes=9,
+        constraints=("day sodium <= 1500 mg",),
+    )
+    explanation = explain_meal(DAL_RICE, DAL_RICE.configurations[0], DISHES, planning=planning)
+    [reason] = [r for r in explanation.reasons if r.kind is ReasonKind.PLANNING]
+    assert "kept the day within" not in reason.message
+    assert "not a confirmed fit" in reason.message
+
+
+def test_pure_model_ranking_does_not_claim_a_popularity_blend() -> None:
+    from savora_ai.core.explainability.explanation import _ranking_reason
+
+    pure = _ranking_reason("sasrec-content-v1", None, 1, 3)
+    hybrid = _ranking_reason("sasrec-content-v1+pop8", None, 1, 3)
+    assert "popularity" not in pure.message and "blended with popularity" in hybrid.message

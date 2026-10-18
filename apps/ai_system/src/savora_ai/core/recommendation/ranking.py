@@ -39,6 +39,7 @@ class _RankingModel(BaseModel):
 class FallbackReason(StrEnum):
     NO_HISTORY = "NO_HISTORY"  # no history item the model knows
     MODEL_UNAVAILABLE = "MODEL_UNAVAILABLE"  # no trained model or no torch installed
+    CANDIDATES_UNKNOWN_TO_MODEL = "CANDIDATES_UNKNOWN_TO_MODEL"  # model scores none of them
 
 
 class Aggregation(StrEnum):
@@ -69,6 +70,8 @@ class RecipeRanking(_RankingModel):
     ranked_candidates: tuple[RankedRecipe, ...]
     model_version: str
     fallback_reason: FallbackReason | None = None
+    # Candidates the model could not score: ranked after the scored ones, by popularity.
+    unscored_candidates: tuple[str, ...] = ()
 
 
 class CombinationRanking(_RankingModel):
@@ -77,6 +80,7 @@ class CombinationRanking(_RankingModel):
     model_version: str
     aggregation: Aggregation
     fallback_reason: FallbackReason | None = None
+    unscored_candidates: tuple[str, ...] = ()
 
 
 class SequenceScorer(Protocol):
@@ -168,12 +172,22 @@ def _raw_scores(
             (FallbackReason.NO_HISTORY),
         )
     known_candidates = [d for d in dish_ids if scorer.knows(d)]
+    if not known_candidates:  # never an arbitrary ID order under the model's name
+        return (
+            dict(fallback.score(history, dish_ids)),
+            fallback.model_version,
+            FallbackReason.CANDIDATES_UNKNOWN_TO_MODEL,
+        )
     return dict(scorer.score(known, known_candidates)), scorer.model_version, None
 
 
-def _order(scores: Mapping[str, float], ids: Sequence[str]) -> list[str]:
-    """Highest score first; unscorable IDs last; ties by ID, so output is deterministic."""
-    return sorted(ids, key=lambda i: (i not in scores, -scores.get(i, 0.0), i))
+def _order(
+    scores: Mapping[str, float], ids: Sequence[str], popularity: Mapping[str, float]
+) -> list[str]:
+    """Scored IDs by score; unscored ones after them by popularity; then ID (deterministic)."""
+    return sorted(
+        ids, key=lambda i: (i not in scores, -scores.get(i, 0.0), -popularity.get(i, 0.0), i)
+    )
 
 
 def rank_recipes(
@@ -188,7 +202,8 @@ def rank_recipes(
     _unique(candidate_recipe_ids, "recipe")
     raw, version, reason = _raw_scores(history_recipe_ids, candidate_recipe_ids, scorer, fallback)
     scores = _softmax(raw)
-    ordered = _order(scores, candidate_recipe_ids)
+    popularity = fallback.score([], candidate_recipe_ids)
+    ordered = _order(scores, candidate_recipe_ids, popularity)
     return RecipeRanking(
         slot_id=user_context.slot_id,
         ranked_candidates=tuple(
@@ -197,6 +212,7 @@ def rank_recipes(
         ),
         model_version=version,
         fallback_reason=reason,
+        unscored_candidates=tuple(r for r in ordered if r not in scores),
     )
 
 
@@ -232,7 +248,9 @@ def rank_combinations(
             if known:
                 raw[cid] = sum(known) / len(known)
     scores = _softmax(raw)
-    ordered = _order(scores, candidate_combination_ids)
+    anchor_popularity = fallback.score([], [parts[0] for parts in dishes.values()])
+    popularity = {cid: anchor_popularity.get(parts[0], 0.0) for cid, parts in dishes.items()}
+    ordered = _order(scores, candidate_combination_ids, popularity)
     return CombinationRanking(
         slot_id=user_context.slot_id,
         ranked_candidates=tuple(
@@ -242,4 +260,5 @@ def rank_combinations(
         model_version=version,
         aggregation=aggregation,
         fallback_reason=reason,
+        unscored_candidates=tuple(c for c in ordered if c not in scores),
     )

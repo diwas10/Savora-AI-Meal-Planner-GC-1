@@ -34,7 +34,6 @@ from savora_ai.core.recommendation.metrics import rank_metrics
 from savora_ai.core.recommendation.ranking import combination_dishes
 from savora_ai.core.recommendation.sequences import EvalCase, SplitData, load_interactions, split
 from savora_ai.core.recommendation.torch_model import (
-    PAD,
     ItemIndex,
     ModelConfig,
     SASRecContent,
@@ -42,7 +41,9 @@ from savora_ai.core.recommendation.torch_model import (
     _left_pad,
     load_features,
     pick_device,
+    rank_of,
     save,
+    scored_cases,
     train,
 )
 
@@ -77,39 +78,14 @@ def case_ranks(
     weights: Sequence[float],
     candidate_rows: Tensor | None = None,
 ) -> dict[float, list[int]]:
-    """Rank of each target for several hybrid weights in ONE scoring pass.
-
-    score = model(i) + w * log(1 + count(i)); history items are excluded; with
-    `candidate_rows`, only those rows compete (catalogue-restricted ranking)."""
-    model.eval()
+    """Ranks for several hybrid weights (score + w * log(1 + count)) in one scoring pass,
+    using the SAME protocol as evaluate.py (`torch_model.scored_cases`)."""
     device = next(model.parameters()).device
-    vectors = model.all_item_vectors()
-    vectors[PAD] = 0
-    bias = model.item_bias(torch.arange(len(vectors), device=device))
     pop = log_popularity.to(device)
-    allowed = None
-    if candidate_rows is not None:
-        allowed = torch.zeros(len(vectors), dtype=torch.bool, device=device)
-        allowed[candidate_rows.to(device)] = True
     ranks: dict[float, list[int]] = {w: [] for w in weights}
-    for start in range(0, len(cases), 256):
-        batch = cases[start : start + 256]
-        seqs = torch.tensor(
-            [_left_pad([index.row[r] for r in c.history], model.config.max_len) for c in batch],
-            device=device,
-        )
-        base = model.encode(seqs)[:, -1] @ vectors.T + bias
-        base[:, PAD] = float("-inf")
-        if allowed is not None:
-            base[:, ~allowed] = float("-inf")
-        for b, case in enumerate(batch):
-            target = index.row[case.target]
-            history = list({index.row[r] for r in case.history} - {target})
-            for w in weights:
-                row = base[b] + w * pop
-                if history:
-                    row[history] = float("-inf")
-                ranks[w].append(int((row > row[target]).sum().item()) + 1)
+    for _, row, target in scored_cases(model, index, cases, None, candidate_rows):
+        for w in weights:
+            ranks[w].append(rank_of(row + w * pop, target))
     return ranks
 
 
@@ -191,6 +167,7 @@ def meal_ablation(
     rows = torch.tensor([index.row[d] for d in scorable], device=device)
     vectors = model.item_vectors(rows)
     extra = model.item_bias(rows) + weight * log_popularity.to(device)[rows]
+    pop = {d: float(log_popularity[index.row[d]]) for d in scorable}  # case-independent
     results: dict[str, list[int]] = {"ANCHOR": [], "MEAN": [], "POPULARITY_ANCHOR": []}
     in_a_meal = {d for parts in dishes.values() for d in parts}
     cases = [c for c in cases if c.target in in_a_meal]  # a dish in no meal cannot be found
@@ -203,7 +180,6 @@ def meal_ablation(
         dish_scores = model.encode(seqs)[:, -1] @ vectors.T + extra
         for b, case in enumerate(batch):
             score = dict(zip(scorable, dish_scores[b].tolist(), strict=True))
-            pop = {d: float(log_popularity[index.row[d]]) for d in scorable}
             relevant = [cid for cid, parts in dishes.items() if case.target in parts]
             for name, table, mean in (
                 ("ANCHOR", score, False),

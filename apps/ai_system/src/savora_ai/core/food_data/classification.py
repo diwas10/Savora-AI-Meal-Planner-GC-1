@@ -11,6 +11,7 @@ course tags and ingredient tags only qualify them. Every rule that fires is reco
 gives REQUIRES_REVIEW, never a silent guess. The tables are PROVISIONAL and curated.
 """
 
+import re
 from collections.abc import Iterable, Mapping
 from typing import Literal, Self
 
@@ -199,12 +200,18 @@ def meals_for_roles(roles: Iterable[CulinaryRole]) -> tuple[MealType, ...]:
     return _ordered((meal for role in roles for meal in ROLE_MEALS[role]), MealType)
 
 
+def has_name_word(name: str, words: Iterable[str]) -> bool:
+    """Whole words (plural allowed): 'rice' matches 'fried rice', not 'licorice';
+    'wrap' matches 'chicken wraps', not 'bacon-wrapped'."""
+    return any(re.search(rf"\b{re.escape(word)}s?\b", name) for word in words)
+
+
 def _dish_class(roles: set[CulinaryRole], tags: frozenset[str], name: str) -> DishClass:
     if ONE_DISH_TAG in tags:
         return DishClass.COMPLETE_MEAL
     if CulinaryRole.MAIN_DISH in roles:
         lowered = name.lower()
-        if tags & SELF_CONTAINED_TAGS or any(word in lowered for word in SELF_CONTAINED_NAME_WORDS):
+        if tags & SELF_CONTAINED_TAGS or has_name_word(lowered, SELF_CONTAINED_NAME_WORDS):
             return DishClass.COMPLETE_MEAL
         return DishClass.REQUIRES_ACCOMPANIMENT
     if CulinaryRole.BREAKFAST_BASE in roles:
@@ -244,7 +251,7 @@ def classify(name: str, tags: frozenset[str], energy_kcal: float) -> Classificat
             evidence.append("course salads -> VEGETABLE")
     if BREADS_TAG in tags:
         lowered = name.lower()
-        if tags & SWEET_TAGS or any(word in lowered for word in SWEET_BREAD_NAME_WORDS):
+        if tags & SWEET_TAGS or has_name_word(lowered, SWEET_BREAD_NAME_WORDS):
             evidence.append("sweet bread: not a staple")
         else:
             roles.add(CulinaryRole.STAPLE)

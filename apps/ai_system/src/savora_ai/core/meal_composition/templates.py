@@ -6,9 +6,24 @@ from typing import Literal, Self
 from pydantic import Field, model_validator
 
 from savora_ai.core.food_data.models import CatalogueRecipe, _FoodModel, _NonBlank
+from savora_ai.core.meal_composition.presets import PRESET_SLOTS
 from savora_ai.schemas.enums import CulinaryRole, DishClass, MealType
 
 DEFAULT_TEMPLATES = Path("Data/curated/meal_templates.json")
+
+_R = CulinaryRole
+# Meal shapes the composer implements, by slot ROLES. Anything else is rejected when the
+# template file loads, never discovered as a crash in the middle of a build.
+SUPPORTED_SHAPES: frozenset[tuple[CulinaryRole, ...]] = frozenset(
+    {
+        (_R.MAIN_DISH,),
+        (_R.MAIN_DISH, _R.STAPLE),
+        (_R.MAIN_DISH, _R.STAPLE, _R.VEGETABLE),
+        (_R.BREAKFAST_BASE,),
+        (_R.BREAKFAST_BASE, _R.FRUIT),
+        (_R.BREAKFAST_BASE, _R.PROTEIN_SOURCE),
+    }
+)
 
 
 class TemplateSlot(_FoodModel):
@@ -35,9 +50,16 @@ class MealTemplate(_FoodModel):
         names = [s.slot for s in self.slots]
         if len(set(names)) != len(names):
             raise ValueError(f"{self.template_id}: duplicate slot names")
-        roles = [s.role for s in self.slots]
+        roles = tuple(s.role for s in self.slots)
         if len(set(roles)) != len(roles):
             raise ValueError(f"{self.template_id}: a role may fill only one slot")
+        if roles not in SUPPORTED_SHAPES:
+            raise ValueError(
+                f"{self.template_id}: unsupported meal shape {[r.value for r in roles]}"
+            )
+        unknown = sorted(set(names) - set(PRESET_SLOTS))
+        if unknown:
+            raise ValueError(f"{self.template_id}: no portion-preset rule for slots {unknown}")
         return self
 
 

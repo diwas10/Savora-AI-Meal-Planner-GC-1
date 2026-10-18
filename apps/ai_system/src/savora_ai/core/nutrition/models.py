@@ -23,10 +23,14 @@ class _NutritionModel(BaseModel):
 
 
 class TargetInput(_NutritionModel):
-    age_years: int = Field(gt=0, le=120)
+    """Inputs for an ADULT estimator. Mifflin-St Jeor was derived on adults; children,
+    pregnancy and other special populations are an open team decision (ARCHITECTURE.md
+    section 15), so out-of-range values are rejected instead of giving a wrong target."""
+
+    age_years: int = Field(ge=18, le=100)
     sex: Sex
-    height_cm: float = Field(gt=0)
-    weight_kg: float = Field(gt=0)
+    height_cm: float = Field(ge=100, le=250)
+    weight_kg: float = Field(ge=30, le=300)
     activity: ActivityLevel
     goal: Goal
 

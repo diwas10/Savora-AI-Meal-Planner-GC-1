@@ -100,3 +100,17 @@ def test_torch_scorer_scores_only_known_candidates_and_adds_the_hybrid(tmp_path:
     b = hybrid.score(["FC_1"], ["FC_5", "FC_X"])
     assert set(a) == {"FC_5"}  # an unknown candidate is never invented a score
     assert b["FC_5"] == pytest.approx(a["FC_5"] + 2.0 * __import__("math").log1p(100))
+
+
+def test_experiments_and_evaluation_share_one_ranking_protocol() -> None:
+    # Review: experiments.case_ranks duplicated dense_ranks; both now use scored_cases.
+    from savora_ai.core.recommendation.experiments import case_ranks
+
+    data, features, universe = tiny()
+    model, index, _ = train(
+        data, features, universe, SMALL, FAST, device=torch.device("cpu"), log=lambda _: None
+    )
+    pop = torch.zeros(len(index.ids))
+    assert case_ranks(model, index, data.test, pop, (0.0,))[0.0] == dense_ranks(
+        model, index, data.test, torch.device("cpu")
+    )

@@ -34,6 +34,7 @@ from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass
 from decimal import ROUND_HALF_UP, Decimal
 
+from savora_ai.core.food_data.classification import is_plannable
 from savora_ai.core.food_data.models import CatalogueRecipe
 from savora_ai.core.meal_composition.models import MealCombination, PortionConfiguration
 from savora_ai.schemas.candidates import (
@@ -69,7 +70,7 @@ from savora_ai.schemas.daily import (
     MealSlot,
     MealSlotSuitability,
 )
-from savora_ai.schemas.enums import CulinaryRole, NutritionBasis, PortionUnit
+from savora_ai.schemas.enums import CulinaryRole, NutritionBasis, NutritionSource, PortionUnit
 from savora_ai.schemas.food_graph import FoodEntity, FoodEntityKind
 from savora_ai.schemas.knowledge import EvidenceReference, MeasurementUnit, RuleEnvironment
 from savora_ai.schemas.knowledge_base import KnowledgeBaseSnapshot
@@ -171,7 +172,8 @@ def _sodium_fact(dish: CatalogueRecipe, version: str, scenario: Scenario) -> Ver
     name = scenario.fact_names[_SODIUM_FACT[dish.nutrition.basis]]
     value = dish.nutrition.values.sodium_mg
     known = value is not None and (
-        scenario.foodcom_nutrition_known or dish.nutrition.source.value != "FOODCOM_DERIVED"
+        scenario.foodcom_nutrition_known
+        or dish.nutrition.source is not NutritionSource.FOODCOM_DERIVED
     )
     basis_id, basis_version = scenario.basis_evidence[dish.nutrition.basis]
     source_ev = evidence(version, f"nutrition-{dish.nutrition.source.value.lower()}", scenario)
@@ -233,7 +235,7 @@ def candidate_facts(
         catalogue_version=v,
         observation=FactObservation(
             fact_id=settled_name,
-            value=dish.classification_status.value in ("AUTO", "CURATED"),
+            value=is_plannable(dish),
             complete=True,
             evidence=ev,
         ),
@@ -446,6 +448,7 @@ def daily_request(
     domains: Mapping[MealSlot, Sequence[str]],
     binding: KnowledgeBinding,
     source_id: str = "m1-catalogue-meals",
+    scenario: Scenario = SCENARIO_A,
 ) -> tuple[DailyPlanningRequest, DailySourceSnapshot]:
     """The day's source snapshot and request; `domains` names option IDs per slot."""
     context = binding.context
@@ -456,7 +459,7 @@ def daily_request(
             version=v,
             context=context,
             options=tuple(options),
-            evidence=(evidence(v, "meal-options"),),
+            evidence=(evidence(v, "meal-options", scenario),),
         )
     )
     by_id = {o.reference.option_id: o.reference for o in options}

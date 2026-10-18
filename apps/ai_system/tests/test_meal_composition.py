@@ -169,3 +169,50 @@ def test_templates_allow_at_most_three_distinct_roles() -> None:
     repeated_role = triple | {"slots": [triple["slots"][0], triple["slots"][0] | {"slot": "X"}]}
     with pytest.raises(ValidationError):
         TemplateFile.model_validate_json(json.dumps(raw | {"templates": [repeated_role]}))
+
+
+# --- review regressions -------------------------------------------------------------
+
+
+def test_overlap_uses_whole_words() -> None:
+    def base(*ingredients: str) -> CatalogueRecipe:
+        return dish(30, "breakfast thing", "breakfast", "indian", ingredients=ingredients)
+
+    apple = next(s for s in STAPLES if s.name == "apple")
+    egg = next(s for s in STAPLES if s.name == "boiled egg")
+    assert not overlaps(base("pineapple"), apple)  # apple is not in pineapple
+    assert not overlaps(base("eggplant"), egg)  # egg is not in eggplant
+    assert overlaps(base("eggs", "onion"), egg)  # plural still matches
+
+
+def test_pairing_without_a_common_meal_is_skipped_not_a_crash() -> None:
+    lunch_only = DAL.model_copy(update={"meal_types": (MealType.LUNCH,)})
+    rice = next(s for s in STAPLES if s.recipe_id == RICE)
+    dinner_rice = rice.model_copy(update={"meal_types": (MealType.DINNER,)})
+    others = tuple(s for s in STAPLES if s.recipe_id != RICE)
+    result = compose((lunch_only, dinner_rice, *others), TEMPLATES, PAIRINGS, "s",
+                     CompositionLimits(staples_per_main=10))  # fmt: skip
+    assert all(RICE not in c.combination_id or c.meal_types for c in result.combinations)
+    skipped = result.report["skippedNoCommonMealType"]
+    assert isinstance(skipped, int) and skipped >= 1
+
+
+@pytest.mark.parametrize(
+    "slots",
+    [
+        # a supported role set in an unsupported order
+        [("MAIN", "MAIN_DISH"), ("VEGETABLE", "VEGETABLE"), ("STAPLE", "STAPLE")],
+        # a slot name with no portion-preset rule
+        [("MAIN", "MAIN_DISH"), ("SIDE", "STAPLE")],
+    ],
+)
+def test_unsupported_template_shapes_fail_at_load(slots: list[tuple[str, str]]) -> None:
+    raw = json.loads((REPO / "Data/curated/meal_templates.json").read_text("utf-8"))
+    template = raw["templates"][1] | {
+        "slots": [
+            {"slot": name, "role": role, "dishClasses": ["REQUIRES_ACCOMPANIMENT", "COMPONENT"]}
+            for name, role in slots
+        ]
+    }
+    with pytest.raises(ValidationError):
+        TemplateFile.model_validate_json(json.dumps(raw | {"templates": [template]}))

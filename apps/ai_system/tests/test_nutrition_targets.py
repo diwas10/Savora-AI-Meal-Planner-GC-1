@@ -96,3 +96,24 @@ def test_input_hash_changes_with_input_and_is_stable() -> None:
     assert input_hash(person()) == input_hash(person())
     assert input_hash(person()) != input_hash(person(weight_kg=61.0))
     assert len(input_hash(person())) == 64
+
+
+@pytest.mark.parametrize(
+    "changes",
+    [{"age_years": 12}, {"height_cm": 50.0}, {"weight_kg": 10.0}, {"age_years": 101}],
+)
+def test_inputs_outside_the_adult_estimator_range_are_rejected(changes: dict[str, object]) -> None:
+    # Review: tiny heights/weights gave a negative Mifflin-St Jeor energy and an
+    # unexplained validation error deep inside the target snapshot.
+    from pydantic import ValidationError
+
+    from savora_ai.core.nutrition.models import TargetInput
+    from savora_ai.schemas.enums import ActivityLevel, Goal, Sex
+
+    base = dict(
+        age_years=30, sex=Sex.FEMALE, height_cm=165.0, weight_kg=60.0,
+        activity=ActivityLevel.MODERATE, goal=Goal.MAINTAIN,
+    )  # fmt: skip
+    TargetInput(**base)  # type: ignore[arg-type]
+    with pytest.raises(ValidationError):
+        TargetInput(**(base | changes))  # type: ignore[arg-type]

@@ -80,6 +80,7 @@ def test_wire_format_matches_the_architecture_contract() -> None:
         "modelVersion",
         "aggregation",
         "fallbackReason",
+        "unscoredCandidates",
     }
     assert set(wire["rankedCandidates"][0]) == {"combinationId", "rank", "score"}
     assert "nutrition" not in str(wire)  # raw ranking makes no nutrition claim
@@ -136,3 +137,25 @@ def test_popularity_fallback_comes_from_the_catalogue_export() -> None:
     result = rank_recipes([], ["FC_2", "FC_1"], CTX, scorer=None, fallback=scorer)
     assert result.ranked_candidates[0].recipe_id == "FC_1"
     assert scorer.counts == {"FC_1": 50, "FC_2": 0}
+
+
+# --- review regressions -------------------------------------------------------------
+
+
+def test_model_that_scores_no_candidate_falls_back_explicitly() -> None:
+    # Review: the model knew the history but no candidate; it used to rank by ID under
+    # the model's name with no fallback reason.
+    result = rank_recipes(["FC_1"], ["FC_50", "FC_2"], CTX, scorer=FakeScorer(), fallback=POP)
+    assert result.ranked_candidates[0].recipe_id == "FC_2"  # FakeScorer knows FC_2
+    none_known = rank_recipes(["FC_1"], ["FC_50", "FC_60"], CTX, scorer=FakeScorer(), fallback=POP)
+    assert none_known.fallback_reason is FallbackReason.CANDIDATES_UNKNOWN_TO_MODEL
+    assert none_known.model_version == "popularity-fallback-v1"
+
+
+def test_unscored_candidates_are_listed_and_ordered_by_popularity() -> None:
+    pop = PopularityScorer({"FC_70": 50, "FC_60": 5})
+    result = rank_recipes(
+        ["FC_1"], ["FC_60", "FC_2", "FC_70"], CTX, scorer=FakeScorer(), fallback=pop
+    )
+    assert [c.recipe_id for c in result.ranked_candidates] == ["FC_2", "FC_70", "FC_60"]
+    assert result.unscored_candidates == ("FC_70", "FC_60")

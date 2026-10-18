@@ -263,11 +263,17 @@ def solve(day_cap_mg: int):
         sources=source,
     )
     sodium = {option_id(c): c.nutrition.totals.sodium_mg for c in configs.values() if c.nutrition}
-    return result, sodium
+
+    # The lowest day total any assignment can reach (lunch and dinner may repeat a meal).
+    def low(slot: MealSlot) -> int:
+        return min(round_half_up(sodium[o] or 0.0) for o in domains[slot])
+
+    floor = sum(low(slot) for slot in MealSlot)
+    return result, sodium, floor
 
 
 def test_real_catalogue_day_is_feasible_under_a_generous_sodium_cap() -> None:
-    result, sodium = solve(day_cap_mg=10_000)
+    result, sodium, _ = solve(day_cap_mg=10_000)
     assert result.outcome is DailyOutcome.FEASIBLE
     assert result.assignment is not None
     chosen = [s.option.option_id for s in result.assignment.slots]
@@ -277,18 +283,25 @@ def test_real_catalogue_day_is_feasible_under_a_generous_sodium_cap() -> None:
     assert sum(round_half_up(t) for t in totals if t is not None) <= 10_000
 
 
-def test_a_tight_cap_makes_the_solver_backtrack_to_lower_sodium_meals() -> None:
-    loose, sodium = solve(day_cap_mg=10_000)
-    tight, _ = solve(day_cap_mg=1_500)
-    assert loose.assignment is not None and tight.assignment is not None
-    total = [sodium[s.option.option_id] for s in tight.assignment.slots]
-    assert sum(round_half_up(t) for t in total if t is not None) <= 1_500
-    loose_ids = [s.option.option_id for s in loose.assignment.slots]
-    assert [s.option.option_id for s in tight.assignment.slots] != loose_ids
+def test_the_tightest_feasible_cap_forces_the_lowest_sodium_day() -> None:
+    # Data-driven, so it survives catalogue rebuilds: the cap is the lowest reachable
+    # total, so the solver must search past the first choice to the minimum day.
+    loose, sodium, floor = solve(day_cap_mg=10_000)
+    tight, _, _ = solve(day_cap_mg=floor)
+    assert tight.outcome is DailyOutcome.FEASIBLE and tight.assignment is not None
+    total = sum(round_half_up(sodium[s.option.option_id] or 0.0) for s in tight.assignment.slots)
+    assert total == floor
+    assert loose.assignment is not None
+    loose_total = sum(
+        round_half_up(sodium[s.option.option_id] or 0.0) for s in loose.assignment.slots
+    )
+    if loose_total > floor:  # the first choice did not fit, so the solver backtracked
+        assert tight.statistics.nodes > loose.statistics.nodes
 
 
-def test_real_catalogue_day_is_infeasible_when_no_three_meals_fit() -> None:
-    result, _ = solve(day_cap_mg=1)  # below any breakfast + lunch + dinner
+def test_real_catalogue_day_is_infeasible_just_below_the_lowest_total() -> None:
+    _, _, floor = solve(day_cap_mg=10_000)
+    result, _, _ = solve(day_cap_mg=floor - 1)
     assert result.outcome is DailyOutcome.INFEASIBLE
     assert result.assignment is None
 

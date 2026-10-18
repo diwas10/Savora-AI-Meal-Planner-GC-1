@@ -134,3 +134,17 @@ def test_a_dish_in_two_strata_is_selected_once_and_counts_in_both() -> None:
     )
     assert len(result.recipes) == 1
     assert [s.selected for s in result.strata] == [1, 1]
+
+
+def test_breakfast_stratum_needs_a_stand_alone_breakfast_dish() -> None:
+    # Review: a main also tagged breakfast needs an accompaniment, so no breakfast
+    # template can use it; it must not take a breakfast quota slot.
+    from savora_ai.core.food_data.selection import SLOT_KINDS as KINDS
+
+    breakfast_only = tuple(k for k in KINDS if k.name == "BREAKFAST_BASE")
+    main_and_breakfast = dish(1, "main-dish", "breakfast", "indian", name="egg curry")
+    omelette = dish(2, "breakfast", "indian", name="masala omelette")
+    result = select_stratified(
+        [main_and_breakfast, omelette], {}, "s", cuisines=("Indian",), slot_kinds=breakfast_only
+    )
+    assert ids(result.recipes) == {"FC_2"}

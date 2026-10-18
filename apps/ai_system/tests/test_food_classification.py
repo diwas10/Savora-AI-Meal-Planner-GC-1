@@ -228,3 +228,21 @@ def test_committed_override_file_is_valid_and_has_no_duplicates() -> None:
     curated = ClassificationOverrideFile.model_validate_json(path.read_text(encoding="utf-8"))
     assert index_overrides(curated.overrides)  # raises on a duplicate recipe
     assert all(o.rationale and o.curated_by for o in curated.overrides)
+
+
+# --- review regressions -------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    ("name", "complete"),
+    [
+        ("bacon wrapped chicken", False),  # 'wrap' inside 'wrapped'
+        ("licorice glazed pork", False),  # 'rice' inside 'licorice'
+        ("chicken wraps", True),  # plural of a whole word
+        ("steamed momos", True),
+        ("chicken fried rice", True),
+    ],
+)
+def test_self_contained_name_words_match_whole_words_only(name: str, complete: bool) -> None:
+    result = run(name, "main-dish")
+    assert (result.dish_class is DishClass.COMPLETE_MEAL) is complete

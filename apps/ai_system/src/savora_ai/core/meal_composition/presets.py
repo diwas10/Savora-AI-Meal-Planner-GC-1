@@ -44,6 +44,12 @@ PRESET_STEPS: dict[PortionPreset, dict[str, int]] = {
 }  # fmt: skip
 
 
+# Slot names a template may use; templates.py rejects any other name at load time.
+PRESET_SLOTS: frozenset[str] = frozenset(PRESET_STEPS[PortionPreset.STANDARD])
+if any(set(steps) != PRESET_SLOTS for steps in PRESET_STEPS.values()):
+    raise RuntimeError("every preset must give a step for every slot")
+
+
 def step_portion(dish: CatalogueRecipe, steps: int) -> PortionOption:
     """Move `steps` options away from the standard portion, clamped to the ends."""
     if not dish.portions:

@@ -50,7 +50,13 @@ class SlotKind:
 
 
 def _breakfast(r: CatalogueRecipe) -> bool:
-    return CulinaryRole.BREAKFAST_BASE in r.roles and MealType.BREAKFAST in r.meal_types
+    # Every breakfast template needs a stand-alone base: a main that is also tagged
+    # breakfast but needs an accompaniment can never become a breakfast meal.
+    return (
+        CulinaryRole.BREAKFAST_BASE in r.roles
+        and MealType.BREAKFAST in r.meal_types
+        and r.dish_class is DishClass.COMPLETE_MEAL
+    )
 
 
 def _main(dish_class: DishClass) -> Callable[[CatalogueRecipe], bool]:

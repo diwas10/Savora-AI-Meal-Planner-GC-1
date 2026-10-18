@@ -28,7 +28,7 @@ import random
 import sys
 import time
 from collections import Counter
-from collections.abc import Callable, Mapping, Sequence
+from collections.abc import Callable, Iterator, Mapping, Sequence
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
@@ -264,6 +264,53 @@ def _training_windows(data: SplitData, index: ItemIndex, max_len: int) -> list[l
 
 
 @torch.no_grad()
+def scored_cases(
+    model: SASRecContent,
+    index: ItemIndex,
+    cases: Sequence[EvalCase],
+    extra_bias: Tensor | None = None,
+    candidate_rows: Tensor | None = None,
+) -> Iterator[tuple[EvalCase, Tensor, int]]:
+    """THE evaluation protocol, shared by evaluate.py and experiments.py.
+
+    Yields (case, scores over every item row, target row). Padding, items outside
+    `candidate_rows` and the user's own history (except the target) score -inf.
+    """
+    model.eval()
+    device = next(model.parameters()).device
+    vectors = model.all_item_vectors()
+    vectors[PAD] = 0
+    bias = model.item_bias(torch.arange(len(vectors), device=device))
+    if extra_bias is not None:
+        bias = bias + extra_bias.to(device)
+    allowed = None
+    if candidate_rows is not None:
+        allowed = torch.zeros(len(vectors), dtype=torch.bool, device=device)
+        allowed[candidate_rows.to(device)] = True
+    for start in range(0, len(cases), 256):
+        batch = cases[start : start + 256]
+        seqs = torch.tensor(
+            [_left_pad([index.row[r] for r in c.history], model.config.max_len) for c in batch],
+            device=device,
+        )
+        scores = model.encode(seqs)[:, -1] @ vectors.T + bias
+        scores[:, PAD] = float("-inf")
+        if allowed is not None:
+            scores[:, ~allowed] = float("-inf")
+        for b, case in enumerate(batch):
+            row = scores[b]
+            target = index.row[case.target]
+            history = list({index.row[r] for r in case.history} - {target})
+            if history:
+                row[history] = float("-inf")
+            yield case, row, target
+
+
+def rank_of(row: Tensor, target: int) -> int:
+    """1-based rank: items scoring strictly higher, plus one (ties favour the target)."""
+    return int((row > row[target]).sum().item()) + 1
+
+
 def dense_ranks(
     model: SASRecContent,
     index: ItemIndex,
@@ -274,36 +321,14 @@ def dense_ranks(
     log_popularity: Tensor | None = None,  # added to every score when given (hybrid)
     candidate_rows: Tensor | None = None,  # rank only among these rows (catalogue eval)
 ) -> list[int]:
-    model.eval()
-    vectors = model.all_item_vectors()
-    vectors[PAD] = 0
-    bias = model.item_bias(torch.arange(len(vectors), device=device))
-    if log_popularity is not None:
-        bias = bias + log_popularity.to(device)
+    del device  # the model's own device is used
     ranks: list[int] = []
-    for start in range(0, len(cases), 256):
-        batch = cases[start : start + 256]
-        seqs = torch.tensor(
-            [_left_pad([index.row[r] for r in c.history], model.config.max_len) for c in batch],
-            device=device,
-        )
-        states = model.encode(seqs)[:, -1]
-        scores = states @ vectors.T + bias
-        scores[:, PAD] = float("-inf")
-        if candidate_rows is not None:
-            allowed = torch.zeros(scores.size(1), dtype=torch.bool, device=device)
-            allowed[candidate_rows.to(device)] = True
-            scores[:, ~allowed] = float("-inf")
-        for b, case in enumerate(batch):
-            row = scores[b]
-            target = index.row[case.target]
-            history = {index.row[r] for r in case.history} - {target}
-            if history:
-                row[list(history)] = float("-inf")
-            ranks.append(int((row > row[target]).sum().item()) + 1)
-            if tops is not None and start + b < top_cases:
-                best = torch.topk(row, 10).indices.tolist()
-                tops.append([index.ids[i] for i in best])
+    for i, (_, row, target) in enumerate(
+        scored_cases(model, index, cases, log_popularity, candidate_rows)
+    ):
+        ranks.append(rank_of(row, target))
+        if tops is not None and i < top_cases:
+            tops.append([index.ids[j] for j in torch.topk(row, 10).indices.tolist()])
     return ranks
 
 
@@ -438,7 +463,8 @@ def save(path: Path, model: SASRecContent, index: ItemIndex, report: dict[str, o
 
 def load(path: Path, device: torch.device | None = None) -> tuple[SASRecContent, dict[str, int]]:
     """The trained model and its recipe-ID -> row map."""
-    checkpoint = torch.load(path, map_location="cpu", weights_only=False)
+    # weights_only: tensors and plain containers only, never arbitrary pickled objects.
+    checkpoint = torch.load(path, map_location="cpu", weights_only=True)
     config = ModelConfig(**checkpoint["config"])
     ids: list[str] = checkpoint["index"]["ids"]
     model = SASRecContent(

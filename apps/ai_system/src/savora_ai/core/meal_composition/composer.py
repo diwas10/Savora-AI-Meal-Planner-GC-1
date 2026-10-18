@@ -14,6 +14,7 @@ named limits applied while generating, so no list is ever silently truncated.
 """
 
 import hashlib
+import re
 from collections import Counter
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
@@ -29,7 +30,7 @@ from savora_ai.core.meal_composition.models import (
 from savora_ai.core.meal_composition.pairings import PairingFile
 from savora_ai.core.meal_composition.presets import preset_portions
 from savora_ai.core.meal_composition.templates import MealTemplate, TemplateFile
-from savora_ai.schemas.enums import MealType
+from savora_ai.schemas.enums import CulinaryRole, MealType
 
 
 @dataclass(frozen=True)
@@ -55,10 +56,19 @@ def _rank(seed: str, *parts: str) -> str:
     return hashlib.sha256(":".join((seed, *parts)).encode()).hexdigest()
 
 
+def _tokens(text: str) -> frozenset[str]:
+    """Lower-case whole words with a plural 's' removed: 'Eggs' -> {'egg'}."""
+    return frozenset(word.rstrip("s") for word in re.findall(r"[a-z]+", text.lower()))
+
+
 def overlaps(base: CatalogueRecipe, add_on: CatalogueRecipe) -> bool:
-    """An add-on already in the base (banana with banana pancakes, egg with an omelette)."""
-    words = [w.lower() for w in add_on.ingredients]
-    return any(word in ingredient.lower() for ingredient in base.ingredients for word in words)
+    """An add-on already in the base (banana with banana pancakes, egg with an omelette).
+
+    Whole words only: apple is NOT in pineapple, egg is NOT in eggplant."""
+    base_words = frozenset().union(*(_tokens(i) for i in base.ingredients))
+    return any(
+        (words := _tokens(ingredient)) and words <= base_words for ingredient in add_on.ingredients
+    )
 
 
 def combination_id_for(template_id: str, dishes: Sequence[CatalogueRecipe]) -> str:
@@ -68,7 +78,9 @@ def combination_id_for(template_id: str, dishes: Sequence[CatalogueRecipe]) -> s
 
 def _combination(
     template: MealTemplate, dishes: tuple[CatalogueRecipe, ...], evidence: tuple[str, ...]
-) -> MealCombination:
+) -> MealCombination | None:
+    """The meal, or None when its dishes share no meal type (e.g. a lunch-only main with a
+    dinner-only staple after curation): skipped and counted, never a crash."""
     combination_id = combination_id_for(template.template_id, dishes)
     slots = tuple(s.slot for s in template.slots)
     configurations = tuple(
@@ -89,6 +101,8 @@ def _combination(
         for preset, options in preset_portions(slots, dishes).items()
     )
     meals = tuple(meal for meal in template.meal_types if all(meal in d.meal_types for d in dishes))
+    if not meals:
+        return None
     return MealCombination(
         combination_id=combination_id,
         template_id=template.template_id,
@@ -115,20 +129,28 @@ def compose(
     staples_for = pairings.staples_by_cuisine()
     combos: list[MealCombination] = []
     skipped_overlap = 0
+    skipped_no_common_meal = 0
+
+    def add(combo: MealCombination | None) -> None:
+        nonlocal skipped_no_common_meal
+        if combo is None:
+            skipped_no_common_meal += 1
+        else:
+            combos.append(combo)
 
     def candidates(template: MealTemplate, index: int) -> list[CatalogueRecipe]:
         slot = template.slots[index]
         return [d for d in pool if slot.accepts(d, template.meal_types)]
 
     for template in templates.templates:
-        slot_names = [s.slot for s in template.slots]
+        # Dispatch on slot ROLES; templates.py guarantees one of the supported shapes.
+        roles = [s.role for s in template.slots]
         anchors = [d for d in candidates(template, 0) if d.cuisines]  # anchor sets cuisine
         for anchor in anchors:
-            if len(slot_names) == 1:
-                combos.append(_combination(template, (anchor,), ()))
+            if len(roles) == 1:
+                add(_combination(template, (anchor,), ()))
                 continue
-            second = slot_names[1]
-            if second == "STAPLE":
+            if roles[1] is CulinaryRole.STAPLE:
                 paired = {
                     sid
                     for cuisine in anchor.cuisines
@@ -139,8 +161,8 @@ def compose(
                 for staple_id in staples[: limits.staples_per_main]:
                     staple = by_id[staple_id]
                     pairing = (f"pairing: {'/'.join(anchor.cuisines)} main with {staple.name}",)
-                    if len(slot_names) == 2:
-                        combos.append(_combination(template, (anchor, staple), pairing))
+                    if len(roles) == 2:
+                        add(_combination(template, (anchor, staple), pairing))
                         continue
                     sides = [
                         v
@@ -155,14 +177,14 @@ def compose(
                     )
                     for side in sides[: limits.vegetables_per_main_staple]:
                         why = "same cuisine" if side.cuisines else "cuisine-neutral"
-                        combos.append(
+                        add(
                             _combination(
                                 template,
                                 (anchor, staple, side),
                                 (*pairing, f"vegetable side: {side.name} ({why})"),
                             )
                         )
-            else:  # breakfast add-on: fruit or protein
+            else:  # breakfast base + add-on (fruit or protein)
                 add_ons = []
                 for add_on in candidates(template, 1):
                     if overlaps(anchor, add_on):
@@ -171,9 +193,7 @@ def compose(
                         add_ons.append(add_on)
                 add_ons.sort(key=lambda a: _rank(seed, anchor.recipe_id, a.recipe_id))
                 for add_on in add_ons[: limits.add_ons_per_base]:
-                    combos.append(
-                        _combination(template, (anchor, add_on), (f"add-on: {add_on.name}",))
-                    )
+                    add(_combination(template, (anchor, add_on), (f"add-on: {add_on.name}",)))
 
     ids = [c.combination_id for c in combos]
     duplicates = [i for i, n in Counter(ids).items() if n > 1]
@@ -185,12 +205,15 @@ def compose(
         raise ValueError(f"combinations per meal type exceed the bound: {over}")
     return CompositionResult(
         combinations=tuple(sorted(combos, key=lambda c: c.combination_id)),
-        report=_report(combos, skipped_overlap, limits),
+        report=_report(combos, skipped_overlap, skipped_no_common_meal, limits),
     )
 
 
 def _report(
-    combos: Sequence[MealCombination], skipped_overlap: int, limits: CompositionLimits
+    combos: Sequence[MealCombination],
+    skipped_overlap: int,
+    skipped_no_common_meal: int,
+    limits: CompositionLimits,
 ) -> dict[str, object]:
     return {
         "combinations": len(combos),
@@ -199,6 +222,7 @@ def _report(
         "byMealType": {meal.value: sum(meal in c.meal_types for c in combos) for meal in MealType},
         "byCuisine": dict(sorted(Counter(x for c in combos for x in c.cuisines).items())),
         "addOnsSkippedForIngredientOverlap": skipped_overlap,
+        "skippedNoCommonMealType": skipped_no_common_meal,
         "limits": {
             "staplesPerMain": limits.staples_per_main,
             "vegetablesPerMainStaple": limits.vegetables_per_main_staple,

@@ -83,9 +83,10 @@ def calculate_nutrition_targets(
 
     Pure and deterministic: version and timestamp are supplied by the caller.
     """
-    target = round(
-        resting_energy_kcal(data) * ACTIVITY_FACTORS[data.activity] * GOAL_FACTORS[data.goal]
-    )
+    resting = resting_energy_kcal(data)
+    if resting <= 0:  # unreachable inside TargetInput's ranges; never return a bogus target
+        raise ValueError(f"resting energy {resting:.1f} kcal is not plausible for this input")
+    target = round(resting * ACTIVITY_FACTORS[data.activity] * GOAL_FACTORS[data.goal])
     band = round(target * ENERGY_BAND_FRACTION)
     return NutritionTargets(
         profile_version=profile_version,
