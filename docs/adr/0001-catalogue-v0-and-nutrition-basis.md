@@ -1,13 +1,14 @@
 # ADR 0001: Catalogue v0 and nutrition basis
 
 - **Status:** Proposed by Member 1 for team approval. Not yet jointly approved.
-- **Date:** 2026-10-18
+- **Date:** 2026-10-18 (revised 2026-10-18 after design review)
 - **Owner:** Member 1 (Food.com/USDA normalization, portion definitions)
-- **Relates to:** ARCHITECTURE.md sections 3, 5, 8, 15; Food.com EDA (`eda/food.com_eda.md`)
+- **Relates to:** ARCHITECTURE.md sections 3, 5, 8, 15; Food.com EDA (`eda/food.com_eda.md`);
+  ADR 0002 (composition), ADR 0003 (nutrition sources)
 
 ## Context
 
-The CSP needs nutrition per reference quantity and discrete gram portions (ARCHITECTURE.md
+The CSP needs nutrition per reference quantity and discrete portions (ARCHITECTURE.md
 section 8). Food.com provides, per recipe, `[kcal, total fat %DV, sugar %DV, sodium %DV,
 protein %DV, saturated fat %DV, carbohydrates %DV]`. These are percentages of a daily
 reference, not grams, and the dataset has **no serving mass**. A per-100 g value therefore
@@ -24,7 +25,9 @@ The raw data also has extreme values (maximum kcal 434,360; sugar %DV 362,729) a
 100 %DV = fat 65 g, saturated fat 20 g, carbohydrate 300 g, protein 50 g, sodium 2,400 mg.
 
 **Evidence.** On 196,627 recipes with plausible values, the energy implied by the converted
-macros (`9*fat + 4*carbohydrate + 4*protein`) was compared with the stated kcal:
+macros (`9*fat + 4*carbohydrate + 4*protein`) was compared with the stated kcal. For each
+recipe the ratio `implied / stated` is computed; the table reports the median and the
+interquartile range of those ratios:
 
 | DV table | Median implied/stated | Interquartile range | Within +/-25% |
 |---|---|---|---|
@@ -43,60 +46,93 @@ The table is a named, versioned parameter (`DvReference`), so changing it is one
 No reference was verified for Food.com's sugar %DV, so `sugars_g` is `None`
 (unknown, never zero) until one is. Glycaemic work must not use it.
 
-### D3. Serving mass is verified by a person, per catalogue recipe
+### D3. Food.com dishes are served per recipe serving; no estimated mass (revised)
 
-Options considered:
+The first draft required a person to hand-verify a serving mass for every catalogue
+recipe. That is replaced:
 
-1. **Estimate mass from ingredients through USDA portions.** Rejected as the sole method:
-   USDA portion data covers about 21% of Foundation Foods (USDA EDA), and Food.com
-   ingredient lists carry no quantities.
-2. **Keep nutrition per serving and leave mass unknown.** Rejected: the CSP and the
-   architecture's `PER_100_G` contract need a mass.
-3. **Hand-verify the serving mass of every catalogue recipe (chosen).** Possible because
-   the catalogue is small. An estimate may be used as a starting draft only.
+- A Food.com dish keeps its nutrition **per serving**. Its portion options are multiples of
+  a serving (for example 0.5, 1.0, 1.5 servings), each carrying an absolute nutrient vector
+  (ADR 0002, ADR 0003).
+- `serving_mass_g` stays `None` unless a person verifies it with a recorded source. It is
+  optional enrichment, not a precondition for the CSP.
+- A mass is never estimated from ingredients: Food.com ingredient lists carry no
+  quantities, and USDA portion data covers about 21% of Foundation Foods (USDA EDA).
 
-Until a mass is verified, `serving_mass_g` is `None` and `per_100g()` returns `None`.
 A mass without a source (or the reverse) is rejected by the model.
 
-### D4. Eligibility filters for a catalogue candidate (provisional)
+### D4. Rows with a data defect are quarantined, not deleted (revised)
 
-A row is rejected, with a recorded reason, unless all hold:
+A row is **quarantined** (kept, with every reason found, in a separate output) when any
+holds:
 
-- the nutrition vector has seven finite, non-negative numbers;
-- name and ingredients are present and the ID is positive;
-- 50 <= kcal <= 1,500 and every macro/sodium %DV <= 300;
-- Atwater-implied energy / stated energy is within 0.75 to 1.25;
-- the recipe maps to at least one meal type.
+- the nutrition vector does not have seven finite, non-negative numbers;
+- name or ingredients are missing, or the ID is not positive;
+- kcal is outside 50 to 1,500 or a macro/sodium %DV exceeds 300 (provisional limits);
+- Atwater-implied energy / stated energy is outside 0.75 to 1.25 (checked only when the
+  range check passed).
 
-On the full dataset: 231,637 raw, **94,505 eligible**. Rejections: no meal type 113,693;
-out of range 18,816; energy inconsistent 4,622; malformed metadata 1.
+Quarantined rows never reach the catalogue, but they are counted by reason in the build
+report and written to a review file, so a person can re-admit a row through a curated
+override (Stage 2). A row without a course tag is **not** defective: it is *unclassified*
+and is handled by role classification (D5), not quarantine.
 
-### D5. Meal types come from exact course tags
+On the full dataset (old rules, for reference): 231,637 raw, 94,505 with a meal tag. Rows
+without a meal tag 113,693; out of range 18,816; energy inconsistent 4,622; malformed
+metadata 1. Under the new rules the 113,693 become *unclassified*, not rejected.
 
-`breakfast` -> BREAKFAST, `lunch` -> LUNCH, `main-dish` -> DINNER (Food.com has no dinner
-tag). A recipe can serve several meals. `side-dishes` and similar are **not** mapped yet:
-dish class and culinary roles need curation (ARCHITECTURE.md section 6).
+### D5. Meal compatibility is derived from culinary role, tags are only evidence (revised)
 
-### D6. Catalogue size and selection
+Four attributes are kept separate, because one rule cannot answer all four:
 
-Provisional quotas: breakfast 60, lunch 90, dinner 90 (a dish counts once; the build
-produced 191). Selection is reproducible: candidates sorted by (has no cuisine label,
-SHA-256 of `seed:recipe_id`), seed `savora-catalogue-v0`.
+| Attribute | Question | Values |
+|---|---|---|
+| Cuisine | Where is it from? | exact-tag cuisines, curated |
+| Culinary roles | What does it do in a meal? (several allowed) | `CulinaryRole` |
+| Dish class | Can it stand alone? (one value) | COMPLETE_MEAL, REQUIRES_ACCOMPANIMENT, COMPONENT |
+| Meal compatibility | Which meals suit it? | derived from role, then tag evidence |
+
+Each record also has `classification_status`: `AUTO`, `CURATED` or `REQUIRES_REVIEW`.
+Conflicting evidence (for example `main-dish` on a complete biryani) yields
+`REQUIRES_REVIEW`. A model or LLM may *suggest* labels offline for review; it never
+decides, and a person signs off. Qwen is not involved in catalogue construction.
+
+The earlier fixed map `main-dish -> DINNER` is retired: a main dish can serve lunch or
+dinner.
+
+### D6. Selection is stratified; popularity is only a tie-breaker (revised)
+
+Catalogue size is provisional (about 150 to 250 dishes). Selection is reproducible (same
+inputs and seed give the same result) and ranks candidates by, in order: nutrition
+completeness, diet, cuisine, meal, role, portion availability, then popularity as a
+tie-breaker **within a stratum**. Popularity may use training-split interactions only.
+
+**Research dataset versus planning catalogue.** The Transformer trains and evaluates on the
+full Food.com chronological split, never on the catalogue. The catalogue is chosen without
+held-out interactions. The build report records this as a flag
+(`independentOfHeldOutData: true`).
+
+### D7. Coverage is measured statically and by scenario
+
+- *Static:* counts by cuisine, meal, diet, role and dish class.
+- *Scenario:* representative synthetic profiles run through Member 2's `filter_candidates`
+  and `solve_week` once they exist. No clinical thresholds are invented before Member 2
+  supplies sourced rules.
 
 ## Consequences
 
 - Nutrition values are per serving in physical units, traceable to a named DV table.
-- No recipe may feed the CSP per-100 g contract until its serving mass is verified.
-- Catalogue builds are deterministic and reported (`Data/catalogue/catalogue_v0.json`).
+- Nothing is silently dropped: every excluded row is quarantined with reasons or marked
+  unclassified.
+- Catalogue builds are deterministic and reported (`Data/catalogue/<UTC build time>_catalogue.json`, for example `20261018T153045Z_catalogue.json`).
+- The existing v0 fixture (191 recipes) predates D4 to D6 and will be rebuilt.
 
 ## Open items needing team approval
 
 1. **Selection is skewed to American recipes** (122 of 191; Indian 3, Thai 2, Chinese 6).
-   Needs per-cuisine quotas or a curated seed list for Indian, Nepali, Thai and Chinese
-   dishes, since the product targets those cuisines and Food.com has no Nepali tag.
+   Needs per-cuisine quotas and a curated seed list for Indian, Nepali, Thai and Chinese
+   dishes, since Food.com has no Nepali tag.
 2. Final catalogue size and per-meal quotas.
 3. Source for sodium and saturated-fat daily values and for sugar.
-4. Whether `main-dish` is an acceptable proxy for dinner, and how lunch/dinner overlap
-   should be handled.
-5. Complete-meal versus component classification, which this ADR does not decide.
-6. Canonical ID format (`FC_<id>` here) and nutrient key names, shared with Members 2 and 3.
+4. Canonical ID format (`FC_<id>` here) and nutrient key names, shared with Members 2 and 3.
+5. Whether Food.com-derived nutrition counts as *known* for hard clinical rules (Member 2).
