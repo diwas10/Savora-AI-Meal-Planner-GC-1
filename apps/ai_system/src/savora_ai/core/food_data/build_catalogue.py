@@ -57,15 +57,9 @@ from savora_ai.core.food_data.usda_staples import (
     load_spec,
     staple_dishes,
 )
-from savora_ai.core.meal_composition.composer import compose
+from savora_ai.core.meal_composition.api import generate_meal_combinations
 from savora_ai.core.meal_composition.coverage import coverage_report
-from savora_ai.core.meal_composition.nutrition import validate_combinations
-from savora_ai.core.meal_composition.pairings import (
-    DEFAULT_PAIRINGS,
-    PairingFile,
-    load_pairings,
-    validate_pairings,
-)
+from savora_ai.core.meal_composition.pairings import DEFAULT_PAIRINGS, PairingFile, load_pairings
 from savora_ai.core.meal_composition.templates import (
     DEFAULT_TEMPLATES,
     TemplateFile,
@@ -262,26 +256,24 @@ def build(
         "popularity": catalogue["popularity"],
     }
     if templates is not None and pairings is not None:
-        validate_pairings(pairings, dishes)
-        composition = compose(dishes, templates, pairings, seed)
-        validation = validate_combinations(composition.combinations, dishes)
-        coverage = coverage_report(dishes, validation.combinations)
+        generated = generate_meal_combinations(dishes, templates, pairings, seed)
+        coverage = coverage_report(dishes, generated.combinations)
         combinations = {
             "catalogueVersion": version,
             # Pins the exact dish content these meals reference.
             "catalogueContentSha256": content_sha256(catalogue["recipes"]),
             "templatesSchema": templates.schema_version,
             "pairingsSchema": pairings.schema_version,
-            "composition": composition.report,
-            "validation": validation.report,
-            "rejected": list(validation.rejected),
+            "composition": generated.composition_report,
+            "validation": generated.validation_report,
+            "rejected": list(generated.rejected),
             "combinations": [
-                c.model_dump(mode="json", by_alias=True) for c in validation.combinations
+                c.model_dump(mode="json", by_alias=True) for c in generated.combinations
             ],
         }
         build_report |= {
-            "composition": composition.report,
-            "validation": validation.report,
+            "composition": generated.composition_report,
+            "validation": generated.validation_report,
             "coverage": coverage,
         }
     quarantine: dict[str, object] = {
