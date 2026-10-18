@@ -8,11 +8,11 @@ from pydantic import ValidationError
 from savora_ai.core.nutrition.models import (
     Bounds,
     MealEnergyRange,
-    NutrientsBounds,
+    NutrientBounds,
     NutritionTargets,
     TargetInput,
 )
-from savora_ai.schemas.enums import ActivityLevel, MealType, Sex
+from savora_ai.schemas.enums import ActivityLevel, Goal, MealType, Sex
 
 HASH = "a" * 64
 
@@ -24,6 +24,7 @@ def make_input(**overrides: object) -> TargetInput:
         "height_cm": 165.0,
         "weight_kg": 60.0,
         "activity": ActivityLevel.LIGHT,
+        "goal": Goal.MAINTAIN,
     }
     data.update(overrides)
     return TargetInput.model_validate(data)
@@ -58,9 +59,19 @@ def test_input_rejects_invalid_numbers(field: str, value: float) -> None:
 
 
 def test_input_rejects_unknown_enum_token() -> None:
-    payload = '{"ageYears":30,"sex":"OTHER","heightCm":165,"weightKg":60,"activity":"LIGHT"}'
+    payload = (
+        '{"ageYears":30,"sex":"OTHER","heightCm":165,"weightKg":60,'
+        '"activity":"LIGHT","goal":"LOSE"}'
+    )
     with pytest.raises(ValidationError):
         TargetInput.model_validate_json(payload)
+
+
+def test_models_reject_unknown_fields() -> None:
+    with pytest.raises(ValidationError):
+        make_input(heigth_cm=170.0)
+    with pytest.raises(ValidationError):
+        Bounds.model_validate({"max": 2000, "maximum": 1})
 
 
 def test_input_json_round_trip_uses_camel_case() -> None:
@@ -104,7 +115,7 @@ def test_meal_range_ordering_and_limits() -> None:
 
 def test_targets_json_round_trip_and_tuples() -> None:
     targets = make_targets(
-        nutrient_bounds=(NutrientsBounds(nutrient="sodium_mg", bounds=Bounds(max=2000)),),
+        nutrient_bounds=(NutrientBounds(nutrient="sodium_mg", bounds=Bounds(max=2000)),),
         meal_energy_policy=(
             MealEnergyRange(meal_type=MealType.BREAKFAST, min_fraction=0.2, max_fraction=0.3),
         ),
@@ -119,6 +130,6 @@ def test_targets_reject_bad_hash_naive_time_and_duplicates() -> None:
         make_targets(input_hash="xyz")
     with pytest.raises(ValidationError):
         make_targets(calculated_at=datetime(2026, 10, 19))
-    entry = NutrientsBounds(nutrient="sodium_mg", bounds=Bounds(max=2000))
+    entry = NutrientBounds(nutrient="sodium_mg", bounds=Bounds(max=2000))
     with pytest.raises(ValidationError):
         make_targets(nutrient_bounds=(entry, entry))

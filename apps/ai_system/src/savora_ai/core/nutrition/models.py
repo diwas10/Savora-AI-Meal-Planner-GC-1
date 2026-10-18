@@ -3,7 +3,7 @@ from typing import Annotated, Self
 from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, StringConstraints, model_validator
 from pydantic.alias_generators import to_camel
 
-from savora_ai.schemas.enums import ActivityLevel, MealType, Sex
+from savora_ai.schemas.enums import ActivityLevel, Goal, MealType, Sex
 
 # A string with at least one non-space character. "" and "   " are rejected
 _NonBlank = Annotated[str, StringConstraints(min_length=1, pattern=r"\S")]
@@ -15,7 +15,7 @@ class _NutritionModel(BaseModel):
     model_config = ConfigDict(
         strict=True,
         frozen=True,
-        extra="ignore",
+        extra="forbid",
         alias_generator=to_camel,
         populate_by_name=True,
         allow_inf_nan=False,
@@ -28,6 +28,7 @@ class TargetInput(_NutritionModel):
     height_cm: float = Field(gt=0)
     weight_kg: float = Field(gt=0)
     activity: ActivityLevel
+    goal: Goal
 
 
 class Bounds(_NutritionModel):
@@ -46,7 +47,7 @@ class Bounds(_NutritionModel):
         return self
 
 
-class NutrientsBounds(_NutritionModel):
+class NutrientBounds(_NutritionModel):
     # One nutrient name paired with its bounds, for example "sodium_mg" with max 2000
     nutrient: _NonBlank
 
@@ -75,7 +76,7 @@ class NutritionTargets(_NutritionModel):
     input_hash: _Sha256Hex
     calculated_at: AwareDatetime
     energy_kcal: Bounds
-    nutrient_bounds: tuple[NutrientsBounds, ...] = ()
+    nutrient_bounds: tuple[NutrientBounds, ...] = ()
     meal_energy_policy: tuple[MealEnergyRange, ...] = ()
     bmi: float | None = Field(default=None, gt=0)
     provenance: tuple[_NonBlank, ...] = ()
