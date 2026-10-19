@@ -31,9 +31,15 @@ def generate_meal_combinations(
     pairings: PairingFile,
     seed: str,
     limits: CompositionLimits = DEFAULT_LIMITS,
+    check_pairings: bool = True,
 ) -> GenerationResult:
+    """`check_pairings` verifies every curated pairing against `dishes`: right for a build
+    from the full catalogue. Pass False for a pool already narrowed by the Rule Engine,
+    where a removed staple must only drop its meals (`compose` skips absent staples), not
+    abort the call; the build-time check still guards the curated file itself."""
     pool = tuple(dishes)
-    validate_pairings(pairings, pool)
+    if check_pairings:
+        validate_pairings(pairings, pool)
     composition = compose(pool, templates, pairings, seed, limits)
     validation = validate_combinations(composition.combinations, pool)
     return GenerationResult(

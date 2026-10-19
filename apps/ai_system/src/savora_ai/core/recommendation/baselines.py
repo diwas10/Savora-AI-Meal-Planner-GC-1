@@ -65,9 +65,14 @@ def full_rank(
 
 
 def top_k(
-    primary: Mapping[str, float], history: Sequence[str], pop: PopularityOrder, k: int
+    primary: Mapping[str, float],
+    history: Sequence[str],
+    pop: PopularityOrder,
+    k: int,
+    target: str | None = None,
 ) -> list[str]:
-    seen = set(history)
+    """The k best items. As in `full_rank`, the held-out `target` is never excluded."""
+    seen = set(history) - {target}
     ranked = sorted(primary, key=lambda i: (-primary[i], pop.position[i]))
     result = [i for i in ranked if i not in seen][:k]
     for item in pop.order:

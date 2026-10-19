@@ -184,3 +184,24 @@ def test_pure_model_ranking_does_not_claim_a_popularity_blend() -> None:
     pure = _ranking_reason("sasrec-content-v2", None, 1, 3)
     hybrid = _ranking_reason("sasrec-content-v2+pop4", None, 1, 3)
     assert "popularity" not in pure.message and "blended with popularity" in hybrid.message
+
+
+def test_filtered_pool_missing_a_paired_staple_still_composes() -> None:
+    # Review: the Rule Engine may remove a staple (e.g. naan); that drops its meals only.
+    staples = staple_dishes(
+        load_spec(REPO / "Data/curated/usda_staples.json"),
+        load_extract(REPO / "Data/curated/usda_staples_extract.json"),
+    )
+    pairings = load_pairings(REPO / "Data/curated/pairings.json")
+    paired = {s for p in pairings.cuisines for s in p.staples}
+    removed = sorted(paired)[0]
+    pool = (
+        *[d for d in DISHES.values() if d.recipe_id.startswith("FC_")],
+        *[s for s in staples if s.recipe_id != removed],
+    )
+    templates = load_templates(REPO / "Data/curated/meal_templates.json")
+    with pytest.raises(ValueError, match="unknown dish"):
+        generate_meal_combinations(pool, templates, pairings, "seed")  # strict by default
+    result = generate_meal_combinations(pool, templates, pairings, "seed", check_pairings=False)
+    assert result.combinations
+    assert all(removed not in m.combination_id for m in result.combinations)

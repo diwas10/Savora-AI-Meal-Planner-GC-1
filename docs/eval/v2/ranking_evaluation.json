@@ -1,7 +1,7 @@
 {
   "protocol": {
     "ranking": "full ranking over every Food.com recipe; history items excluded",
-    "tieBreak": "training popularity, then recipe ID",
+    "tieBreak": "baselines: popularity then ID; Transformer: a tied target ranks best",
     "k": 10,
     "beyondAccuracyCases": 2000,
     "universe": 231637,

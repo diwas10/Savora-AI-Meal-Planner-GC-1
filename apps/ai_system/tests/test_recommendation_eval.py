@@ -173,3 +173,11 @@ def test_item_knn_scores_co_occurring_items() -> None:
     scores = knn.primary_scores(["FC_1"])
     assert scores["FC_2"] > scores["FC_3"] > 0
     assert "FC_5" not in scores
+
+
+def test_top_k_keeps_the_held_out_target_even_when_it_is_in_the_history() -> None:
+    # Review: full_rank keeps a target that is also in the history; top_k must agree.
+    pop = PopularityOrder.build(["a", "b", "c"], {"a": 3, "b": 2, "c": 1})
+    assert top_k({}, ["a", "b"], pop, 2) == ["c"]  # history excluded
+    assert top_k({}, ["a", "b"], pop, 2, target="a") == ["a", "c"]  # the target is kept
+    assert full_rank({}, "a", ["a", "b"], pop) == 1  # and it ranks first

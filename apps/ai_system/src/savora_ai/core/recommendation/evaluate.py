@@ -11,8 +11,9 @@ Usage (from the repo root):
         --output ../../docs/eval/v2/ranking_evaluation.json
 
 Writes docs/eval/v2/ranking_evaluation.json (v1's results are kept in docs/eval/v1/).
-Every ranker sees the same cases, the same universe (every Food.com recipe) and the same
-tie-break, so the numbers are comparable.
+Every ranker sees the same cases and the same universe (every Food.com recipe). Ties: the
+sparse baselines break them by training popularity, then recipe ID; the Transformer's
+scores are continuous, and an exact tie gives the target its best rank (documented).
 """
 
 import argparse
@@ -66,7 +67,7 @@ def evaluate_sparse(
         primary = ranker.primary_scores(case.history)
         ranks.append(full_rank(primary, case.target, case.history, pop))
         if index < BEYOND_ACCURACY_CASES:
-            tops.append(top_k(primary, case.history, pop, K))
+            tops.append(top_k(primary, case.history, pop, K, case.target))
     return {
         **rank_metrics(ranks, K),
         "catalogueCoverage@10": catalogue_coverage(tops, len(pop.order)),
@@ -95,7 +96,7 @@ def run(
     return {
         "protocol": {
             "ranking": "full ranking over every Food.com recipe; history items excluded",
-            "tieBreak": "training popularity, then recipe ID",
+            "tieBreak": "baselines: popularity then ID; Transformer: a tied target ranks best",
             "k": K,
             "beyondAccuracyCases": BEYOND_ACCURACY_CASES,
             "universe": len(pop.order),
