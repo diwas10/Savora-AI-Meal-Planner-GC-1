@@ -81,7 +81,12 @@ def test_output_metadata_and_unknown_nutrients() -> None:
     assert result.profile_version == 3
     assert result.method == "MIFFLIN_ST_JEOR"
     assert result.bmi == 22.0
-    assert result.nutrient_bounds == ()  # unknown, not zero
+    # Macronutrients only (IOM 2005 AMDR); clinical nutrients stay absent, never zero.
+    assert {b.nutrient for b in result.nutrient_bounds} == {
+        "protein_g",
+        "carbohydrate_g",
+        "fat_g",
+    }
     assert {m.meal_type for m in result.meal_energy_policy} == set(MealType)
     assert NutritionTargets.model_validate_json(result.model_dump_json(by_alias=True)) == result
 
@@ -100,7 +105,7 @@ def test_input_hash_changes_with_input_and_is_stable() -> None:
 
 @pytest.mark.parametrize(
     "changes",
-    [{"age_years": 12}, {"height_cm": 50.0}, {"weight_kg": 10.0}, {"age_years": 101}],
+    [{"age_years": 18}, {"height_cm": 50.0}, {"weight_kg": 10.0}, {"age_years": 101}],
 )
 def test_inputs_outside_the_adult_estimator_range_are_rejected(changes: dict[str, object]) -> None:
     # Review: tiny heights/weights gave a negative Mifflin-St Jeor energy and an
@@ -117,3 +122,23 @@ def test_inputs_outside_the_adult_estimator_range_are_rejected(changes: dict[str
     TargetInput(**base)  # type: ignore[arg-type]
     with pytest.raises(ValidationError):
         TargetInput(**(base | changes))  # type: ignore[arg-type]
+
+
+def test_macronutrient_bounds_follow_the_amdr_and_protein_rda() -> None:
+    from savora_ai.core.nutrition.targets import macronutrient_bounds
+
+    by = {b.nutrient: b.bounds for b in macronutrient_bounds(2000, 70.0)}
+    assert (by["carbohydrate_g"].min, by["carbohydrate_g"].max) == (225, 325)  # 45-65% / 4
+    assert (by["fat_g"].min, by["fat_g"].max) == (44, 78)  # 20-35% / 9
+    assert by["carbohydrate_g"].target is None and by["fat_g"].target is None
+    # Protein: 10% of 2000 kcal = 50 g, but the RDA for 70 kg is 56 g, so 56 wins.
+    assert (by["protein_g"].min, by["protein_g"].target, by["protein_g"].max) == (56, 56, 175)
+    light = {b.nutrient: b.bounds for b in macronutrient_bounds(2000, 40.0)}
+    assert light["protein_g"].min == 50  # RDA 32 g is below the AMDR floor
+
+
+def test_clinical_nutrients_are_never_given_bounds_here() -> None:
+    from savora_ai.core.nutrition.targets import macronutrient_bounds
+
+    names = {b.nutrient for b in macronutrient_bounds(1800, 60.0)}
+    assert names.isdisjoint({"sodium_mg", "saturated_fat_g", "sugars_g"})

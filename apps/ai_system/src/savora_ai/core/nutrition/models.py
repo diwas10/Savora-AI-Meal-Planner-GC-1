@@ -27,7 +27,7 @@ class TargetInput(_NutritionModel):
     pregnancy and other special populations are an open team decision (ARCHITECTURE.md
     section 15), so out-of-range values are rejected instead of giving a wrong target."""
 
-    age_years: int = Field(ge=18, le=100)
+    age_years: int = Field(ge=19, le=100)  # IOM DRI adult groups start at 19
     sex: Sex
     height_cm: float = Field(ge=100, le=250)
     weight_kg: float = Field(ge=30, le=300)

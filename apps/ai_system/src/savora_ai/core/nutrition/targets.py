@@ -8,6 +8,13 @@ the sourced rule KB (Member 2) and stay unknown (empty) until supplied.
 
 Activity factors, goal adjustments, the energy band and meal shares are PROVISIONAL
 planning assumptions awaiting team approval (ARCHITECTURE.md section 15).
+
+Macronutrient bounds are GENERAL-POPULATION reference ranges, not clinical limits:
+Institute of Medicine, "Dietary Reference Intakes for Energy, Carbohydrate, Fiber, Fat,
+Fatty Acids, Cholesterol, Protein, and Amino Acids (Macronutrients)", National Academies
+Press, 2005: the Acceptable Macronutrient Distribution Ranges (AMDR) for adults and the
+protein RDA of 0.8 g/kg/day. Sodium, saturated fat and sugar limits are clinical or
+policy rules and stay with Member 2's sourced rule KB, so they are absent here.
 """
 
 import hashlib
@@ -17,12 +24,13 @@ from datetime import datetime
 from savora_ai.core.nutrition.models import (
     Bounds,
     MealEnergyRange,
+    NutrientBounds,
     NutritionTargets,
     TargetInput,
 )
 from savora_ai.schemas.enums import ActivityLevel, Goal, MealType, Sex
 
-FORMULA_VERSION = "targets-0.1"
+FORMULA_VERSION = "targets-0.2"  # 0.2 adds AMDR macronutrient bounds
 METHOD = "MIFFLIN_ST_JEOR"
 
 # Mifflin-St Jeor sex constant added to the weight/height/age terms.
@@ -49,6 +57,37 @@ DEFAULT_MEAL_ENERGY_POLICY: tuple[MealEnergyRange, ...] = (
     MealEnergyRange(meal_type=MealType.LUNCH, min_fraction=0.3, max_fraction=0.4),
     MealEnergyRange(meal_type=MealType.DINNER, min_fraction=0.3, max_fraction=0.4),
 )
+
+
+# IOM 2005 AMDR for adults (19+): share of energy -> grams via Atwater kcal per gram.
+AMDR_ADULT: dict[str, tuple[float, float, float]] = {
+    "protein_g": (0.10, 0.35, 4.0),
+    "carbohydrate_g": (0.45, 0.65, 4.0),
+    "fat_g": (0.20, 0.35, 9.0),
+}
+PROTEIN_RDA_G_PER_KG = 0.8  # IOM 2005, adults
+
+
+def macronutrient_bounds(energy_kcal: float, weight_kg: float) -> tuple[NutrientBounds, ...]:
+    """AMDR ranges in grams for the energy target; protein never below the RDA.
+
+    Only protein gets a target (the RDA-based minimum); carbohydrate and fat are ranges.
+    """
+    bounds: list[NutrientBounds] = []
+    for nutrient, (low, high, kcal_per_g) in AMDR_ADULT.items():
+        minimum = round(energy_kcal * low / kcal_per_g)
+        maximum = round(energy_kcal * high / kcal_per_g)
+        target = None
+        if nutrient == "protein_g":
+            rda = round(PROTEIN_RDA_G_PER_KG * weight_kg)
+            minimum = min(max(minimum, rda), maximum)
+            target = minimum
+        bounds.append(
+            NutrientBounds(
+                nutrient=nutrient, bounds=Bounds(min=minimum, target=target, max=maximum)
+            )
+        )
+    return tuple(bounds)
 
 
 def resting_energy_kcal(data: TargetInput) -> float:
@@ -95,12 +134,14 @@ def calculate_nutrition_targets(
         input_hash=input_hash(data),
         calculated_at=calculated_at,
         energy_kcal=Bounds(min=target - band, target=target, max=target + band),
-        nutrient_bounds=(),
+        nutrient_bounds=macronutrient_bounds(target, data.weight_kg),
         meal_energy_policy=DEFAULT_MEAL_ENERGY_POLICY,
         bmi=round(body_mass_index(data), 1),
         provenance=(
             "Mifflin-St Jeor 1990 (Am J Clin Nutr 51(2):241-247)",
             "PROVISIONAL activity factors, goal adjustments, energy band and meal shares",
-            "No clinical nutrient bounds applied; awaiting sourced rule KB",
+            "Macronutrients: IOM 2005 Dietary Reference Intakes, adult AMDR and protein RDA "
+            "0.8 g/kg (general-population reference, not clinical)",
+            "No clinical nutrient bounds (sodium, saturated fat, sugar); awaiting sourced rule KB",
         ),
     )
