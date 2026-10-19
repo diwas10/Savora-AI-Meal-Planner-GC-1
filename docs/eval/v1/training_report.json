@@ -1,0 +1,71 @@
+{
+  "modelVersion": "sasrec-content-v1",
+  "modelConfig": {
+    "dim": 64,
+    "layers": 2,
+    "heads": 2,
+    "dropout": 0.2,
+    "max_len": 50,
+    "top_ingredients": 3000,
+    "max_tags": 40,
+    "max_ingredients": 30
+  },
+  "trainConfig": {
+    "epochs": 40,
+    "batch_size": 256,
+    "negatives": 1024,
+    "lr": 0.001,
+    "weight_decay": 1e-05,
+    "patience": 3,
+    "validation_cases": 3000,
+    "popular_negative_share": 0.8,
+    "seed": 7
+  },
+  "trainingWindows": 47962,
+  "items": 231637,
+  "itemsWithIdVector": 205965,
+  "epochs": [
+    {
+      "epoch": 1,
+      "loss": 7.225753880561666,
+      "validHr@10": 0.018666666666666668
+    },
+    {
+      "epoch": 2,
+      "loss": 6.691529953733403,
+      "validHr@10": 0.018
+    },
+    {
+      "epoch": 3,
+      "loss": 6.445847336282122,
+      "validHr@10": 0.02033333333333333
+    },
+    {
+      "epoch": 4,
+      "loss": 6.215963140447089,
+      "validHr@10": 0.017333333333333333
+    },
+    {
+      "epoch": 5,
+      "loss": 6.00357127443273,
+      "validHr@10": 0.020666666666666667
+    },
+    {
+      "epoch": 6,
+      "loss": 5.802590565478548,
+      "validHr@10": 0.017
+    },
+    {
+      "epoch": 7,
+      "loss": 5.597626216868137,
+      "validHr@10": 0.013
+    },
+    {
+      "epoch": 8,
+      "loss": 5.38791504058432,
+      "validHr@10": 0.013333333333333334
+    }
+  ],
+  "bestValidHr@10": 0.020666666666666667,
+  "device": "cpu"
+}
