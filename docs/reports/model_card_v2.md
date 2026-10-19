@@ -6,7 +6,7 @@
 |---|---|
 | **Owner** | Member 1 (Savora GC1) |
 | **Version** | `sasrec-content-v2`; served as the hybrid `sasrec-content-v2+pop<w>`, w chosen on validation and stored in the checkpoint (currently 8) |
-| **Artifact** | `Data/models/sasrec_content.pt` (the served model; a copy in `Data/models/v2/`) (git-ignored, about 190 MB; rebuilt by one command) |
+| **Artifact** | `Data/models/sasrec_content.pt` (the served model; a copy in `Data/models/v2/`) (git-ignored, about 190 MB; rebuilt by one command). Pinned by the tracked `Data/models/manifest.json` (size, SHA-256, download URL; ADR 0005 D2) |
 | **Code** | `apps/ai_system/src/savora_ai/core/recommendation/torch_model.py`, `ranking.py` |
 | **Design** | `docs/adr/0004-transformer-ranking.md` |
 | **Evaluation** | `docs/reports/ranking_evaluation_report_v2.md`, raw results in `docs/eval/v2/` |
@@ -98,8 +98,22 @@ candidates on a laptop CPU (v1: 1.1 ms and 3.1 ms).
 - Missing model, missing torch or no usable history gives an explicit, labelled popularity
   fallback, never a silent switch.
 - Checkpoints load with `weights_only=True` (no arbitrary code on load).
+- With the manifest, a file that is not the pinned one is refused before loading
+  (`ModelIntegrityError`), never silently replaced by popularity (`test_model_store.py`).
 - Deterministic: the same inputs give the same scores; seed 7 reproduced exactly.
 - Explanations never call a ranking a rating or a health estimate (`test_explanations.py`).
+
+## How to get the served model
+
+```
+cd apps/ai_system
+uv run python -m savora_ai.core.recommendation.model_store --download  # fetch + verify
+uv run python -m savora_ai.core.recommendation.model_store             # verify only
+```
+
+The backend loads it once at startup with
+`load_scorer(path, popularity_counts, manifest=load_manifest(...))`. After retraining,
+update `manifest.json` (size, SHA-256) and publish the new file under a new version.
 
 ## How to retrain and re-evaluate
 

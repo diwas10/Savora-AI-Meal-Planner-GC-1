@@ -68,4 +68,6 @@ Data/Food.com/interactions_*.csv
 Data/Food.com/*.pkl
 Data/catalogue/*_quarantine.json
 Data/catalogue/*_review.json
-Data/models/
+# Trained models are too large for git; the tracked manifest pins the shipped one.
+Data/models/*
+!Data/models/manifest.json
