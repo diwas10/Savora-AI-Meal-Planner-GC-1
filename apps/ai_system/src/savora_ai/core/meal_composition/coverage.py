@@ -18,6 +18,7 @@ from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 
 from savora_ai.core.food_data.models import CatalogueRecipe
+from savora_ai.core.meal_composition.composer import _tokens
 from savora_ai.core.meal_composition.models import MealCombination
 from savora_ai.schemas.enums import CuisinePolicy, MealType
 
@@ -64,11 +65,14 @@ def _proxy_allows(
     parts = [dishes[c.dish_id] for c in combo.components]
     if scenario.diet is not None and any(scenario.diet not in d.diet_tags for d in parts):
         return False  # unverified tag proxy: missing tag counts as NOT allowed (fail closed)
+    excluded = [_tokens(word) for word in scenario.excluded_ingredients]
+    # Whole words, as in the composer: "egg" must not reject "eggplant".
     return not any(
-        word in ingredient.lower()
+        words <= _tokens(ingredient)
         for d in parts
         for ingredient in d.ingredients
-        for word in scenario.excluded_ingredients
+        for words in excluded
+        if words
     )
 
 

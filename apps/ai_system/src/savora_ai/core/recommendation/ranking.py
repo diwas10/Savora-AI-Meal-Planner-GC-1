@@ -5,8 +5,10 @@
 
 Guarantees:
 - Only the SUPPLIED candidate IDs are scored and returned (they are already rule-safe).
-- Scores are relative: a softmax within this candidate set, never nutrition, never a
-  calibrated or clinical estimate. Raw output carries no portion or nutrition claim.
+- Scores are relative: a softmax over the candidates the model scored (they sum to 1),
+  never nutrition, never a calibrated or clinical estimate. A candidate the model could
+  not score gets score 0.0, is listed in `unscored_candidates`, and ranks after the
+  scored ones by popularity. Raw output carries no portion or nutrition claim.
 - No usable history, no trained model, or no torch -> popularity fallback, and the result
   says so in `modelVersion` and `fallbackReason`. Never a silent switch.
 - History is the user's onboarding seed dishes (ADR 0004 D7); saved plans are never

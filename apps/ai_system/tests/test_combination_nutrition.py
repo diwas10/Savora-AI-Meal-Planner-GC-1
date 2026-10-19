@@ -133,6 +133,16 @@ def test_recomputed_energy_must_agree_with_the_portion_vectors() -> None:
     assert any(p.code == "ENERGY_DISAGREES" for p in checked.problems)
 
 
+def test_a_portion_that_contradicts_its_referenced_option_is_rejected() -> None:
+    combo = dal_rice()
+    config = combo.configurations[0]
+    first = config.portions[0].model_copy(update={"quantity": config.portions[0].quantity * 2})
+    tampered = config.model_copy(update={"portions": (first, *config.portions[1:])})
+    checked = check_configuration(tampered, {d.recipe_id: d for d in (DAL, *STAPLES)})
+    assert checked.configuration is None
+    assert {p.code for p in checked.problems} == {"PORTION_MISMATCH"}
+
+
 # --- preset intent ------------------------------------------------------------------
 
 

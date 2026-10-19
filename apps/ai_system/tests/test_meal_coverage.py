@@ -10,6 +10,7 @@ from savora_ai.core.food_data.usda_staples import load_extract, load_spec, stapl
 from savora_ai.core.meal_composition.composer import compose
 from savora_ai.core.meal_composition.coverage import (
     Scenario,
+    _proxy_allows,
     coverage_report,
     needed_distinct,
     scenario_coverage,
@@ -83,6 +84,29 @@ def test_explicit_exclusion_removes_matching_ingredients() -> None:
     )
     assert lunch_dinner(everything)["distinctAnchorDishes"] == 10
     assert lunch_dinner(no_peanut)["distinctAnchorDishes"] == 9
+
+
+def test_exclusion_matches_whole_words_only() -> None:
+    eggplant = dish(
+        22, "eggplant curry", "main-dish", "one-dish-meal", "indian", ingredients=("eggplant",)
+    )
+    egg = dish(23, "egg curry", "main-dish", "one-dish-meal", "indian", ingredients=("eggs",))
+    by_id = {d.recipe_id: d for d in (eggplant, egg)}
+    combos = compose(
+        (eggplant, egg, *STAPLES),
+        load_templates(REPO / "Data/curated/meal_templates.json"),
+        load_pairings(REPO / "Data/curated/pairings.json"),
+        "s",
+    ).combinations
+    by_id.update({s.recipe_id: s for s in STAPLES})
+    scenario = Scenario("no egg", CuisinePolicy.MIXED, (), None, ("egg",))
+    allowed = {
+        c.components[0].dish_id
+        for c in combos
+        if c.components[0].dish_id in {eggplant.recipe_id, egg.recipe_id}
+        and _proxy_allows(c, by_id, scenario)
+    }
+    assert allowed == {eggplant.recipe_id}  # "eggs" is excluded, "eggplant" is not
 
 
 def test_strict_cuisine_with_no_dishes_is_reported_short() -> None:

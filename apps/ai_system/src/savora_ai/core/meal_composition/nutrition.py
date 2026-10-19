@@ -81,7 +81,8 @@ def _base_energy(dish: CatalogueRecipe, quantity: float, grams: float | None) ->
 
 @dataclass(frozen=True)
 class Problem:
-    code: str  # UNKNOWN_PORTION | ENERGY_UNKNOWN | ENERGY_DISAGREES | ENERGY_OUT_OF_RANGE
+    # UNKNOWN_PORTION | PORTION_MISMATCH | ENERGY_UNKNOWN | ENERGY_DISAGREES | ENERGY_OUT_OF_RANGE
+    code: str
     message: str
 
 
@@ -101,6 +102,13 @@ def check_configuration(
         if option is None:
             message = f"{portion.portion_id} is not a portion of its dish"
             return ConfigurationCheck(None, (Problem("UNKNOWN_PORTION", message),))
+        if (portion.quantity, portion.unit, portion.grams) != (
+            option.quantity,
+            option.unit,
+            option.grams,
+        ):
+            message = f"{portion.portion_id} quantity, unit or grams differ from the option"
+            return ConfigurationCheck(None, (Problem("PORTION_MISMATCH", message),))
         vectors.append(option.nutrients)
     totals = sum_nutrients(vectors)
     unknown = tuple(n for n in REQUIRED_NUTRIENTS if getattr(totals, n) is None)
