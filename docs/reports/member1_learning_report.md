@@ -4,6 +4,9 @@
 - **Branch:** `feat/m1-nutrition-targets` (local commits; not pushed).
 - **Read with:** ADR 0001 to 0004 in `docs/adr/`, the contract note
   `docs/member1_catalogue_contract.md`, and the code paths cited below.
+- **Companion reports** (`docs/reports/`): `catalogue_data_report.md` (the data funnel),
+  `ranking_evaluation_report.md` (all model results), `model_card.md`,
+  `test_report.md` (what ran, coverage) and `code_review_report.md` (findings and fixes).
 
 This report explains **what** was built, **why** each decision was made, **how** the code
 works, and **what went wrong on the way**. The failures are the most useful part: each
@@ -24,8 +27,8 @@ RAW_recipes.csv (231,637 rows)            RAW_interactions.csv (1.13 M reviews)
   [3] nutrition + USDA staples                  [T2] baselines
   [4] portions                                  [T3] SASRec + content
   [6] curation (Nepali, pairings)                      |
-  [7] stratified selection  --> 182 dishes             |
-  [8] compose 1-3 dish meals --> 446 meals             |
+  [7] stratified selection  --> 186 dishes             |
+  [8] compose 1-3 dish meals --> 475 meals             |
   [9] validate meal nutrition                          |
   [10] coverage per scenario                           |
   [11] export + --check                         [T4] rank_recipes / rank_combinations
@@ -244,7 +247,7 @@ coverage. So 10 was chosen *from measurement*, not guessed.
 **A short stratum is reported, never padded.** Nepali breakfast has 0 dishes because none
 exist. Padding it with Indian breakfasts would hide the gap.
 
-`food_data/selection.py:118 select_stratified`. Result: 160 Food.com dishes + 22 staples.
+`food_data/selection.py:118 select_stratified`. Result: 164 Food.com dishes + 22 staples.
 
 ## 10. Stage 8: the Meal Composition Engine
 
@@ -277,7 +280,7 @@ slot a number of **steps** along that dish's own options (`presets.py:47 step_po
 | LOWER_ENERGY | -1 | -1 | +1 |
 
 Presets that give identical portions are merged (STANDARD always survives), so a meal
-has 1 to 5 configurations, about 4.5 on average.
+has 1 to 5 configurations, about 4.4 on average.
 
 **IDs.** `C_<templateId>__<dishId>__<dishId>`. The template is part of the ID because a
 frittata as a lunch ONE_DISH and as a BREAKFAST are different meals; the first build
@@ -287,7 +290,7 @@ failed on exactly this duplicate. Configurations are `<combinationId>#<PRESET>`.
 per pair, 2 add-ons per base, picked by seeded hash). Exceeding the safety bound is an
 error, never a silent cut.
 
-**Result.** 446 meals: breakfast 149, lunch and dinner 300 each.
+**Result.** 475 meals: breakfast 179, lunch and dinner 300 each.
 
 ## 11. Stage 9: meal nutrition validation
 
@@ -301,7 +304,7 @@ For every configuration (`meal_composition/nutrition.py:92 check_configuration`)
    portion vectors) and must agree within 1 kcal; it must lie in 150 to 2,000 kcal.
 
 A failing configuration is dropped with a coded reason; a meal with none left is
-rejected and listed. Result: 1,988 kept, 52 dropped, 3 meals rejected.
+rejected and listed. Result: 2,101 kept, 59 dropped, 4 meals rejected.
 
 **The most important finding for the team.** Every kept meal has source tier
 `FOODCOM_DERIVED`, because every meal has a Food.com anchor dish. If Venkat's rules
@@ -316,11 +319,12 @@ to the same number disagree, one of them has a bug.
 **Coverage** (`meal_composition/coverage.py`). Eight synthetic profiles (cuisine policy,
 diet, explicit exclusion) are checked with a clearly labelled **proxy**: unverified diet
 tags, ingredient words, and a missing tag fails closed. It is not the Rule Engine; it
-tells Member 1 where the catalogue is thin. 6 of 8 are sufficient. The two gaps are
-data limits: no Nepali breakfast exists, and peanut-free Thai breakfasts number 3.
+tells Member 1 where the catalogue is thin. 7 of 8 are sufficient (6 of 8 before the
+code-review fix to the breakfast stratum). The one gap is a data limit: no Nepali
+breakfast exists in Food.com.
 
 **Export** (`food_data/build_catalogue.py:131 build`). One command writes
-`<version>_catalogue.json` (0.7 MB), `<version>_combinations.json` (2.4 MB) and
+`<version>_catalogue.json` (0.7 MB), `<version>_combinations.json` (2.5 MB) and
 `<version>_build_report.json`. The version is the UTC build time, which sorts as text.
 `--check` rebuilds and compares the content with the latest export: it passed on the
 real data, which proves the whole pipeline is deterministic.
@@ -453,6 +457,23 @@ What the integration taught:
   serve the same meal at lunch and dinner, and that energy (kcal) cannot be constrained
   yet. Both are now listed for Venkat (contract note 4a).
 
+## 13b. Review, testing and the full evaluation (19 Oct 2026)
+
+- **Explanation builder** (`explainability/explanation.py`): deterministic, coded reasons
+  for composition, portions, nutrition, ranking, rules, planning and data limitations;
+  never "safe", never an unknown shown as zero, and a craving says it was not
+  budget-checked.
+- **`generate_meal_combinations`** (`meal_composition/api.py`): the named public API;
+  the build uses it, and `--check` proved the export unchanged.
+- **Code review:** 10 findings, all fixed with regression tests. The breakfast-stratum fix
+  alone added 30 breakfast meals and one more sufficient scenario. Two more bugs were
+  found by writing tests (`code_review_report.md`). Lesson: tests that exercise a path
+  end to end, with strict `zip`, catch what reading misses.
+- **Model evaluation:** 3 seeds, ablations, bootstrap intervals, catalogue-restricted
+  ranking and a meal-scoring ablation. The hybrid ties popularity; the model alone is
+  significantly worse; ID embeddings add nothing on this data
+  (`ranking_evaluation_report.md`). Lesson: report the uncertainty, not one number.
+
 ## 14. Check yourself
 
 1. Why is a recipe without a course tag *unclassified* and not *defective*?
@@ -473,6 +494,10 @@ What the integration taught:
 15. What happens in `rank_recipes` for a new user with no history?
 16. Why does the adapter keep every assumed Member 2 decision in one `SCENARIO_A` block?
 17. Why is the meal measurement sodium and not energy in scenario A?
+18. The hybrid weight differs by seed (8, 4, 1). Why is that fine, and why must it be
+    chosen on validation?
+19. The no-ID ablation matches the full model. What does that say about the data?
+20. Why does a paired bootstrap use the same resampled cases for both models?
 
 ## 15. Open items and where they are tracked
 
@@ -480,7 +505,7 @@ What the integration taught:
 |---|---|---|
 | Food.com-derived nutrition for hard clinical rules | Venkat | contract note Q2 |
 | PER_SERVING quantities in the CSP; integer rounding policy | Venkat | contract note Q1, Q3 |
-| Solver time on 446 meals x 4.5 configurations | Venkat | contract note Q4 |
+| Solver time on 475 meals x 4.4 configurations | Venkat | contract note Q4 |
 | Cuisine-neutral breakfasts under STRICT | team | contract note Q5 |
 | Storage of combinations | Aryaman | contract note Q6 |
 | Human confirmation of `ai-review:claude` curation | team | contract note Q7 |

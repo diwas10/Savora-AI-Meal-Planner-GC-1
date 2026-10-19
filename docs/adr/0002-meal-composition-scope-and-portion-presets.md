@@ -74,14 +74,14 @@ composer serves planned meals and planned substitutions.
   LOWER_CARB: main +1, staple smallest, vegetable +1. HIGHER_ENERGY: main +1, staple +1.
   A fifth preset, **LOWER_ENERGY** (everything -1 except vegetables +1), was added for
   weight-loss goals. Presets that produce an identical portion tuple are merged, so a
-  meal has 1 to 5 configurations (about 4.5 on average).
+  meal has 1 to 5 configurations (about 4.4 on average).
 - **IDs.** `C_<templateId>__<dishId>__...` (the template is part of the ID: a frittata as a
   lunch ONE_DISH and as a BREAKFAST are different meals). Configuration:
   `<combinationId>#<PRESET>`. This answers open item 4.
 - **Caps** (`CompositionLimits`): 2 staples per main, 1 vegetable side per main and staple,
   2 add-ons per breakfast base, chosen by a seeded hash; exceeding 600 meals per meal type
   is an error, never a silent cut.
-- **Result:** 446 meals (breakfast 149, lunch and dinner 300 each), 1,988 configurations
+- **Result:** 475 meals (breakfast 179, lunch and dinner 300 each), 2,101 configurations
   after validation (ADR 0003 D4).
 
 ## Consequences

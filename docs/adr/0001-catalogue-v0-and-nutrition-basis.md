@@ -156,7 +156,8 @@ held-out interactions. The build report records this as a flag
   main 10, main needing an accompaniment 10, vegetable side 4. At least half of each
   stratum is vegetarian-tagged where the data allows. Order within a stratum: curated,
   then training popularity, then a seeded hash. Near-duplicate names are skipped.
-- *Result.* 160 Food.com dishes plus 22 USDA staples. 4 of 28 strata are short and
+- *Result.* 164 Food.com dishes plus 22 USDA staples (after the code-review fix that limits
+  the breakfast stratum to stand-alone breakfast dishes). 4 of 28 strata are short and
   reported, not padded: Nepali breakfast (0 exist), Nepali vegetable side (0 exist;
   cuisine-neutral USDA vegetables fill that role), Nepali complete main (7 of 10).
 
@@ -172,9 +173,10 @@ scenarios (cuisine policy, diet, explicit exclusion) are checked with a labelled
 *proxy* filter (unverified diet tags, ingredient words; a missing tag fails closed). A
 scenario is sufficient when it has at least 4 distinct breakfast anchor dishes and 7
 distinct lunch/dinner anchor dishes (7 and 14 slots, at most 2 repeats a week). Quotas of
-8 left 3 scenarios short; 10 leaves 2, both data limits: "Nepali, strict" has no
-breakfast at all, and "Thai, strict, peanut excluded" has 3 breakfasts at any quota.
-Whether STRICT cuisine users may receive cuisine-neutral breakfasts is a team decision.
+8 left 3 scenarios short; 10 left 2. After the code-review fix that limits the breakfast
+stratum to stand-alone breakfast dishes (19 Oct 2026), 1 remains: "Nepali, strict" has no
+breakfast at all, which is a data limit. Whether STRICT cuisine users may receive
+cuisine-neutral breakfasts is a team decision.
 
 ## Consequences
 

@@ -94,7 +94,7 @@ This is a formal acceptance test before the catalogue is handed to Member 2.
   portion vectors) and must agree within 1 kcal; it must be known and within 150 to
   2,000 kcal. A failing configuration is dropped with a coded reason; a meal with none
   left is rejected and listed in the export.
-- Result on the current build: 1,988 configurations kept, 52 dropped and 3 meals
+- Result on the current build: 2,101 configurations kept, 59 dropped and 4 meals
   rejected, all for ENERGY_OUT_OF_RANGE. Every kept configuration is FULLY_KNOWN, and
   **every one has source tier FOODCOM_DERIVED**, because every meal has a Food.com anchor
   dish. Open item 2 therefore decides whether any meal can pass a hard clinical rule.

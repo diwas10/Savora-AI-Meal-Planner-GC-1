@@ -103,6 +103,16 @@ history-length bucket. On cold targets the content tower gives median rank 85k v
 popularity's 220k. **Decision:** the ranking API uses the hybrid (`TorchScorer` with
 training counts); without the model it falls back to popularity, explicitly.
 
+**Confirmed with 3 seeds and a paired bootstrap (19 Oct 2026,
+`docs/eval/model_experiments.json`):** model alone 1.56% +/- 0.03 HR@10, significantly
+below popularity (difference -0.39 points, 95% interval [-0.62, -0.16]); hybrid 1.94% +/-
+0.06, tied with popularity (+0.04 points, interval [-0.02, +0.11]). Within the 164-dish
+catalogue (the product's task): hybrid 69.7% vs popularity 70.6% HR@10, tied. Ablations:
+removing ID embeddings changes nothing measurable (1.58%), removing content features
+worsens cold placement (median rank 95k vs 85k). Meal scoring: ANCHOR, MEAN and
+popularity-anchor give the same proxy HR@10 (about 51%), so ANCHOR stays. Full write-up:
+`docs/reports/ranking_evaluation_report.md`.
+
 ## Consequences
 
 - Metrics measure Food.com next-review prediction, not meal satisfaction; reported so.
@@ -112,6 +122,9 @@ training counts); without the model it falls back to popularity, explicitly.
   falls back, explicitly.
 
 ## Open items
+
+0. A content-only model plus popularity matches the full model (ID embeddings add nothing
+   on this data) and is smaller; consider it once real Savora seed-dish data exists.
 
 1. Onboarding seed dishes (Member 3, team).
 2. Whether the trained model file is shipped with the backend or loaded from storage.
