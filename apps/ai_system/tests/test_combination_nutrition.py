@@ -91,8 +91,9 @@ def test_implausible_meal_energy_drops_the_configuration_only() -> None:
     result = validate_combinations([combo], (heavy, *STAPLES))
     [kept] = result.combinations
     assert len(kept.configurations) < len(combo.configurations)
-    dropped = result.report["configurationsDropped"]
-    assert result.report["problems"] == {"ENERGY_OUT_OF_RANGE": dropped}
+    problems = result.report["problems"]
+    assert isinstance(problems, dict) and problems.get("ENERGY_OUT_OF_RANGE", 0) >= 1
+    assert sum(problems.values()) == result.report["configurationsDropped"]  # all explained
 
 
 def test_a_meal_with_no_valid_configuration_is_rejected_with_reasons() -> None:
@@ -130,3 +131,48 @@ def test_recomputed_energy_must_agree_with_the_portion_vectors() -> None:
         combo.configurations[0], {DAL.recipe_id: bad_dal, **{s.recipe_id: s for s in STAPLES}}
     )
     assert any(p.code == "ENERGY_DISAGREES" for p in checked.problems)
+
+
+# --- preset intent ------------------------------------------------------------------
+
+
+def _with_totals(config, **totals: float | None):
+    assert config.nutrition is not None
+    vector = config.nutrition.totals.model_copy(update=totals)
+    return config.model_copy(
+        update={"nutrition": config.nutrition.model_copy(update={"totals": vector})}
+    )
+
+
+def test_a_preset_must_do_what_its_name_says() -> None:
+    from savora_ai.core.meal_composition.nutrition import intent_problem
+
+    [combo] = validate_combinations([dal_rice()], (DAL, *STAPLES)).combinations
+    configs = {c.preset: c for c in combo.configurations}
+    standard = _with_totals(configs[PortionPreset.STANDARD], carbohydrate_g=100.0, protein_g=20.0)
+    lower = configs[PortionPreset.LOWER_CARB]
+    assert intent_problem(_with_totals(lower, carbohydrate_g=90.0), standard) is None
+    failed = intent_problem(_with_totals(lower, carbohydrate_g=110.0), standard)
+    assert failed is not None and failed.code == "PRESET_INTENT_NOT_MET"
+    protein = configs[PortionPreset.HIGHER_PROTEIN]
+    unknown = intent_problem(_with_totals(protein, protein_g=None), standard)
+    assert unknown is not None and unknown.code == "PRESET_INTENT_UNVERIFIED"
+    no_base = intent_problem(protein, None)
+    assert no_base is not None and no_base.code == "PRESET_INTENT_UNVERIFIED"
+    assert intent_problem(standard, None) is None  # STANDARD is the reference itself
+
+
+def test_every_kept_preset_beats_standard_on_its_own_nutrient() -> None:
+    from savora_ai.core.meal_composition.nutrition import PRESET_INTENT
+
+    [combo] = validate_combinations([dal_rice()], (DAL, *STAPLES)).combinations
+    configs = {c.preset: c for c in combo.configurations}
+    base = configs[PortionPreset.STANDARD].nutrition
+    assert base is not None
+    for preset, config in configs.items():
+        if preset is PortionPreset.STANDARD:
+            continue
+        nutrient, direction = PRESET_INTENT[preset]
+        assert config.nutrition is not None
+        diff = getattr(config.nutrition.totals, nutrient) - getattr(base.totals, nutrient)
+        assert diff * direction > 0

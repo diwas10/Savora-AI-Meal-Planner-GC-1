@@ -1,5 +1,5 @@
 {
-  "catalogueVersion": "20261018T192730Z",
+  "catalogueVersion": "20261019T012206Z",
   "catalogue": {
     "rawRecipes": 231637,
     "accepted": 213696,
@@ -334,16 +334,18 @@
     }
   },
   "validation": {
-    "combinationsKept": 475,
-    "combinationsRejected": 4,
-    "configurationsKept": 2101,
-    "configurationsDropped": 59,
+    "combinationsKept": 465,
+    "combinationsRejected": 14,
+    "configurationsKept": 2036,
+    "configurationsDropped": 124,
     "problems": {
-      "ENERGY_OUT_OF_RANGE": 59
+      "ENERGY_OUT_OF_RANGE": 59,
+      "PRESET_INTENT_NOT_MET": 50,
+      "PRESET_INTENT_UNVERIFIED": 15
     },
-    "fullyKnownConfigurations": 2101,
+    "fullyKnownConfigurations": 2036,
     "sourceTiers": {
-      "FOODCOM_DERIVED": 2101
+      "FOODCOM_DERIVED": 2036
     },
     "requiredNutrients": [
       "energy_kcal",
@@ -398,31 +400,31 @@
         "USDA_SR_LEGACY": 9
       },
       "vegetarianTaggedDishes": 104,
-      "combinations": 475,
+      "combinations": 465,
       "combinationsByMealAndCuisine": {
-        "BREAKFAST/American": 40,
-        "BREAKFAST/Chinese": 38,
-        "BREAKFAST/Indian": 36,
-        "BREAKFAST/Italian": 36,
+        "BREAKFAST/American": 39,
+        "BREAKFAST/Chinese": 35,
+        "BREAKFAST/Indian": 35,
+        "BREAKFAST/Italian": 35,
         "BREAKFAST/Japanese": 3,
         "BREAKFAST/Mexican": 35,
         "BREAKFAST/Middle Eastern": 4,
         "BREAKFAST/Spanish": 4,
         "BREAKFAST/Thai": 38,
-        "DINNER/American": 50,
-        "DINNER/Chinese": 50,
-        "DINNER/Indian": 50,
-        "DINNER/Italian": 50,
+        "DINNER/American": 49,
+        "DINNER/Chinese": 49,
+        "DINNER/Indian": 49,
+        "DINNER/Italian": 49,
         "DINNER/Japanese": 1,
         "DINNER/Mexican": 50,
         "DINNER/Middle Eastern": 1,
         "DINNER/Nepali": 39,
         "DINNER/Spanish": 1,
         "DINNER/Thai": 50,
-        "LUNCH/American": 50,
-        "LUNCH/Chinese": 50,
-        "LUNCH/Indian": 50,
-        "LUNCH/Italian": 50,
+        "LUNCH/American": 49,
+        "LUNCH/Chinese": 49,
+        "LUNCH/Indian": 49,
+        "LUNCH/Italian": 49,
         "LUNCH/Japanese": 1,
         "LUNCH/Mexican": 50,
         "LUNCH/Middle Eastern": 1,
@@ -439,14 +441,14 @@
         "diet": null,
         "excludedIngredients": [],
         "breakfast": {
-          "combinations": 175,
+          "combinations": 169,
           "distinctAnchorDishes": 49,
           "needed": 4,
           "sufficient": true
         },
         "lunchDinner": {
-          "combinations": 300,
-          "distinctAnchorDishes": 117,
+          "combinations": 296,
+          "distinctAnchorDishes": 113,
           "needed": 7,
           "sufficient": true
         },
@@ -461,14 +463,14 @@
         "diet": "vegetarian",
         "excludedIngredients": [],
         "breakfast": {
-          "combinations": 26,
+          "combinations": 25,
           "distinctAnchorDishes": 7,
           "needed": 4,
           "sufficient": true
         },
         "lunchDinner": {
-          "combinations": 30,
-          "distinctAnchorDishes": 13,
+          "combinations": 29,
+          "distinctAnchorDishes": 12,
           "needed": 7,
           "sufficient": true
         },
@@ -508,14 +510,14 @@
           "beef"
         ],
         "breakfast": {
-          "combinations": 36,
+          "combinations": 35,
           "distinctAnchorDishes": 10,
           "needed": 4,
           "sufficient": true
         },
         "lunchDinner": {
-          "combinations": 72,
-          "distinctAnchorDishes": 30,
+          "combinations": 71,
+          "distinctAnchorDishes": 29,
           "needed": 7,
           "sufficient": true
         },
@@ -556,7 +558,7 @@
           "pork"
         ],
         "breakfast": {
-          "combinations": 31,
+          "combinations": 29,
           "distinctAnchorDishes": 9,
           "needed": 4,
           "sufficient": true
@@ -598,14 +600,14 @@
         "diet": "vegan",
         "excludedIngredients": [],
         "breakfast": {
-          "combinations": 24,
+          "combinations": 23,
           "distinctAnchorDishes": 8,
           "needed": 4,
           "sufficient": true
         },
         "lunchDinner": {
-          "combinations": 46,
-          "distinctAnchorDishes": 25,
+          "combinations": 44,
+          "distinctAnchorDishes": 23,
           "needed": 7,
           "sufficient": true
         },

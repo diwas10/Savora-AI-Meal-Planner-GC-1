@@ -1,5 +1,5 @@
 {
-  "catalogueVersion": "20261018T192730Z",
+  "catalogueVersion": "20261019T012206Z",
   "catalogueContentSha256": "45973ec62df056da6e24351af55f8bcddeefe3cddae0b4258a04cb8eb4f72327",
   "templatesSchema": "meal-templates.v1",
   "pairingsSchema": "pairings.v1",
@@ -41,16 +41,18 @@
     }
   },
   "validation": {
-    "combinationsKept": 475,
-    "combinationsRejected": 4,
-    "configurationsKept": 2101,
-    "configurationsDropped": 59,
+    "combinationsKept": 465,
+    "combinationsRejected": 14,
+    "configurationsKept": 2036,
+    "configurationsDropped": 124,
     "problems": {
-      "ENERGY_OUT_OF_RANGE": 59
+      "ENERGY_OUT_OF_RANGE": 59,
+      "PRESET_INTENT_NOT_MET": 50,
+      "PRESET_INTENT_UNVERIFIED": 15
     },
-    "fullyKnownConfigurations": 2101,
+    "fullyKnownConfigurations": 2036,
     "sourceTiers": {
-      "FOODCOM_DERIVED": 2101
+      "FOODCOM_DERIVED": 2036
     },
     "requiredNutrients": [
       "energy_kcal",
@@ -67,6 +69,15 @@
   },
   "rejected": [
     {
+      "combinationId": "C_BREAKFAST_FRUIT__FC_15866__USDA_2709171",
+      "problems": [
+        "STANDARD ENERGY_OUT_OF_RANGE: meal energy 134.5 kcal outside 150-2000",
+        "HIGHER_PROTEIN ENERGY_OUT_OF_RANGE: meal energy 148.875 kcal outside 150-2000",
+        "LOWER_CARB ENERGY_OUT_OF_RANGE: meal energy 120.125 kcal outside 150-2000",
+        "HIGHER_ENERGY PRESET_INTENT_UNVERIFIED: no valid STANDARD to compare against"
+      ]
+    },
+    {
       "combinationId": "C_BREAKFAST_FRUIT__FC_15866__USDA_2709283",
       "problems": [
         "STANDARD ENERGY_OUT_OF_RANGE: meal energy 111.5 kcal outside 150-2000",
@@ -76,12 +87,48 @@
       ]
     },
     {
+      "combinationId": "C_BREAKFAST_FRUIT__FC_66856__USDA_2709171",
+      "problems": [
+        "STANDARD ENERGY_OUT_OF_RANGE: meal energy 140.5 kcal outside 150-2000",
+        "LOWER_CARB ENERGY_OUT_OF_RANGE: meal energy 124.625 kcal outside 150-2000",
+        "HIGHER_PROTEIN PRESET_INTENT_UNVERIFIED: no valid STANDARD to compare against",
+        "HIGHER_ENERGY PRESET_INTENT_UNVERIFIED: no valid STANDARD to compare against"
+      ]
+    },
+    {
+      "combinationId": "C_BREAKFAST__FC_127310",
+      "problems": [
+        "STANDARD ENERGY_OUT_OF_RANGE: meal energy 147 kcal outside 150-2000",
+        "LOWER_CARB ENERGY_OUT_OF_RANGE: meal energy 110.25 kcal outside 150-2000",
+        "HIGHER_PROTEIN PRESET_INTENT_UNVERIFIED: no valid STANDARD to compare against",
+        "HIGHER_ENERGY PRESET_INTENT_UNVERIFIED: no valid STANDARD to compare against"
+      ]
+    },
+    {
       "combinationId": "C_BREAKFAST__FC_15866",
       "problems": [
         "STANDARD ENERGY_OUT_OF_RANGE: meal energy 57.5 kcal outside 150-2000",
         "HIGHER_PROTEIN ENERGY_OUT_OF_RANGE: meal energy 71.875 kcal outside 150-2000",
         "LOWER_CARB ENERGY_OUT_OF_RANGE: meal energy 43.125 kcal outside 150-2000",
         "HIGHER_ENERGY ENERGY_OUT_OF_RANGE: meal energy 86.25 kcal outside 150-2000"
+      ]
+    },
+    {
+      "combinationId": "C_BREAKFAST__FC_172461",
+      "problems": [
+        "STANDARD ENERGY_OUT_OF_RANGE: meal energy 103.3 kcal outside 150-2000",
+        "HIGHER_PROTEIN ENERGY_OUT_OF_RANGE: meal energy 129.125 kcal outside 150-2000",
+        "LOWER_CARB ENERGY_OUT_OF_RANGE: meal energy 77.475 kcal outside 150-2000",
+        "HIGHER_ENERGY PRESET_INTENT_UNVERIFIED: no valid STANDARD to compare against"
+      ]
+    },
+    {
+      "combinationId": "C_BREAKFAST__FC_25625",
+      "problems": [
+        "STANDARD ENERGY_OUT_OF_RANGE: meal energy 116.5 kcal outside 150-2000",
+        "HIGHER_PROTEIN ENERGY_OUT_OF_RANGE: meal energy 145.625 kcal outside 150-2000",
+        "LOWER_CARB ENERGY_OUT_OF_RANGE: meal energy 87.375 kcal outside 150-2000",
+        "HIGHER_ENERGY PRESET_INTENT_UNVERIFIED: no valid STANDARD to compare against"
       ]
     },
     {
@@ -100,6 +147,51 @@
         "HIGHER_PROTEIN ENERGY_OUT_OF_RANGE: meal energy 116.25 kcal outside 150-2000",
         "LOWER_CARB ENERGY_OUT_OF_RANGE: meal energy 69.75 kcal outside 150-2000",
         "HIGHER_ENERGY ENERGY_OUT_OF_RANGE: meal energy 139.5 kcal outside 150-2000"
+      ]
+    },
+    {
+      "combinationId": "C_BREAKFAST__FC_81096",
+      "problems": [
+        "STANDARD ENERGY_OUT_OF_RANGE: meal energy 149.3 kcal outside 150-2000",
+        "LOWER_CARB ENERGY_OUT_OF_RANGE: meal energy 111.975 kcal outside 150-2000",
+        "HIGHER_PROTEIN PRESET_INTENT_UNVERIFIED: no valid STANDARD to compare against",
+        "HIGHER_ENERGY PRESET_INTENT_UNVERIFIED: no valid STANDARD to compare against"
+      ]
+    },
+    {
+      "combinationId": "C_ONE_DISH__FC_172461",
+      "problems": [
+        "STANDARD ENERGY_OUT_OF_RANGE: meal energy 103.3 kcal outside 150-2000",
+        "HIGHER_PROTEIN ENERGY_OUT_OF_RANGE: meal energy 129.125 kcal outside 150-2000",
+        "LOWER_CARB ENERGY_OUT_OF_RANGE: meal energy 77.475 kcal outside 150-2000",
+        "HIGHER_ENERGY PRESET_INTENT_UNVERIFIED: no valid STANDARD to compare against"
+      ]
+    },
+    {
+      "combinationId": "C_ONE_DISH__FC_17382",
+      "problems": [
+        "STANDARD ENERGY_OUT_OF_RANGE: meal energy 134.5 kcal outside 150-2000",
+        "LOWER_CARB ENERGY_OUT_OF_RANGE: meal energy 100.875 kcal outside 150-2000",
+        "HIGHER_PROTEIN PRESET_INTENT_UNVERIFIED: no valid STANDARD to compare against",
+        "HIGHER_ENERGY PRESET_INTENT_UNVERIFIED: no valid STANDARD to compare against"
+      ]
+    },
+    {
+      "combinationId": "C_ONE_DISH__FC_25625",
+      "problems": [
+        "STANDARD ENERGY_OUT_OF_RANGE: meal energy 116.5 kcal outside 150-2000",
+        "HIGHER_PROTEIN ENERGY_OUT_OF_RANGE: meal energy 145.625 kcal outside 150-2000",
+        "LOWER_CARB ENERGY_OUT_OF_RANGE: meal energy 87.375 kcal outside 150-2000",
+        "HIGHER_ENERGY PRESET_INTENT_UNVERIFIED: no valid STANDARD to compare against"
+      ]
+    },
+    {
+      "combinationId": "C_ONE_DISH__FC_81096",
+      "problems": [
+        "STANDARD ENERGY_OUT_OF_RANGE: meal energy 149.3 kcal outside 150-2000",
+        "LOWER_CARB ENERGY_OUT_OF_RANGE: meal energy 111.975 kcal outside 150-2000",
+        "HIGHER_PROTEIN PRESET_INTENT_UNVERIFIED: no valid STANDARD to compare against",
+        "HIGHER_ENERGY PRESET_INTENT_UNVERIFIED: no valid STANDARD to compare against"
       ]
     }
   ],
@@ -3318,68 +3410,6 @@
       "evidence": [
         "template BREAKFAST_FRUIT: breakfast base with optional fruit",
         "add-on: mango"
-      ]
-    },
-    {
-      "combinationId": "C_BREAKFAST_FRUIT__FC_15866__USDA_2709171",
-      "templateId": "BREAKFAST_FRUIT",
-      "mealTypes": [
-        "BREAKFAST"
-      ],
-      "cuisines": [
-        "Indian"
-      ],
-      "components": [
-        {
-          "slot": "BASE",
-          "dishId": "FC_15866",
-          "role": "BREAKFAST_BASE"
-        },
-        {
-          "slot": "FRUIT",
-          "dishId": "USDA_2709171",
-          "role": "FRUIT"
-        }
-      ],
-      "configurations": [
-        {
-          "configurationId": "C_BREAKFAST_FRUIT__FC_15866__USDA_2709171#HIGHER_ENERGY",
-          "preset": "HIGHER_ENERGY",
-          "portions": [
-            {
-              "dishId": "FC_15866",
-              "portionId": "FC_15866:1.5xSERVING",
-              "quantity": 1.5,
-              "unit": "SERVING",
-              "grams": null
-            },
-            {
-              "dishId": "USDA_2709171",
-              "portionId": "USDA_2709171:2xPIECE",
-              "quantity": 2.0,
-              "unit": "PIECE",
-              "grams": 308.0
-            }
-          ],
-          "nutrition": {
-            "totals": {
-              "energyKcal": 240.25,
-              "fatG": 4.331,
-              "saturatedFatG": 2.746,
-              "carbohydrateG": 45.282,
-              "proteinG": 3.584,
-              "sodiumMg": 48.32,
-              "sugarsG": null
-            },
-            "sourceTier": "FOODCOM_DERIVED",
-            "fullyKnown": true,
-            "unknownNutrients": []
-          }
-        }
-      ],
-      "evidence": [
-        "template BREAKFAST_FRUIT: breakfast base with optional fruit",
-        "add-on: orange"
       ]
     },
     {
@@ -12126,102 +12156,6 @@
       "evidence": [
         "template BREAKFAST_FRUIT: breakfast base with optional fruit",
         "add-on: strawberries"
-      ]
-    },
-    {
-      "combinationId": "C_BREAKFAST_FRUIT__FC_66856__USDA_2709171",
-      "templateId": "BREAKFAST_FRUIT",
-      "mealTypes": [
-        "BREAKFAST"
-      ],
-      "cuisines": [
-        "Chinese"
-      ],
-      "components": [
-        {
-          "slot": "BASE",
-          "dishId": "FC_66856",
-          "role": "BREAKFAST_BASE"
-        },
-        {
-          "slot": "FRUIT",
-          "dishId": "USDA_2709171",
-          "role": "FRUIT"
-        }
-      ],
-      "configurations": [
-        {
-          "configurationId": "C_BREAKFAST_FRUIT__FC_66856__USDA_2709171#HIGHER_PROTEIN",
-          "preset": "HIGHER_PROTEIN",
-          "portions": [
-            {
-              "dishId": "FC_66856",
-              "portionId": "FC_66856:1.25xSERVING",
-              "quantity": 1.25,
-              "unit": "SERVING",
-              "grams": null
-            },
-            {
-              "dishId": "USDA_2709171",
-              "portionId": "USDA_2709171:1xPIECE",
-              "quantity": 1.0,
-              "unit": "PIECE",
-              "grams": 154.0
-            }
-          ],
-          "nutrition": {
-            "totals": {
-              "energyKcal": 156.375,
-              "fatG": 2.654,
-              "saturatedFatG": 0.273,
-              "carbohydrateG": 29.391,
-              "proteinG": 2.667,
-              "sodiumMg": 6.16,
-              "sugarsG": null
-            },
-            "sourceTier": "FOODCOM_DERIVED",
-            "fullyKnown": true,
-            "unknownNutrients": []
-          }
-        },
-        {
-          "configurationId": "C_BREAKFAST_FRUIT__FC_66856__USDA_2709171#HIGHER_ENERGY",
-          "preset": "HIGHER_ENERGY",
-          "portions": [
-            {
-              "dishId": "FC_66856",
-              "portionId": "FC_66856:1.5xSERVING",
-              "quantity": 1.5,
-              "unit": "SERVING",
-              "grams": null
-            },
-            {
-              "dishId": "USDA_2709171",
-              "portionId": "USDA_2709171:2xPIECE",
-              "quantity": 2.0,
-              "unit": "PIECE",
-              "grams": 308.0
-            }
-          ],
-          "nutrition": {
-            "totals": {
-              "energyKcal": 249.25,
-              "fatG": 3.356,
-              "saturatedFatG": 0.346,
-              "carbohydrateG": 49.782,
-              "proteinG": 4.334,
-              "sodiumMg": 12.32,
-              "sugarsG": null
-            },
-            "sourceTier": "FOODCOM_DERIVED",
-            "fullyKnown": true,
-            "unknownNutrients": []
-          }
-        }
-      ],
-      "evidence": [
-        "template BREAKFAST_FRUIT: breakfast base with optional fruit",
-        "add-on: orange"
       ]
     },
     {
@@ -21220,82 +21154,6 @@
       ]
     },
     {
-      "combinationId": "C_BREAKFAST__FC_127310",
-      "templateId": "BREAKFAST",
-      "mealTypes": [
-        "BREAKFAST"
-      ],
-      "cuisines": [
-        "Chinese"
-      ],
-      "components": [
-        {
-          "slot": "BASE",
-          "dishId": "FC_127310",
-          "role": "BREAKFAST_BASE"
-        }
-      ],
-      "configurations": [
-        {
-          "configurationId": "C_BREAKFAST__FC_127310#HIGHER_PROTEIN",
-          "preset": "HIGHER_PROTEIN",
-          "portions": [
-            {
-              "dishId": "FC_127310",
-              "portionId": "FC_127310:1.25xSERVING",
-              "quantity": 1.25,
-              "unit": "SERVING",
-              "grams": null
-            }
-          ],
-          "nutrition": {
-            "totals": {
-              "energyKcal": 183.75,
-              "fatG": 12.188,
-              "saturatedFatG": 3.75,
-              "carbohydrateG": 0.0,
-              "proteinG": 15.625,
-              "sodiumMg": 6690.0,
-              "sugarsG": null
-            },
-            "sourceTier": "FOODCOM_DERIVED",
-            "fullyKnown": true,
-            "unknownNutrients": []
-          }
-        },
-        {
-          "configurationId": "C_BREAKFAST__FC_127310#HIGHER_ENERGY",
-          "preset": "HIGHER_ENERGY",
-          "portions": [
-            {
-              "dishId": "FC_127310",
-              "portionId": "FC_127310:1.5xSERVING",
-              "quantity": 1.5,
-              "unit": "SERVING",
-              "grams": null
-            }
-          ],
-          "nutrition": {
-            "totals": {
-              "energyKcal": 220.5,
-              "fatG": 14.625,
-              "saturatedFatG": 4.5,
-              "carbohydrateG": 0.0,
-              "proteinG": 18.75,
-              "sodiumMg": 8028.0,
-              "sugarsG": null
-            },
-            "sourceTier": "FOODCOM_DERIVED",
-            "fullyKnown": true,
-            "unknownNutrients": []
-          }
-        }
-      ],
-      "evidence": [
-        "template BREAKFAST: a breakfast dish stands alone"
-      ]
-    },
-    {
       "combinationId": "C_BREAKFAST__FC_128959",
       "templateId": "BREAKFAST",
       "mealTypes": [
@@ -22326,55 +22184,6 @@
               "carbohydrateG": 36.0,
               "proteinG": 48.0,
               "sodiumMg": 1908.0,
-              "sugarsG": null
-            },
-            "sourceTier": "FOODCOM_DERIVED",
-            "fullyKnown": true,
-            "unknownNutrients": []
-          }
-        }
-      ],
-      "evidence": [
-        "template BREAKFAST: a breakfast dish stands alone"
-      ]
-    },
-    {
-      "combinationId": "C_BREAKFAST__FC_172461",
-      "templateId": "BREAKFAST",
-      "mealTypes": [
-        "BREAKFAST"
-      ],
-      "cuisines": [
-        "Italian"
-      ],
-      "components": [
-        {
-          "slot": "BASE",
-          "dishId": "FC_172461",
-          "role": "BREAKFAST_BASE"
-        }
-      ],
-      "configurations": [
-        {
-          "configurationId": "C_BREAKFAST__FC_172461#HIGHER_ENERGY",
-          "preset": "HIGHER_ENERGY",
-          "portions": [
-            {
-              "dishId": "FC_172461",
-              "portionId": "FC_172461:1.5xSERVING",
-              "quantity": 1.5,
-              "unit": "SERVING",
-              "grams": null
-            }
-          ],
-          "nutrition": {
-            "totals": {
-              "energyKcal": 154.95,
-              "fatG": 7.8,
-              "saturatedFatG": 1.5,
-              "carbohydrateG": 13.5,
-              "proteinG": 5.25,
-              "sodiumMg": 540.0,
               "sugarsG": null
             },
             "sourceTier": "FOODCOM_DERIVED",
@@ -23550,55 +23359,6 @@
               "carbohydrateG": 63.0,
               "proteinG": 30.75,
               "sodiumMg": 1656.0,
-              "sugarsG": null
-            },
-            "sourceTier": "FOODCOM_DERIVED",
-            "fullyKnown": true,
-            "unknownNutrients": []
-          }
-        }
-      ],
-      "evidence": [
-        "template BREAKFAST: a breakfast dish stands alone"
-      ]
-    },
-    {
-      "combinationId": "C_BREAKFAST__FC_25625",
-      "templateId": "BREAKFAST",
-      "mealTypes": [
-        "BREAKFAST"
-      ],
-      "cuisines": [
-        "American"
-      ],
-      "components": [
-        {
-          "slot": "BASE",
-          "dishId": "FC_25625",
-          "role": "BREAKFAST_BASE"
-        }
-      ],
-      "configurations": [
-        {
-          "configurationId": "C_BREAKFAST__FC_25625#HIGHER_ENERGY",
-          "preset": "HIGHER_ENERGY",
-          "portions": [
-            {
-              "dishId": "FC_25625",
-              "portionId": "FC_25625:1.5xSERVING",
-              "quantity": 1.5,
-              "unit": "SERVING",
-              "grams": null
-            }
-          ],
-          "nutrition": {
-            "totals": {
-              "energyKcal": 174.75,
-              "fatG": 2.925,
-              "saturatedFatG": 0.9,
-              "carbohydrateG": 27.0,
-              "proteinG": 5.25,
-              "sodiumMg": 288.0,
               "sugarsG": null
             },
             "sourceTier": "FOODCOM_DERIVED",
@@ -25569,82 +25329,6 @@
       ]
     },
     {
-      "combinationId": "C_BREAKFAST__FC_81096",
-      "templateId": "BREAKFAST",
-      "mealTypes": [
-        "BREAKFAST"
-      ],
-      "cuisines": [
-        "Chinese"
-      ],
-      "components": [
-        {
-          "slot": "BASE",
-          "dishId": "FC_81096",
-          "role": "BREAKFAST_BASE"
-        }
-      ],
-      "configurations": [
-        {
-          "configurationId": "C_BREAKFAST__FC_81096#HIGHER_PROTEIN",
-          "preset": "HIGHER_PROTEIN",
-          "portions": [
-            {
-              "dishId": "FC_81096",
-              "portionId": "FC_81096:1.25xSERVING",
-              "quantity": 1.25,
-              "unit": "SERVING",
-              "grams": null
-            }
-          ],
-          "nutrition": {
-            "totals": {
-              "energyKcal": 186.625,
-              "fatG": 5.688,
-              "saturatedFatG": 2.0,
-              "carbohydrateG": 7.5,
-              "proteinG": 23.75,
-              "sodiumMg": 1110.0,
-              "sugarsG": null
-            },
-            "sourceTier": "FOODCOM_DERIVED",
-            "fullyKnown": true,
-            "unknownNutrients": []
-          }
-        },
-        {
-          "configurationId": "C_BREAKFAST__FC_81096#HIGHER_ENERGY",
-          "preset": "HIGHER_ENERGY",
-          "portions": [
-            {
-              "dishId": "FC_81096",
-              "portionId": "FC_81096:1.5xSERVING",
-              "quantity": 1.5,
-              "unit": "SERVING",
-              "grams": null
-            }
-          ],
-          "nutrition": {
-            "totals": {
-              "energyKcal": 223.95,
-              "fatG": 6.825,
-              "saturatedFatG": 2.4,
-              "carbohydrateG": 9.0,
-              "proteinG": 28.5,
-              "sodiumMg": 1332.0,
-              "sugarsG": null
-            },
-            "sourceTier": "FOODCOM_DERIVED",
-            "fullyKnown": true,
-            "unknownNutrients": []
-          }
-        }
-      ],
-      "evidence": [
-        "template BREAKFAST: a breakfast dish stands alone"
-      ]
-    },
-    {
       "combinationId": "C_BREAKFAST__FC_81138",
       "templateId": "BREAKFAST",
       "mealTypes": [
@@ -26775,47 +26459,6 @@
           }
         },
         {
-          "configurationId": "C_MAIN_STAPLE_VEGETABLE__FC_101585__USDA_2707598__FC_158292#LOWER_CARB",
-          "preset": "LOWER_CARB",
-          "portions": [
-            {
-              "dishId": "FC_101585",
-              "portionId": "FC_101585:1.25xSERVING",
-              "quantity": 1.25,
-              "unit": "SERVING",
-              "grams": null
-            },
-            {
-              "dishId": "USDA_2707598",
-              "portionId": "USDA_2707598:1xSLICE",
-              "quantity": 1.0,
-              "unit": "SLICE",
-              "grams": 28.0
-            },
-            {
-              "dishId": "FC_158292",
-              "portionId": "FC_158292:1.25xSERVING",
-              "quantity": 1.25,
-              "unit": "SERVING",
-              "grams": null
-            }
-          ],
-          "nutrition": {
-            "totals": {
-              "energyKcal": 562.885,
-              "fatG": 15.63,
-              "saturatedFatG": 2.73,
-              "carbohydrateG": 88.776,
-              "proteinG": 20.14,
-              "sodiumMg": 936.0,
-              "sugarsG": null
-            },
-            "sourceTier": "FOODCOM_DERIVED",
-            "fullyKnown": true,
-            "unknownNutrients": []
-          }
-        },
-        {
           "configurationId": "C_MAIN_STAPLE_VEGETABLE__FC_101585__USDA_2707598__FC_158292#HIGHER_ENERGY",
           "preset": "HIGHER_ENERGY",
           "portions": [
@@ -27016,47 +26659,6 @@
           }
         },
         {
-          "configurationId": "C_MAIN_STAPLE_VEGETABLE__FC_105886__USDA_169757__FC_82641#LOWER_CARB",
-          "preset": "LOWER_CARB",
-          "portions": [
-            {
-              "dishId": "FC_105886",
-              "portionId": "FC_105886:1.25xSERVING",
-              "quantity": 1.25,
-              "unit": "SERVING",
-              "grams": null
-            },
-            {
-              "dishId": "USDA_169757",
-              "portionId": "USDA_169757:0.5xCUP",
-              "quantity": 0.5,
-              "unit": "CUP",
-              "grams": 79.0
-            },
-            {
-              "dishId": "FC_82641",
-              "portionId": "FC_82641:1.25xSERVING",
-              "quantity": 1.25,
-              "unit": "SERVING",
-              "grams": null
-            }
-          ],
-          "nutrition": {
-            "totals": {
-              "energyKcal": 940.325,
-              "fatG": 22.971,
-              "saturatedFatG": 3.311,
-              "carbohydrateG": 161.004,
-              "proteinG": 23.375,
-              "sodiumMg": 1860.79,
-              "sugarsG": null
-            },
-            "sourceTier": "FOODCOM_DERIVED",
-            "fullyKnown": true,
-            "unknownNutrients": []
-          }
-        },
-        {
           "configurationId": "C_MAIN_STAPLE_VEGETABLE__FC_105886__USDA_169757__FC_82641#HIGHER_ENERGY",
           "preset": "HIGHER_ENERGY",
           "portions": [
@@ -27249,47 +26851,6 @@
               "carbohydrateG": 169.101,
               "proteinG": 25.13,
               "sodiumMg": 1459.52,
-              "sugarsG": null
-            },
-            "sourceTier": "FOODCOM_DERIVED",
-            "fullyKnown": true,
-            "unknownNutrients": []
-          }
-        },
-        {
-          "configurationId": "C_MAIN_STAPLE_VEGETABLE__FC_105886__USDA_2707613__FC_172618#LOWER_CARB",
-          "preset": "LOWER_CARB",
-          "portions": [
-            {
-              "dishId": "FC_105886",
-              "portionId": "FC_105886:1.25xSERVING",
-              "quantity": 1.25,
-              "unit": "SERVING",
-              "grams": null
-            },
-            {
-              "dishId": "USDA_2707613",
-              "portionId": "USDA_2707613:1xPIECE",
-              "quantity": 1.0,
-              "unit": "PIECE",
-              "grams": 44.0
-            },
-            {
-              "dishId": "FC_172618",
-              "portionId": "FC_172618:1.25xSERVING",
-              "quantity": 1.25,
-              "unit": "SERVING",
-              "grams": null
-            }
-          ],
-          "nutrition": {
-            "totals": {
-              "energyKcal": 740.84,
-              "fatG": 4.827,
-              "saturatedFatG": 2.64,
-              "carbohydrateG": 149.601,
-              "proteinG": 23.63,
-              "sodiumMg": 1273.52,
               "sugarsG": null
             },
             "sourceTier": "FOODCOM_DERIVED",
@@ -27977,47 +27538,6 @@
           }
         },
         {
-          "configurationId": "C_MAIN_STAPLE_VEGETABLE__FC_107072__USDA_168914__FC_81284#LOWER_CARB",
-          "preset": "LOWER_CARB",
-          "portions": [
-            {
-              "dishId": "FC_107072",
-              "portionId": "FC_107072:1.25xSERVING",
-              "quantity": 1.25,
-              "unit": "SERVING",
-              "grams": null
-            },
-            {
-              "dishId": "USDA_168914",
-              "portionId": "USDA_168914:0.5xCUP",
-              "quantity": 0.5,
-              "unit": "CUP",
-              "grams": 88.0
-            },
-            {
-              "dishId": "FC_81284",
-              "portionId": "FC_81284:1.25xSERVING",
-              "quantity": 1.25,
-              "unit": "SERVING",
-              "grams": null
-            }
-          ],
-          "nutrition": {
-            "totals": {
-              "energyKcal": 1442.915,
-              "fatG": 50.552,
-              "saturatedFatG": 15.02,
-              "carbohydrateG": 152.379,
-              "proteinG": 84.7,
-              "sodiumMg": 2806.72,
-              "sugarsG": null
-            },
-            "sourceTier": "FOODCOM_DERIVED",
-            "fullyKnown": true,
-            "unknownNutrients": []
-          }
-        },
-        {
           "configurationId": "C_MAIN_STAPLE_VEGETABLE__FC_107072__USDA_168914__FC_81284#HIGHER_ENERGY",
           "preset": "HIGHER_ENERGY",
           "portions": [
@@ -28217,47 +27737,6 @@
           }
         },
         {
-          "configurationId": "C_MAIN_STAPLE_VEGETABLE__FC_107072__USDA_169757__FC_81284#LOWER_CARB",
-          "preset": "LOWER_CARB",
-          "portions": [
-            {
-              "dishId": "FC_107072",
-              "portionId": "FC_107072:1.25xSERVING",
-              "quantity": 1.25,
-              "unit": "SERVING",
-              "grams": null
-            },
-            {
-              "dishId": "USDA_169757",
-              "portionId": "USDA_169757:0.5xCUP",
-              "quantity": 0.5,
-              "unit": "CUP",
-              "grams": 79.0
-            },
-            {
-              "dishId": "FC_81284",
-              "portionId": "FC_81284:1.25xSERVING",
-              "quantity": 1.25,
-              "unit": "SERVING",
-              "grams": null
-            }
-          ],
-          "nutrition": {
-            "totals": {
-              "energyKcal": 1450.575,
-              "fatG": 50.597,
-              "saturatedFatG": 15.061,
-              "carbohydrateG": 153.504,
-              "proteinG": 85.25,
-              "sodiumMg": 2790.79,
-              "sugarsG": null
-            },
-            "sourceTier": "FOODCOM_DERIVED",
-            "fullyKnown": true,
-            "unknownNutrients": []
-          }
-        },
-        {
           "configurationId": "C_MAIN_STAPLE_VEGETABLE__FC_107072__USDA_169757__FC_81284#HIGHER_ENERGY",
           "preset": "HIGHER_ENERGY",
           "portions": [
@@ -28449,47 +27928,6 @@
               "carbohydrateG": 168.193,
               "proteinG": 50.613,
               "sodiumMg": 1981.08,
-              "sugarsG": null
-            },
-            "sourceTier": "FOODCOM_DERIVED",
-            "fullyKnown": true,
-            "unknownNutrients": []
-          }
-        },
-        {
-          "configurationId": "C_MAIN_STAPLE_VEGETABLE__FC_108052__USDA_168914__FC_68621#LOWER_CARB",
-          "preset": "LOWER_CARB",
-          "portions": [
-            {
-              "dishId": "FC_108052",
-              "portionId": "FC_108052:1.25xSERVING",
-              "quantity": 1.25,
-              "unit": "SERVING",
-              "grams": null
-            },
-            {
-              "dishId": "USDA_168914",
-              "portionId": "USDA_168914:0.5xCUP",
-              "quantity": 0.5,
-              "unit": "CUP",
-              "grams": 88.0
-            },
-            {
-              "dishId": "FC_68621",
-              "portionId": "FC_68621:1.25xSERVING",
-              "quantity": 1.25,
-              "unit": "SERVING",
-              "grams": null
-            }
-          ],
-          "nutrition": {
-            "totals": {
-              "energyKcal": 1113.915,
-              "fatG": 41.613,
-              "saturatedFatG": 5.77,
-              "carbohydrateG": 141.129,
-              "proteinG": 45.325,
-              "sodiumMg": 1786.72,
               "sugarsG": null
             },
             "sourceTier": "FOODCOM_DERIVED",
@@ -28930,47 +28368,6 @@
               "carbohydrateG": 103.776,
               "proteinG": 30.39,
               "sodiumMg": 1278.0,
-              "sugarsG": null
-            },
-            "sourceTier": "FOODCOM_DERIVED",
-            "fullyKnown": true,
-            "unknownNutrients": []
-          }
-        },
-        {
-          "configurationId": "C_MAIN_STAPLE_VEGETABLE__FC_110546__USDA_2707598__FC_30146#LOWER_CARB",
-          "preset": "LOWER_CARB",
-          "portions": [
-            {
-              "dishId": "FC_110546",
-              "portionId": "FC_110546:1.25xSERVING",
-              "quantity": 1.25,
-              "unit": "SERVING",
-              "grams": null
-            },
-            {
-              "dishId": "USDA_2707598",
-              "portionId": "USDA_2707598:1xSLICE",
-              "quantity": 1.0,
-              "unit": "SLICE",
-              "grams": 28.0
-            },
-            {
-              "dishId": "FC_30146",
-              "portionId": "FC_30146:1.25xSERVING",
-              "quantity": 1.25,
-              "unit": "SERVING",
-              "grams": null
-            }
-          ],
-          "nutrition": {
-            "totals": {
-              "energyKcal": 536.76,
-              "fatG": 9.131,
-              "saturatedFatG": 1.48,
-              "carbohydrateG": 88.776,
-              "proteinG": 25.765,
-              "sodiumMg": 1116.0,
               "sugarsG": null
             },
             "sourceTier": "FOODCOM_DERIVED",
@@ -31093,47 +30490,6 @@
               "carbohydrateG": 89.498,
               "proteinG": 40.442,
               "sodiumMg": 1549.2,
-              "sugarsG": null
-            },
-            "sourceTier": "FOODCOM_DERIVED",
-            "fullyKnown": true,
-            "unknownNutrients": []
-          }
-        },
-        {
-          "configurationId": "C_MAIN_STAPLE_VEGETABLE__FC_129203__USDA_2707823__FC_84738#LOWER_CARB",
-          "preset": "LOWER_CARB",
-          "portions": [
-            {
-              "dishId": "FC_129203",
-              "portionId": "FC_129203:1.25xSERVING",
-              "quantity": 1.25,
-              "unit": "SERVING",
-              "grams": null
-            },
-            {
-              "dishId": "USDA_2707823",
-              "portionId": "USDA_2707823:2xPIECE",
-              "quantity": 2.0,
-              "unit": "PIECE",
-              "grams": 56.0
-            },
-            {
-              "dishId": "FC_84738",
-              "portionId": "FC_84738:1.25xSERVING",
-              "quantity": 1.25,
-              "unit": "SERVING",
-              "grams": null
-            }
-          ],
-          "nutrition": {
-            "totals": {
-              "energyKcal": 881.705,
-              "fatG": 44.658,
-              "saturatedFatG": 18.004,
-              "carbohydrateG": 88.748,
-              "proteinG": 35.692,
-              "sodiumMg": 1495.2,
               "sugarsG": null
             },
             "sourceTier": "FOODCOM_DERIVED",
@@ -33983,47 +33339,6 @@
           }
         },
         {
-          "configurationId": "C_MAIN_STAPLE_VEGETABLE__FC_173251__USDA_2707823__FC_139170#LOWER_CARB",
-          "preset": "LOWER_CARB",
-          "portions": [
-            {
-              "dishId": "FC_173251",
-              "portionId": "FC_173251:1.25xSERVING",
-              "quantity": 1.25,
-              "unit": "SERVING",
-              "grams": null
-            },
-            {
-              "dishId": "USDA_2707823",
-              "portionId": "USDA_2707823:2xPIECE",
-              "quantity": 2.0,
-              "unit": "PIECE",
-              "grams": 56.0
-            },
-            {
-              "dishId": "FC_139170",
-              "portionId": "FC_139170:1.25xSERVING",
-              "quantity": 1.25,
-              "unit": "SERVING",
-              "grams": null
-            }
-          ],
-          "nutrition": {
-            "totals": {
-              "energyKcal": 750.705,
-              "fatG": 24.346,
-              "saturatedFatG": 5.504,
-              "carbohydrateG": 88.748,
-              "proteinG": 43.192,
-              "sodiumMg": 955.2,
-              "sugarsG": null
-            },
-            "sourceTier": "FOODCOM_DERIVED",
-            "fullyKnown": true,
-            "unknownNutrients": []
-          }
-        },
-        {
           "configurationId": "C_MAIN_STAPLE_VEGETABLE__FC_173251__USDA_2707823__FC_139170#HIGHER_ENERGY",
           "preset": "HIGHER_ENERGY",
           "portions": [
@@ -34215,47 +33530,6 @@
               "carbohydrateG": 163.693,
               "proteinG": 67.113,
               "sodiumMg": 4153.08,
-              "sugarsG": null
-            },
-            "sourceTier": "FOODCOM_DERIVED",
-            "fullyKnown": true,
-            "unknownNutrients": []
-          }
-        },
-        {
-          "configurationId": "C_MAIN_STAPLE_VEGETABLE__FC_180144__USDA_168914__FC_50825#LOWER_CARB",
-          "preset": "LOWER_CARB",
-          "portions": [
-            {
-              "dishId": "FC_180144",
-              "portionId": "FC_180144:1.25xSERVING",
-              "quantity": 1.25,
-              "unit": "SERVING",
-              "grams": null
-            },
-            {
-              "dishId": "USDA_168914",
-              "portionId": "USDA_168914:0.5xCUP",
-              "quantity": 0.5,
-              "unit": "CUP",
-              "grams": 88.0
-            },
-            {
-              "dishId": "FC_50825",
-              "portionId": "FC_50825:1.25xSERVING",
-              "quantity": 1.25,
-              "unit": "SERVING",
-              "grams": null
-            }
-          ],
-          "nutrition": {
-            "totals": {
-              "energyKcal": 1602.665,
-              "fatG": 90.364,
-              "saturatedFatG": 12.02,
-              "carbohydrateG": 141.129,
-              "proteinG": 64.7,
-              "sodiumMg": 3796.72,
               "sugarsG": null
             },
             "sourceTier": "FOODCOM_DERIVED",
@@ -39464,47 +38738,6 @@
           }
         },
         {
-          "configurationId": "C_MAIN_STAPLE_VEGETABLE__FC_34110__USDA_169737__FC_176016#HIGHER_PROTEIN",
-          "preset": "HIGHER_PROTEIN",
-          "portions": [
-            {
-              "dishId": "FC_34110",
-              "portionId": "FC_34110:1.5xSERVING",
-              "quantity": 1.5,
-              "unit": "SERVING",
-              "grams": null
-            },
-            {
-              "dishId": "USDA_169737",
-              "portionId": "USDA_169737:0.75xCUP",
-              "quantity": 0.75,
-              "unit": "CUP",
-              "grams": 93.0
-            },
-            {
-              "dishId": "FC_176016",
-              "portionId": "FC_176016:1xSERVING",
-              "quantity": 1.0,
-              "unit": "SERVING",
-              "grams": null
-            }
-          ],
-          "nutrition": {
-            "totals": {
-              "energyKcal": 431.09,
-              "fatG": 25.24,
-              "saturatedFatG": 6.164,
-              "carbohydrateG": 37.7,
-              "proteinG": 9.894,
-              "sodiumMg": 444.93,
-              "sugarsG": null
-            },
-            "sourceTier": "FOODCOM_DERIVED",
-            "fullyKnown": true,
-            "unknownNutrients": []
-          }
-        },
-        {
           "configurationId": "C_MAIN_STAPLE_VEGETABLE__FC_34110__USDA_169737__FC_176016#LOWER_CARB",
           "preset": "LOWER_CARB",
           "portions": [
@@ -39696,47 +38929,6 @@
               "carbohydrateG": 36.552,
               "proteinG": 9.781,
               "sodiumMg": 324.0,
-              "sugarsG": null
-            },
-            "sourceTier": "FOODCOM_DERIVED",
-            "fullyKnown": true,
-            "unknownNutrients": []
-          }
-        },
-        {
-          "configurationId": "C_MAIN_STAPLE_VEGETABLE__FC_34110__USDA_2707598__FC_158292#HIGHER_PROTEIN",
-          "preset": "HIGHER_PROTEIN",
-          "portions": [
-            {
-              "dishId": "FC_34110",
-              "portionId": "FC_34110:1.5xSERVING",
-              "quantity": 1.5,
-              "unit": "SERVING",
-              "grams": null
-            },
-            {
-              "dishId": "USDA_2707598",
-              "portionId": "USDA_2707598:1xSLICE",
-              "quantity": 1.0,
-              "unit": "SLICE",
-              "grams": 28.0
-            },
-            {
-              "dishId": "FC_158292",
-              "portionId": "FC_158292:1xSERVING",
-              "quantity": 1.0,
-              "unit": "SERVING",
-              "grams": null
-            }
-          ],
-          "nutrition": {
-            "totals": {
-              "energyKcal": 279.01,
-              "fatG": 14.98,
-              "saturatedFatG": 4.83,
-              "carbohydrateG": 25.776,
-              "proteinG": 8.64,
-              "sodiumMg": 234.0,
               "sugarsG": null
             },
             "sourceTier": "FOODCOM_DERIVED",
@@ -39986,47 +39178,6 @@
           }
         },
         {
-          "configurationId": "C_MAIN_STAPLE_VEGETABLE__FC_350340__USDA_169757__FC_172618#LOWER_CARB",
-          "preset": "LOWER_CARB",
-          "portions": [
-            {
-              "dishId": "FC_350340",
-              "portionId": "FC_350340:1.25xSERVING",
-              "quantity": 1.25,
-              "unit": "SERVING",
-              "grams": null
-            },
-            {
-              "dishId": "USDA_169757",
-              "portionId": "USDA_169757:0.5xCUP",
-              "quantity": 0.5,
-              "unit": "CUP",
-              "grams": 79.0
-            },
-            {
-              "dishId": "FC_172618",
-              "portionId": "FC_172618:1.25xSERVING",
-              "quantity": 1.25,
-              "unit": "SERVING",
-              "grams": null
-            }
-          ],
-          "nutrition": {
-            "totals": {
-              "energyKcal": 1283.95,
-              "fatG": 22.971,
-              "saturatedFatG": 4.061,
-              "carbohydrateG": 239.754,
-              "proteinG": 34.625,
-              "sodiumMg": 150.79,
-              "sugarsG": null
-            },
-            "sourceTier": "FOODCOM_DERIVED",
-            "fullyKnown": true,
-            "unknownNutrients": []
-          }
-        },
-        {
           "configurationId": "C_MAIN_STAPLE_VEGETABLE__FC_350340__USDA_169757__FC_172618#HIGHER_ENERGY",
           "preset": "HIGHER_ENERGY",
           "portions": [
@@ -40219,47 +39370,6 @@
               "carbohydrateG": 282.452,
               "proteinG": 41.89,
               "sodiumMg": 923.2,
-              "sugarsG": null
-            },
-            "sourceTier": "FOODCOM_DERIVED",
-            "fullyKnown": true,
-            "unknownNutrients": []
-          }
-        },
-        {
-          "configurationId": "C_MAIN_STAPLE_VEGETABLE__FC_350340__USDA_2707713__FC_82641#LOWER_CARB",
-          "preset": "LOWER_CARB",
-          "portions": [
-            {
-              "dishId": "FC_350340",
-              "portionId": "FC_350340:1.25xSERVING",
-              "quantity": 1.25,
-              "unit": "SERVING",
-              "grams": null
-            },
-            {
-              "dishId": "USDA_2707713",
-              "portionId": "USDA_2707713:1xPIECE",
-              "quantity": 1.0,
-              "unit": "PIECE",
-              "grams": 40.0
-            },
-            {
-              "dishId": "FC_82641",
-              "portionId": "FC_82641:1.25xSERVING",
-              "quantity": 1.25,
-              "unit": "SERVING",
-              "grams": null
-            }
-          ],
-          "nutrition": {
-            "totals": {
-              "energyKcal": 1534.475,
-              "fatG": 47.556,
-              "saturatedFatG": 7.324,
-              "carbohydrateG": 247.202,
-              "proteinG": 38.14,
-              "sodiumMg": 1079.2,
               "sugarsG": null
             },
             "sourceTier": "FOODCOM_DERIVED",
@@ -43587,47 +42697,6 @@
           }
         },
         {
-          "configurationId": "C_MAIN_STAPLE_VEGETABLE__FC_418843__USDA_2707713__USDA_169967#LOWER_CARB",
-          "preset": "LOWER_CARB",
-          "portions": [
-            {
-              "dishId": "FC_418843",
-              "portionId": "FC_418843:1.25xSERVING",
-              "quantity": 1.25,
-              "unit": "SERVING",
-              "grams": null
-            },
-            {
-              "dishId": "USDA_2707713",
-              "portionId": "USDA_2707713:1xPIECE",
-              "quantity": 1.0,
-              "unit": "PIECE",
-              "grams": 40.0
-            },
-            {
-              "dishId": "USDA_169967",
-              "portionId": "USDA_169967:1.5xCUP",
-              "quantity": 1.5,
-              "unit": "CUP",
-              "grams": 234.0
-            }
-          ],
-          "nutrition": {
-            "totals": {
-              "energyKcal": 797.25,
-              "fatG": 18.451,
-              "saturatedFatG": 3.259,
-              "carbohydrateG": 132.753,
-              "proteinG": 29.959,
-              "sodiumMg": 1325.14,
-              "sugarsG": null
-            },
-            "sourceTier": "FOODCOM_DERIVED",
-            "fullyKnown": true,
-            "unknownNutrients": []
-          }
-        },
-        {
           "configurationId": "C_MAIN_STAPLE_VEGETABLE__FC_418843__USDA_2707713__USDA_169967#HIGHER_ENERGY",
           "preset": "HIGHER_ENERGY",
           "portions": [
@@ -45948,47 +45017,6 @@
           }
         },
         {
-          "configurationId": "C_MAIN_STAPLE_VEGETABLE__FC_49387__USDA_2707709__FC_139170#HIGHER_PROTEIN",
-          "preset": "HIGHER_PROTEIN",
-          "portions": [
-            {
-              "dishId": "FC_49387",
-              "portionId": "FC_49387:1.5xSERVING",
-              "quantity": 1.5,
-              "unit": "SERVING",
-              "grams": null
-            },
-            {
-              "dishId": "USDA_2707709",
-              "portionId": "USDA_2707709:1xSLICE",
-              "quantity": 1.0,
-              "unit": "SLICE",
-              "grams": 36.0
-            },
-            {
-              "dishId": "FC_139170",
-              "portionId": "FC_139170:1xSERVING",
-              "quantity": 1.0,
-              "unit": "SERVING",
-              "grams": null
-            }
-          ],
-          "nutrition": {
-            "totals": {
-              "energyKcal": 501.44,
-              "fatG": 20.128,
-              "saturatedFatG": 5.064,
-              "carbohydrateG": 44.016,
-              "proteinG": 30.678,
-              "sodiumMg": 1138.8,
-              "sugarsG": null
-            },
-            "sourceTier": "FOODCOM_DERIVED",
-            "fullyKnown": true,
-            "unknownNutrients": []
-          }
-        },
-        {
           "configurationId": "C_MAIN_STAPLE_VEGETABLE__FC_49387__USDA_2707709__FC_139170#LOWER_CARB",
           "preset": "LOWER_CARB",
           "portions": [
@@ -46229,47 +45257,6 @@
           }
         },
         {
-          "configurationId": "C_MAIN_STAPLE_VEGETABLE__FC_51140__USDA_2707598__FC_106251#LOWER_CARB",
-          "preset": "LOWER_CARB",
-          "portions": [
-            {
-              "dishId": "FC_51140",
-              "portionId": "FC_51140:1.25xSERVING",
-              "quantity": 1.25,
-              "unit": "SERVING",
-              "grams": null
-            },
-            {
-              "dishId": "USDA_2707598",
-              "portionId": "USDA_2707598:1xSLICE",
-              "quantity": 1.0,
-              "unit": "SLICE",
-              "grams": 28.0
-            },
-            {
-              "dishId": "FC_106251",
-              "portionId": "FC_106251:1.25xSERVING",
-              "quantity": 1.25,
-              "unit": "SERVING",
-              "grams": null
-            }
-          ],
-          "nutrition": {
-            "totals": {
-              "energyKcal": 600.635,
-              "fatG": 15.63,
-              "saturatedFatG": 2.23,
-              "carbohydrateG": 96.276,
-              "proteinG": 23.265,
-              "sodiumMg": 2016.0,
-              "sugarsG": null
-            },
-            "sourceTier": "FOODCOM_DERIVED",
-            "fullyKnown": true,
-            "unknownNutrients": []
-          }
-        },
-        {
           "configurationId": "C_MAIN_STAPLE_VEGETABLE__FC_51140__USDA_2707598__FC_106251#HIGHER_ENERGY",
           "preset": "HIGHER_ENERGY",
           "portions": [
@@ -46461,47 +45448,6 @@
               "carbohydrateG": 110.016,
               "proteinG": 27.678,
               "sodiumMg": 2218.8,
-              "sugarsG": null
-            },
-            "sourceTier": "FOODCOM_DERIVED",
-            "fullyKnown": true,
-            "unknownNutrients": []
-          }
-        },
-        {
-          "configurationId": "C_MAIN_STAPLE_VEGETABLE__FC_51140__USDA_2707709__FC_106251#LOWER_CARB",
-          "preset": "LOWER_CARB",
-          "portions": [
-            {
-              "dishId": "FC_51140",
-              "portionId": "FC_51140:1.25xSERVING",
-              "quantity": 1.25,
-              "unit": "SERVING",
-              "grams": null
-            },
-            {
-              "dishId": "USDA_2707709",
-              "portionId": "USDA_2707709:1xSLICE",
-              "quantity": 1.0,
-              "unit": "SLICE",
-              "grams": 36.0
-            },
-            {
-              "dishId": "FC_106251",
-              "portionId": "FC_106251:1.25xSERVING",
-              "quantity": 1.25,
-              "unit": "SERVING",
-              "grams": null
-            }
-          ],
-          "nutrition": {
-            "totals": {
-              "energyKcal": 617.315,
-              "fatG": 15.903,
-              "saturatedFatG": 2.264,
-              "carbohydrateG": 98.016,
-              "proteinG": 25.053,
-              "sodiumMg": 2044.8,
               "sugarsG": null
             },
             "sourceTier": "FOODCOM_DERIVED",
@@ -47628,47 +46574,6 @@
           }
         },
         {
-          "configurationId": "C_MAIN_STAPLE_VEGETABLE__FC_54715__USDA_169704__FC_103243#HIGHER_PROTEIN",
-          "preset": "HIGHER_PROTEIN",
-          "portions": [
-            {
-              "dishId": "FC_54715",
-              "portionId": "FC_54715:1.5xSERVING",
-              "quantity": 1.5,
-              "unit": "SERVING",
-              "grams": null
-            },
-            {
-              "dishId": "USDA_169704",
-              "portionId": "USDA_169704:0.75xCUP",
-              "quantity": 0.75,
-              "unit": "CUP",
-              "grams": 151.5
-            },
-            {
-              "dishId": "FC_103243",
-              "portionId": "FC_103243:1xSERVING",
-              "quantity": 1.0,
-              "unit": "SERVING",
-              "grams": null
-            }
-          ],
-          "nutrition": {
-            "totals": {
-              "energyKcal": 494.295,
-              "fatG": 10.57,
-              "saturatedFatG": 1.594,
-              "carbohydrateG": 82.254,
-              "proteinG": 10.901,
-              "sodiumMg": 1470.06,
-              "sugarsG": null
-            },
-            "sourceTier": "FOODCOM_DERIVED",
-            "fullyKnown": true,
-            "unknownNutrients": []
-          }
-        },
-        {
           "configurationId": "C_MAIN_STAPLE_VEGETABLE__FC_54715__USDA_169704__FC_103243#LOWER_CARB",
           "preset": "LOWER_CARB",
           "portions": [
@@ -47860,47 +46765,6 @@
               "carbohydrateG": 89.509,
               "proteinG": 5.75,
               "sodiumMg": 745.58,
-              "sugarsG": null
-            },
-            "sourceTier": "FOODCOM_DERIVED",
-            "fullyKnown": true,
-            "unknownNutrients": []
-          }
-        },
-        {
-          "configurationId": "C_MAIN_STAPLE_VEGETABLE__FC_54715__USDA_169757__FC_30470#HIGHER_PROTEIN",
-          "preset": "HIGHER_PROTEIN",
-          "portions": [
-            {
-              "dishId": "FC_54715",
-              "portionId": "FC_54715:1.5xSERVING",
-              "quantity": 1.5,
-              "unit": "SERVING",
-              "grams": null
-            },
-            {
-              "dishId": "USDA_169757",
-              "portionId": "USDA_169757:0.75xCUP",
-              "quantity": 0.75,
-              "unit": "CUP",
-              "grams": 118.5
-            },
-            {
-              "dishId": "FC_30470",
-              "portionId": "FC_30470:1xSERVING",
-              "quantity": 1.0,
-              "unit": "SERVING",
-              "grams": null
-            }
-          ],
-          "nutrition": {
-            "totals": {
-              "energyKcal": 397.5,
-              "fatG": 0.332,
-              "saturatedFatG": 0.091,
-              "carbohydrateG": 88.881,
-              "proteinG": 5.438,
-              "sodiumMg": 1105.185,
               "sugarsG": null
             },
             "sourceTier": "FOODCOM_DERIVED",
@@ -49068,47 +47932,6 @@
           }
         },
         {
-          "configurationId": "C_MAIN_STAPLE_VEGETABLE__FC_63786__USDA_2707823__FC_30146#HIGHER_PROTEIN",
-          "preset": "HIGHER_PROTEIN",
-          "portions": [
-            {
-              "dishId": "FC_63786",
-              "portionId": "FC_63786:1.5xSERVING",
-              "quantity": 1.5,
-              "unit": "SERVING",
-              "grams": null
-            },
-            {
-              "dishId": "USDA_2707823",
-              "portionId": "USDA_2707823:2xPIECE",
-              "quantity": 2.0,
-              "unit": "PIECE",
-              "grams": 56.0
-            },
-            {
-              "dishId": "FC_30146",
-              "portionId": "FC_30146:1xSERVING",
-              "quantity": 1.0,
-              "unit": "SERVING",
-              "grams": null
-            }
-          ],
-          "nutrition": {
-            "totals": {
-              "energyKcal": 373.68,
-              "fatG": 13.946,
-              "saturatedFatG": 2.354,
-              "carbohydrateG": 51.998,
-              "proteinG": 6.942,
-              "sodiumMg": 601.2,
-              "sugarsG": null
-            },
-            "sourceTier": "FOODCOM_DERIVED",
-            "fullyKnown": true,
-            "unknownNutrients": []
-          }
-        },
-        {
           "configurationId": "C_MAIN_STAPLE_VEGETABLE__FC_63786__USDA_2707823__FC_30146#LOWER_CARB",
           "preset": "LOWER_CARB",
           "portions": [
@@ -49300,47 +48123,6 @@
               "carbohydrateG": 80.442,
               "proteinG": 14.88,
               "sodiumMg": 1350.0,
-              "sugarsG": null
-            },
-            "sourceTier": "FOODCOM_DERIVED",
-            "fullyKnown": true,
-            "unknownNutrients": []
-          }
-        },
-        {
-          "configurationId": "C_MAIN_STAPLE_VEGETABLE__FC_63786__USDA_2707824__FC_52500#HIGHER_PROTEIN",
-          "preset": "HIGHER_PROTEIN",
-          "portions": [
-            {
-              "dishId": "FC_63786",
-              "portionId": "FC_63786:1.5xSERVING",
-              "quantity": 1.5,
-              "unit": "SERVING",
-              "grams": null
-            },
-            {
-              "dishId": "USDA_2707824",
-              "portionId": "USDA_2707824:1xPIECE",
-              "quantity": 1.0,
-              "unit": "PIECE",
-              "grams": 45.0
-            },
-            {
-              "dishId": "FC_52500",
-              "portionId": "FC_52500:1xSERVING",
-              "quantity": 1.0,
-              "unit": "SERVING",
-              "grams": null
-            }
-          ],
-          "nutrition": {
-            "totals": {
-              "energyKcal": 448.8,
-              "fatG": 12.046,
-              "saturatedFatG": 2.816,
-              "carbohydrateG": 67.221,
-              "proteinG": 12.44,
-              "sodiumMg": 1203.0,
               "sugarsG": null
             },
             "sourceTier": "FOODCOM_DERIVED",
@@ -49821,47 +48603,6 @@
               "carbohydrateG": 120.998,
               "proteinG": 51.692,
               "sodiumMg": 2665.2,
-              "sugarsG": null
-            },
-            "sourceTier": "FOODCOM_DERIVED",
-            "fullyKnown": true,
-            "unknownNutrients": []
-          }
-        },
-        {
-          "configurationId": "C_MAIN_STAPLE_VEGETABLE__FC_76043__USDA_2707823__FC_84738#LOWER_CARB",
-          "preset": "LOWER_CARB",
-          "portions": [
-            {
-              "dishId": "FC_76043",
-              "portionId": "FC_76043:1.25xSERVING",
-              "quantity": 1.25,
-              "unit": "SERVING",
-              "grams": null
-            },
-            {
-              "dishId": "USDA_2707823",
-              "portionId": "USDA_2707823:2xPIECE",
-              "quantity": 2.0,
-              "unit": "PIECE",
-              "grams": 56.0
-            },
-            {
-              "dishId": "FC_84738",
-              "portionId": "FC_84738:1.25xSERVING",
-              "quantity": 1.25,
-              "unit": "SERVING",
-              "grams": null
-            }
-          ],
-          "nutrition": {
-            "totals": {
-              "energyKcal": 801.705,
-              "fatG": 18.658,
-              "saturatedFatG": 6.504,
-              "carbohydrateG": 114.998,
-              "proteinG": 45.067,
-              "sodiumMg": 2425.2,
               "sugarsG": null
             },
             "sourceTier": "FOODCOM_DERIVED",
@@ -51109,47 +49850,6 @@
             "fullyKnown": true,
             "unknownNutrients": []
           }
-        },
-        {
-          "configurationId": "C_MAIN_STAPLE_VEGETABLE__FC_8438__USDA_168914__FC_50825#LOWER_ENERGY",
-          "preset": "LOWER_ENERGY",
-          "portions": [
-            {
-              "dishId": "FC_8438",
-              "portionId": "FC_8438:0.75xSERVING",
-              "quantity": 0.75,
-              "unit": "SERVING",
-              "grams": null
-            },
-            {
-              "dishId": "USDA_168914",
-              "portionId": "USDA_168914:0.75xCUP",
-              "quantity": 0.75,
-              "unit": "CUP",
-              "grams": 132.0
-            },
-            {
-              "dishId": "FC_50825",
-              "portionId": "FC_50825:1.25xSERVING",
-              "quantity": 1.25,
-              "unit": "SERVING",
-              "grams": null
-            }
-          ],
-          "nutrition": {
-            "totals": {
-              "energyKcal": 1053.185,
-              "fatG": 72.74,
-              "saturatedFatG": 9.23,
-              "carbohydrateG": 66.193,
-              "proteinG": 35.863,
-              "sodiumMg": 1171.08,
-              "sugarsG": null
-            },
-            "sourceTier": "FOODCOM_DERIVED",
-            "fullyKnown": true,
-            "unknownNutrients": []
-          }
         }
       ],
       "evidence": [
@@ -51468,47 +50168,6 @@
           }
         },
         {
-          "configurationId": "C_MAIN_STAPLE_VEGETABLE__FC_8595__USDA_2707823__FC_84738#HIGHER_PROTEIN",
-          "preset": "HIGHER_PROTEIN",
-          "portions": [
-            {
-              "dishId": "FC_8595",
-              "portionId": "FC_8595:1.5xSERVING",
-              "quantity": 1.5,
-              "unit": "SERVING",
-              "grams": null
-            },
-            {
-              "dishId": "USDA_2707823",
-              "portionId": "USDA_2707823:2xPIECE",
-              "quantity": 2.0,
-              "unit": "PIECE",
-              "grams": 56.0
-            },
-            {
-              "dishId": "FC_84738",
-              "portionId": "FC_84738:1xSERVING",
-              "quantity": 1.0,
-              "unit": "SERVING",
-              "grams": null
-            }
-          ],
-          "nutrition": {
-            "totals": {
-              "energyKcal": 428.58,
-              "fatG": 16.871,
-              "saturatedFatG": 2.354,
-              "carbohydrateG": 62.498,
-              "proteinG": 8.942,
-              "sodiumMg": 1801.2,
-              "sugarsG": null
-            },
-            "sourceTier": "FOODCOM_DERIVED",
-            "fullyKnown": true,
-            "unknownNutrients": []
-          }
-        },
-        {
           "configurationId": "C_MAIN_STAPLE_VEGETABLE__FC_8595__USDA_2707823__FC_84738#LOWER_CARB",
           "preset": "LOWER_CARB",
           "portions": [
@@ -51700,47 +50359,6 @@
               "carbohydrateG": 59.442,
               "proteinG": 26.88,
               "sodiumMg": 1830.0,
-              "sugarsG": null
-            },
-            "sourceTier": "FOODCOM_DERIVED",
-            "fullyKnown": true,
-            "unknownNutrients": []
-          }
-        },
-        {
-          "configurationId": "C_MAIN_STAPLE_VEGETABLE__FC_8595__USDA_2707824__FC_139170#HIGHER_PROTEIN",
-          "preset": "HIGHER_PROTEIN",
-          "portions": [
-            {
-              "dishId": "FC_8595",
-              "portionId": "FC_8595:1.5xSERVING",
-              "quantity": 1.5,
-              "unit": "SERVING",
-              "grams": null
-            },
-            {
-              "dishId": "USDA_2707824",
-              "portionId": "USDA_2707824:1xPIECE",
-              "quantity": 1.0,
-              "unit": "PIECE",
-              "grams": 45.0
-            },
-            {
-              "dishId": "FC_139170",
-              "portionId": "FC_139170:1xSERVING",
-              "quantity": 1.0,
-              "unit": "SERVING",
-              "grams": null
-            }
-          ],
-          "nutrition": {
-            "totals": {
-              "energyKcal": 563.3,
-              "fatG": 31.221,
-              "saturatedFatG": 5.816,
-              "carbohydrateG": 41.721,
-              "proteinG": 23.94,
-              "sodiumMg": 1947.0,
               "sugarsG": null
             },
             "sourceTier": "FOODCOM_DERIVED",
@@ -52428,47 +51046,6 @@
           }
         },
         {
-          "configurationId": "C_MAIN_STAPLE_VEGETABLE__FC_8701__USDA_170440__FC_52500#LOWER_CARB",
-          "preset": "LOWER_CARB",
-          "portions": [
-            {
-              "dishId": "FC_8701",
-              "portionId": "FC_8701:1.25xSERVING",
-              "quantity": 1.25,
-              "unit": "SERVING",
-              "grams": null
-            },
-            {
-              "dishId": "USDA_170440",
-              "portionId": "USDA_170440:0.5xPIECE",
-              "quantity": 0.5,
-              "unit": "PIECE",
-              "grams": 83.5
-            },
-            {
-              "dishId": "FC_52500",
-              "portionId": "FC_52500:1.25xSERVING",
-              "quantity": 1.25,
-              "unit": "SERVING",
-              "grams": null
-            }
-          ],
-          "nutrition": {
-            "totals": {
-              "energyKcal": 1759.81,
-              "fatG": 70.771,
-              "saturatedFatG": 24.522,
-              "carbohydrateG": 192.958,
-              "proteinG": 89.553,
-              "sodiumMg": 1864.175,
-              "sugarsG": null
-            },
-            "sourceTier": "FOODCOM_DERIVED",
-            "fullyKnown": true,
-            "unknownNutrients": []
-          }
-        },
-        {
           "configurationId": "C_MAIN_STAPLE_VEGETABLE__FC_8701__USDA_170440__FC_52500#HIGHER_ENERGY",
           "preset": "HIGHER_ENERGY",
           "portions": [
@@ -52619,47 +51196,6 @@
               "carbohydrateG": 174.552,
               "proteinG": 70.781,
               "sodiumMg": 1380.0,
-              "sugarsG": null
-            },
-            "sourceTier": "FOODCOM_DERIVED",
-            "fullyKnown": true,
-            "unknownNutrients": []
-          }
-        },
-        {
-          "configurationId": "C_MAIN_STAPLE_VEGETABLE__FC_8701__USDA_2707598__FC_30470#LOWER_CARB",
-          "preset": "LOWER_CARB",
-          "portions": [
-            {
-              "dishId": "FC_8701",
-              "portionId": "FC_8701:1.25xSERVING",
-              "quantity": 1.25,
-              "unit": "SERVING",
-              "grams": null
-            },
-            {
-              "dishId": "USDA_2707598",
-              "portionId": "USDA_2707598:1xSLICE",
-              "quantity": 1.0,
-              "unit": "SLICE",
-              "grams": 28.0
-            },
-            {
-              "dishId": "FC_30470",
-              "portionId": "FC_30470:1.25xSERVING",
-              "quantity": 1.25,
-              "unit": "SERVING",
-              "grams": null
-            }
-          ],
-          "nutrition": {
-            "totals": {
-              "energyKcal": 1756.01,
-              "fatG": 70.88,
-              "saturatedFatG": 24.73,
-              "carbohydrateG": 197.526,
-              "proteinG": 84.515,
-              "sodiumMg": 1536.0,
               "sugarsG": null
             },
             "sourceTier": "FOODCOM_DERIVED",
@@ -55927,40 +54463,6 @@
           }
         },
         {
-          "configurationId": "C_MAIN_STAPLE__FC_101585__USDA_2707598#LOWER_CARB",
-          "preset": "LOWER_CARB",
-          "portions": [
-            {
-              "dishId": "FC_101585",
-              "portionId": "FC_101585:1.25xSERVING",
-              "quantity": 1.25,
-              "unit": "SERVING",
-              "grams": null
-            },
-            {
-              "dishId": "USDA_2707598",
-              "portionId": "USDA_2707598:1xSLICE",
-              "quantity": 1.0,
-              "unit": "SLICE",
-              "grams": 28.0
-            }
-          ],
-          "nutrition": {
-            "totals": {
-              "energyKcal": 494.885,
-              "fatG": 11.568,
-              "saturatedFatG": 2.23,
-              "carbohydrateG": 85.026,
-              "proteinG": 18.265,
-              "sodiumMg": 936.0,
-              "sugarsG": null
-            },
-            "sourceTier": "FOODCOM_DERIVED",
-            "fullyKnown": true,
-            "unknownNutrients": []
-          }
-        },
-        {
           "configurationId": "C_MAIN_STAPLE__FC_101585__USDA_2707598#HIGHER_ENERGY",
           "preset": "HIGHER_ENERGY",
           "portions": [
@@ -56127,40 +54629,6 @@
           }
         },
         {
-          "configurationId": "C_MAIN_STAPLE__FC_105886__USDA_169757#LOWER_CARB",
-          "preset": "LOWER_CARB",
-          "portions": [
-            {
-              "dishId": "FC_105886",
-              "portionId": "FC_105886:1.25xSERVING",
-              "quantity": 1.25,
-              "unit": "SERVING",
-              "grams": null
-            },
-            {
-              "dishId": "USDA_169757",
-              "portionId": "USDA_169757:0.5xCUP",
-              "quantity": 0.5,
-              "unit": "CUP",
-              "grams": 79.0
-            }
-          ],
-          "nutrition": {
-            "totals": {
-              "energyKcal": 612.2,
-              "fatG": 1.033,
-              "saturatedFatG": 0.561,
-              "carbohydrateG": 134.754,
-              "proteinG": 15.25,
-              "sodiumMg": 990.79,
-              "sugarsG": null
-            },
-            "sourceTier": "FOODCOM_DERIVED",
-            "fullyKnown": true,
-            "unknownNutrients": []
-          }
-        },
-        {
           "configurationId": "C_MAIN_STAPLE__FC_105886__USDA_169757#HIGHER_ENERGY",
           "preset": "HIGHER_ENERGY",
           "portions": [
@@ -56319,40 +54787,6 @@
               "carbohydrateG": 157.101,
               "proteinG": 20.63,
               "sodiumMg": 1411.52,
-              "sugarsG": null
-            },
-            "sourceTier": "FOODCOM_DERIVED",
-            "fullyKnown": true,
-            "unknownNutrients": []
-          }
-        },
-        {
-          "configurationId": "C_MAIN_STAPLE__FC_105886__USDA_2707613#LOWER_CARB",
-          "preset": "LOWER_CARB",
-          "portions": [
-            {
-              "dishId": "FC_105886",
-              "portionId": "FC_105886:1.25xSERVING",
-              "quantity": 1.25,
-              "unit": "SERVING",
-              "grams": null
-            },
-            {
-              "dishId": "USDA_2707613",
-              "portionId": "USDA_2707613:1xPIECE",
-              "quantity": 1.0,
-              "unit": "PIECE",
-              "grams": 44.0
-            }
-          ],
-          "nutrition": {
-            "totals": {
-              "energyKcal": 646.34,
-              "fatG": 4.015,
-              "saturatedFatG": 1.89,
-              "carbohydrateG": 134.601,
-              "proteinG": 18.005,
-              "sodiumMg": 1213.52,
               "sugarsG": null
             },
             "sourceTier": "FOODCOM_DERIVED",
@@ -56924,40 +55358,6 @@
           }
         },
         {
-          "configurationId": "C_MAIN_STAPLE__FC_107072__USDA_168914#LOWER_CARB",
-          "preset": "LOWER_CARB",
-          "portions": [
-            {
-              "dishId": "FC_107072",
-              "portionId": "FC_107072:1.25xSERVING",
-              "quantity": 1.25,
-              "unit": "SERVING",
-              "grams": null
-            },
-            {
-              "dishId": "USDA_168914",
-              "portionId": "USDA_168914:0.5xCUP",
-              "quantity": 0.5,
-              "unit": "CUP",
-              "grams": 88.0
-            }
-          ],
-          "nutrition": {
-            "totals": {
-              "energyKcal": 1276.165,
-              "fatG": 38.364,
-              "saturatedFatG": 13.02,
-              "carbohydrateG": 152.379,
-              "proteinG": 74.7,
-              "sodiumMg": 2176.72,
-              "sugarsG": null
-            },
-            "sourceTier": "FOODCOM_DERIVED",
-            "fullyKnown": true,
-            "unknownNutrients": []
-          }
-        },
-        {
           "configurationId": "C_MAIN_STAPLE__FC_107072__USDA_168914#HIGHER_ENERGY",
           "preset": "HIGHER_ENERGY",
           "portions": [
@@ -57115,40 +55515,6 @@
               "carbohydrateG": 190.881,
               "proteinG": 90.938,
               "sodiumMg": 2593.185,
-              "sugarsG": null
-            },
-            "sourceTier": "FOODCOM_DERIVED",
-            "fullyKnown": true,
-            "unknownNutrients": []
-          }
-        },
-        {
-          "configurationId": "C_MAIN_STAPLE__FC_107072__USDA_169757#LOWER_CARB",
-          "preset": "LOWER_CARB",
-          "portions": [
-            {
-              "dishId": "FC_107072",
-              "portionId": "FC_107072:1.25xSERVING",
-              "quantity": 1.25,
-              "unit": "SERVING",
-              "grams": null
-            },
-            {
-              "dishId": "USDA_169757",
-              "portionId": "USDA_169757:0.5xCUP",
-              "quantity": 0.5,
-              "unit": "CUP",
-              "grams": 79.0
-            }
-          ],
-          "nutrition": {
-            "totals": {
-              "energyKcal": 1283.825,
-              "fatG": 38.409,
-              "saturatedFatG": 13.061,
-              "carbohydrateG": 153.504,
-              "proteinG": 75.25,
-              "sodiumMg": 2160.79,
               "sugarsG": null
             },
             "sourceTier": "FOODCOM_DERIVED",
@@ -57713,40 +56079,6 @@
               "carbohydrateG": 103.776,
               "proteinG": 30.39,
               "sodiumMg": 1206.0,
-              "sugarsG": null
-            },
-            "sourceTier": "FOODCOM_DERIVED",
-            "fullyKnown": true,
-            "unknownNutrients": []
-          }
-        },
-        {
-          "configurationId": "C_MAIN_STAPLE__FC_110546__USDA_2707598#LOWER_CARB",
-          "preset": "LOWER_CARB",
-          "portions": [
-            {
-              "dishId": "FC_110546",
-              "portionId": "FC_110546:1.25xSERVING",
-              "quantity": 1.25,
-              "unit": "SERVING",
-              "grams": null
-            },
-            {
-              "dishId": "USDA_2707598",
-              "portionId": "USDA_2707598:1xSLICE",
-              "quantity": 1.0,
-              "unit": "SLICE",
-              "grams": 28.0
-            }
-          ],
-          "nutrition": {
-            "totals": {
-              "energyKcal": 479.51,
-              "fatG": 3.443,
-              "saturatedFatG": 0.73,
-              "carbohydrateG": 88.776,
-              "proteinG": 25.765,
-              "sodiumMg": 1026.0,
               "sugarsG": null
             },
             "sourceTier": "FOODCOM_DERIVED",
@@ -66450,40 +64782,6 @@
           }
         },
         {
-          "configurationId": "C_MAIN_STAPLE__FC_34110__USDA_169737#HIGHER_PROTEIN",
-          "preset": "HIGHER_PROTEIN",
-          "portions": [
-            {
-              "dishId": "FC_34110",
-              "portionId": "FC_34110:1.5xSERVING",
-              "quantity": 1.5,
-              "unit": "SERVING",
-              "grams": null
-            },
-            {
-              "dishId": "USDA_169737",
-              "portionId": "USDA_169737:0.75xCUP",
-              "quantity": 0.75,
-              "unit": "CUP",
-              "grams": 93.0
-            }
-          ],
-          "nutrition": {
-            "totals": {
-              "energyKcal": 296.79,
-              "fatG": 11.59,
-              "saturatedFatG": 4.364,
-              "carbohydrateG": 37.7,
-              "proteinG": 9.894,
-              "sodiumMg": 108.93,
-              "sugarsG": null
-            },
-            "sourceTier": "FOODCOM_DERIVED",
-            "fullyKnown": true,
-            "unknownNutrients": []
-          }
-        },
-        {
           "configurationId": "C_MAIN_STAPLE__FC_34110__USDA_169737#LOWER_CARB",
           "preset": "LOWER_CARB",
           "portions": [
@@ -66641,40 +64939,6 @@
               "carbohydrateG": 33.552,
               "proteinG": 8.281,
               "sodiumMg": 324.0,
-              "sugarsG": null
-            },
-            "sourceTier": "FOODCOM_DERIVED",
-            "fullyKnown": true,
-            "unknownNutrients": []
-          }
-        },
-        {
-          "configurationId": "C_MAIN_STAPLE__FC_34110__USDA_2707598#HIGHER_PROTEIN",
-          "preset": "HIGHER_PROTEIN",
-          "portions": [
-            {
-              "dishId": "FC_34110",
-              "portionId": "FC_34110:1.5xSERVING",
-              "quantity": 1.5,
-              "unit": "SERVING",
-              "grams": null
-            },
-            {
-              "dishId": "USDA_2707598",
-              "portionId": "USDA_2707598:1xSLICE",
-              "quantity": 1.0,
-              "unit": "SLICE",
-              "grams": 28.0
-            }
-          ],
-          "nutrition": {
-            "totals": {
-              "energyKcal": 224.61,
-              "fatG": 11.73,
-              "saturatedFatG": 4.43,
-              "carbohydrateG": 22.776,
-              "proteinG": 7.14,
-              "sodiumMg": 234.0,
               "sugarsG": null
             },
             "sourceTier": "FOODCOM_DERIVED",
@@ -66849,40 +65113,6 @@
           }
         },
         {
-          "configurationId": "C_MAIN_STAPLE__FC_350340__USDA_169757#LOWER_CARB",
-          "preset": "LOWER_CARB",
-          "portions": [
-            {
-              "dishId": "FC_350340",
-              "portionId": "FC_350340:1.25xSERVING",
-              "quantity": 1.25,
-              "unit": "SERVING",
-              "grams": null
-            },
-            {
-              "dishId": "USDA_169757",
-              "portionId": "USDA_169757:0.5xCUP",
-              "quantity": 0.5,
-              "unit": "CUP",
-              "grams": 79.0
-            }
-          ],
-          "nutrition": {
-            "totals": {
-              "energyKcal": 1189.45,
-              "fatG": 22.159,
-              "saturatedFatG": 3.311,
-              "carbohydrateG": 224.754,
-              "proteinG": 29.0,
-              "sodiumMg": 90.79,
-              "sugarsG": null
-            },
-            "sourceTier": "FOODCOM_DERIVED",
-            "fullyKnown": true,
-            "unknownNutrients": []
-          }
-        },
-        {
           "configurationId": "C_MAIN_STAPLE__FC_350340__USDA_169757#HIGHER_ENERGY",
           "preset": "HIGHER_ENERGY",
           "portions": [
@@ -67041,40 +65271,6 @@
               "carbohydrateG": 261.452,
               "proteinG": 35.39,
               "sodiumMg": 227.2,
-              "sugarsG": null
-            },
-            "sourceTier": "FOODCOM_DERIVED",
-            "fullyKnown": true,
-            "unknownNutrients": []
-          }
-        },
-        {
-          "configurationId": "C_MAIN_STAPLE__FC_350340__USDA_2707713#LOWER_CARB",
-          "preset": "LOWER_CARB",
-          "portions": [
-            {
-              "dishId": "FC_350340",
-              "portionId": "FC_350340:1.25xSERVING",
-              "quantity": 1.25,
-              "unit": "SERVING",
-              "grams": null
-            },
-            {
-              "dishId": "USDA_2707713",
-              "portionId": "USDA_2707713:1xPIECE",
-              "quantity": 1.0,
-              "unit": "PIECE",
-              "grams": 40.0
-            }
-          ],
-          "nutrition": {
-            "totals": {
-              "energyKcal": 1206.35,
-              "fatG": 25.618,
-              "saturatedFatG": 4.574,
-              "carbohydrateG": 220.952,
-              "proteinG": 30.015,
-              "sodiumMg": 209.2,
               "sugarsG": null
             },
             "sourceTier": "FOODCOM_DERIVED",
@@ -69835,40 +68031,6 @@
           }
         },
         {
-          "configurationId": "C_MAIN_STAPLE__FC_418843__USDA_2707713#LOWER_CARB",
-          "preset": "LOWER_CARB",
-          "portions": [
-            {
-              "dishId": "FC_418843",
-              "portionId": "FC_418843:1.25xSERVING",
-              "quantity": 1.25,
-              "unit": "SERVING",
-              "grams": null
-            },
-            {
-              "dishId": "USDA_2707713",
-              "portionId": "USDA_2707713:1xPIECE",
-              "quantity": 1.0,
-              "unit": "PIECE",
-              "grams": 40.0
-            }
-          ],
-          "nutrition": {
-            "totals": {
-              "energyKcal": 715.35,
-              "fatG": 17.492,
-              "saturatedFatG": 3.074,
-              "carbohydrateG": 115.952,
-              "proteinG": 24.39,
-              "sodiumMg": 1229.2,
-              "sugarsG": null
-            },
-            "sourceTier": "FOODCOM_DERIVED",
-            "fullyKnown": true,
-            "unknownNutrients": []
-          }
-        },
-        {
           "configurationId": "C_MAIN_STAPLE__FC_418843__USDA_2707713#HIGHER_ENERGY",
           "preset": "HIGHER_ENERGY",
           "portions": [
@@ -71793,40 +69955,6 @@
           }
         },
         {
-          "configurationId": "C_MAIN_STAPLE__FC_49387__USDA_2707709#HIGHER_PROTEIN",
-          "preset": "HIGHER_PROTEIN",
-          "portions": [
-            {
-              "dishId": "FC_49387",
-              "portionId": "FC_49387:1.5xSERVING",
-              "quantity": 1.5,
-              "unit": "SERVING",
-              "grams": null
-            },
-            {
-              "dishId": "USDA_2707709",
-              "portionId": "USDA_2707709:1xSLICE",
-              "quantity": 1.0,
-              "unit": "SLICE",
-              "grams": 36.0
-            }
-          ],
-          "nutrition": {
-            "totals": {
-              "energyKcal": 274.44,
-              "fatG": 7.128,
-              "saturatedFatG": 2.664,
-              "carbohydrateG": 38.016,
-              "proteinG": 12.678,
-              "sodiumMg": 802.8,
-              "sugarsG": null
-            },
-            "sourceTier": "FOODCOM_DERIVED",
-            "fullyKnown": true,
-            "unknownNutrients": []
-          }
-        },
-        {
           "configurationId": "C_MAIN_STAPLE__FC_49387__USDA_2707709#LOWER_CARB",
           "preset": "LOWER_CARB",
           "portions": [
@@ -72018,40 +70146,6 @@
               "carbohydrateG": 99.276,
               "proteinG": 22.89,
               "sodiumMg": 1782.0,
-              "sugarsG": null
-            },
-            "sourceTier": "FOODCOM_DERIVED",
-            "fullyKnown": true,
-            "unknownNutrients": []
-          }
-        },
-        {
-          "configurationId": "C_MAIN_STAPLE__FC_51140__USDA_2707598#LOWER_CARB",
-          "preset": "LOWER_CARB",
-          "portions": [
-            {
-              "dishId": "FC_51140",
-              "portionId": "FC_51140:1.25xSERVING",
-              "quantity": 1.25,
-              "unit": "SERVING",
-              "grams": null
-            },
-            {
-              "dishId": "USDA_2707598",
-              "portionId": "USDA_2707598:1xSLICE",
-              "quantity": 1.0,
-              "unit": "SLICE",
-              "grams": 28.0
-            }
-          ],
-          "nutrition": {
-            "totals": {
-              "energyKcal": 442.01,
-              "fatG": 4.255,
-              "saturatedFatG": 0.73,
-              "carbohydrateG": 85.026,
-              "proteinG": 19.515,
-              "sodiumMg": 1506.0,
               "sugarsG": null
             },
             "sourceTier": "FOODCOM_DERIVED",
@@ -73186,40 +71280,6 @@
           }
         },
         {
-          "configurationId": "C_MAIN_STAPLE__FC_54715__USDA_169704#HIGHER_PROTEIN",
-          "preset": "HIGHER_PROTEIN",
-          "portions": [
-            {
-              "dishId": "FC_54715",
-              "portionId": "FC_54715:1.5xSERVING",
-              "quantity": 1.5,
-              "unit": "SERVING",
-              "grams": null
-            },
-            {
-              "dishId": "USDA_169704",
-              "portionId": "USDA_169704:0.75xCUP",
-              "quantity": 0.75,
-              "unit": "CUP",
-              "grams": 151.5
-            }
-          ],
-          "nutrition": {
-            "totals": {
-              "energyKcal": 329.895,
-              "fatG": 1.47,
-              "saturatedFatG": 0.394,
-              "carbohydrateG": 70.254,
-              "proteinG": 6.401,
-              "sodiumMg": 1086.06,
-              "sugarsG": null
-            },
-            "sourceTier": "FOODCOM_DERIVED",
-            "fullyKnown": true,
-            "unknownNutrients": []
-          }
-        },
-        {
           "configurationId": "C_MAIN_STAPLE__FC_54715__USDA_169704#LOWER_CARB",
           "preset": "LOWER_CARB",
           "portions": [
@@ -73377,40 +71437,6 @@
               "carbohydrateG": 65.509,
               "proteinG": 5.75,
               "sodiumMg": 721.58,
-              "sugarsG": null
-            },
-            "sourceTier": "FOODCOM_DERIVED",
-            "fullyKnown": true,
-            "unknownNutrients": []
-          }
-        },
-        {
-          "configurationId": "C_MAIN_STAPLE__FC_54715__USDA_169757#HIGHER_PROTEIN",
-          "preset": "HIGHER_PROTEIN",
-          "portions": [
-            {
-              "dishId": "FC_54715",
-              "portionId": "FC_54715:1.5xSERVING",
-              "quantity": 1.5,
-              "unit": "SERVING",
-              "grams": null
-            },
-            {
-              "dishId": "USDA_169757",
-              "portionId": "USDA_169757:0.75xCUP",
-              "quantity": 0.75,
-              "unit": "CUP",
-              "grams": 118.5
-            }
-          ],
-          "nutrition": {
-            "totals": {
-              "energyKcal": 297.6,
-              "fatG": 0.332,
-              "saturatedFatG": 0.091,
-              "carbohydrateG": 64.881,
-              "proteinG": 5.438,
-              "sodiumMg": 1081.185,
               "sugarsG": null
             },
             "sourceTier": "FOODCOM_DERIVED",
@@ -74380,40 +72406,6 @@
           }
         },
         {
-          "configurationId": "C_MAIN_STAPLE__FC_63786__USDA_2707823#HIGHER_PROTEIN",
-          "preset": "HIGHER_PROTEIN",
-          "portions": [
-            {
-              "dishId": "FC_63786",
-              "portionId": "FC_63786:1.5xSERVING",
-              "quantity": 1.5,
-              "unit": "SERVING",
-              "grams": null
-            },
-            {
-              "dishId": "USDA_2707823",
-              "portionId": "USDA_2707823:2xPIECE",
-              "quantity": 2.0,
-              "unit": "PIECE",
-              "grams": 56.0
-            }
-          ],
-          "nutrition": {
-            "totals": {
-              "energyKcal": 327.88,
-              "fatG": 9.396,
-              "saturatedFatG": 1.754,
-              "carbohydrateG": 51.998,
-              "proteinG": 6.942,
-              "sodiumMg": 529.2,
-              "sugarsG": null
-            },
-            "sourceTier": "FOODCOM_DERIVED",
-            "fullyKnown": true,
-            "unknownNutrients": []
-          }
-        },
-        {
           "configurationId": "C_MAIN_STAPLE__FC_63786__USDA_2707823#LOWER_CARB",
           "preset": "LOWER_CARB",
           "portions": [
@@ -74571,40 +72563,6 @@
               "carbohydrateG": 62.442,
               "proteinG": 9.88,
               "sodiumMg": 966.0,
-              "sugarsG": null
-            },
-            "sourceTier": "FOODCOM_DERIVED",
-            "fullyKnown": true,
-            "unknownNutrients": []
-          }
-        },
-        {
-          "configurationId": "C_MAIN_STAPLE__FC_63786__USDA_2707824#HIGHER_PROTEIN",
-          "preset": "HIGHER_PROTEIN",
-          "portions": [
-            {
-              "dishId": "FC_63786",
-              "portionId": "FC_63786:1.5xSERVING",
-              "quantity": 1.5,
-              "unit": "SERVING",
-              "grams": null
-            },
-            {
-              "dishId": "USDA_2707824",
-              "portionId": "USDA_2707824:1xPIECE",
-              "quantity": 1.0,
-              "unit": "PIECE",
-              "grams": 45.0
-            }
-          ],
-          "nutrition": {
-            "totals": {
-              "energyKcal": 343.5,
-              "fatG": 11.396,
-              "saturatedFatG": 2.816,
-              "carbohydrateG": 49.221,
-              "proteinG": 7.44,
-              "sodiumMg": 819.0,
               "sugarsG": null
             },
             "sourceTier": "FOODCOM_DERIVED",
@@ -76370,40 +74328,6 @@
           }
         },
         {
-          "configurationId": "C_MAIN_STAPLE__FC_8595__USDA_2707823#HIGHER_PROTEIN",
-          "preset": "HIGHER_PROTEIN",
-          "portions": [
-            {
-              "dishId": "FC_8595",
-              "portionId": "FC_8595:1.5xSERVING",
-              "quantity": 1.5,
-              "unit": "SERVING",
-              "grams": null
-            },
-            {
-              "dishId": "USDA_2707823",
-              "portionId": "USDA_2707823:2xPIECE",
-              "quantity": 2.0,
-              "unit": "PIECE",
-              "grams": 56.0
-            }
-          ],
-          "nutrition": {
-            "totals": {
-              "energyKcal": 320.68,
-              "fatG": 16.221,
-              "saturatedFatG": 2.354,
-              "carbohydrateG": 38.498,
-              "proteinG": 5.442,
-              "sodiumMg": 1321.2,
-              "sugarsG": null
-            },
-            "sourceTier": "FOODCOM_DERIVED",
-            "fullyKnown": true,
-            "unknownNutrients": []
-          }
-        },
-        {
           "configurationId": "C_MAIN_STAPLE__FC_8595__USDA_2707823#LOWER_CARB",
           "preset": "LOWER_CARB",
           "portions": [
@@ -76561,40 +74485,6 @@
               "carbohydrateG": 53.442,
               "proteinG": 8.88,
               "sodiumMg": 1494.0,
-              "sugarsG": null
-            },
-            "sourceTier": "FOODCOM_DERIVED",
-            "fullyKnown": true,
-            "unknownNutrients": []
-          }
-        },
-        {
-          "configurationId": "C_MAIN_STAPLE__FC_8595__USDA_2707824#HIGHER_PROTEIN",
-          "preset": "HIGHER_PROTEIN",
-          "portions": [
-            {
-              "dishId": "FC_8595",
-              "portionId": "FC_8595:1.5xSERVING",
-              "quantity": 1.5,
-              "unit": "SERVING",
-              "grams": null
-            },
-            {
-              "dishId": "USDA_2707824",
-              "portionId": "USDA_2707824:1xPIECE",
-              "quantity": 1.0,
-              "unit": "PIECE",
-              "grams": 45.0
-            }
-          ],
-          "nutrition": {
-            "totals": {
-              "energyKcal": 336.3,
-              "fatG": 18.221,
-              "saturatedFatG": 3.416,
-              "carbohydrateG": 35.721,
-              "proteinG": 5.94,
-              "sodiumMg": 1611.0,
               "sugarsG": null
             },
             "sourceTier": "FOODCOM_DERIVED",
@@ -77200,40 +75090,6 @@
           }
         },
         {
-          "configurationId": "C_MAIN_STAPLE__FC_8701__USDA_170440#LOWER_CARB",
-          "preset": "LOWER_CARB",
-          "portions": [
-            {
-              "dishId": "FC_8701",
-              "portionId": "FC_8701:1.25xSERVING",
-              "quantity": 1.25,
-              "unit": "SERVING",
-              "grams": null
-            },
-            {
-              "dishId": "USDA_170440",
-              "portionId": "USDA_170440:0.5xPIECE",
-              "quantity": 0.5,
-              "unit": "PIECE",
-              "grams": 83.5
-            }
-          ],
-          "nutrition": {
-            "totals": {
-              "energyKcal": 1628.185,
-              "fatG": 69.959,
-              "saturatedFatG": 24.522,
-              "carbohydrateG": 170.458,
-              "proteinG": 83.303,
-              "sodiumMg": 1384.175,
-              "sugarsG": null
-            },
-            "sourceTier": "FOODCOM_DERIVED",
-            "fullyKnown": true,
-            "unknownNutrients": []
-          }
-        },
-        {
           "configurationId": "C_MAIN_STAPLE__FC_8701__USDA_170440#HIGHER_ENERGY",
           "preset": "HIGHER_ENERGY",
           "portions": [
@@ -77391,40 +75247,6 @@
               "carbohydrateG": 198.276,
               "proteinG": 100.89,
               "sodiumMg": 1782.0,
-              "sugarsG": null
-            },
-            "sourceTier": "FOODCOM_DERIVED",
-            "fullyKnown": true,
-            "unknownNutrients": []
-          }
-        },
-        {
-          "configurationId": "C_MAIN_STAPLE__FC_8701__USDA_2707598#LOWER_CARB",
-          "preset": "LOWER_CARB",
-          "portions": [
-            {
-              "dishId": "FC_8701",
-              "portionId": "FC_8701:1.25xSERVING",
-              "quantity": 1.25,
-              "unit": "SERVING",
-              "grams": null
-            },
-            {
-              "dishId": "USDA_2707598",
-              "portionId": "USDA_2707598:1xSLICE",
-              "quantity": 1.0,
-              "unit": "SLICE",
-              "grams": 28.0
-            }
-          ],
-          "nutrition": {
-            "totals": {
-              "energyKcal": 1631.135,
-              "fatG": 70.88,
-              "saturatedFatG": 24.73,
-              "carbohydrateG": 167.526,
-              "proteinG": 84.515,
-              "sodiumMg": 1506.0,
               "sugarsG": null
             },
             "sourceTier": "FOODCOM_DERIVED",
@@ -81837,56 +79659,6 @@
       ]
     },
     {
-      "combinationId": "C_ONE_DISH__FC_172461",
-      "templateId": "ONE_DISH",
-      "mealTypes": [
-        "LUNCH",
-        "DINNER"
-      ],
-      "cuisines": [
-        "Italian"
-      ],
-      "components": [
-        {
-          "slot": "COMPLETE",
-          "dishId": "FC_172461",
-          "role": "MAIN_DISH"
-        }
-      ],
-      "configurations": [
-        {
-          "configurationId": "C_ONE_DISH__FC_172461#HIGHER_ENERGY",
-          "preset": "HIGHER_ENERGY",
-          "portions": [
-            {
-              "dishId": "FC_172461",
-              "portionId": "FC_172461:1.5xSERVING",
-              "quantity": 1.5,
-              "unit": "SERVING",
-              "grams": null
-            }
-          ],
-          "nutrition": {
-            "totals": {
-              "energyKcal": 154.95,
-              "fatG": 7.8,
-              "saturatedFatG": 1.5,
-              "carbohydrateG": 13.5,
-              "proteinG": 5.25,
-              "sodiumMg": 540.0,
-              "sugarsG": null
-            },
-            "sourceTier": "FOODCOM_DERIVED",
-            "fullyKnown": true,
-            "unknownNutrients": []
-          }
-        }
-      ],
-      "evidence": [
-        "template ONE_DISH: a complete dish such as biryani, momo or pad thai stands alone"
-      ]
-    },
-    {
       "combinationId": "C_ONE_DISH__FC_172775",
       "templateId": "ONE_DISH",
       "mealTypes": [
@@ -82005,83 +79777,6 @@
               "carbohydrateG": 126.0,
               "proteinG": 15.75,
               "sodiumMg": 2700.0,
-              "sugarsG": null
-            },
-            "sourceTier": "FOODCOM_DERIVED",
-            "fullyKnown": true,
-            "unknownNutrients": []
-          }
-        }
-      ],
-      "evidence": [
-        "template ONE_DISH: a complete dish such as biryani, momo or pad thai stands alone"
-      ]
-    },
-    {
-      "combinationId": "C_ONE_DISH__FC_17382",
-      "templateId": "ONE_DISH",
-      "mealTypes": [
-        "LUNCH",
-        "DINNER"
-      ],
-      "cuisines": [
-        "Indian"
-      ],
-      "components": [
-        {
-          "slot": "COMPLETE",
-          "dishId": "FC_17382",
-          "role": "MAIN_DISH"
-        }
-      ],
-      "configurations": [
-        {
-          "configurationId": "C_ONE_DISH__FC_17382#HIGHER_PROTEIN",
-          "preset": "HIGHER_PROTEIN",
-          "portions": [
-            {
-              "dishId": "FC_17382",
-              "portionId": "FC_17382:1.25xSERVING",
-              "quantity": 1.25,
-              "unit": "SERVING",
-              "grams": null
-            }
-          ],
-          "nutrition": {
-            "totals": {
-              "energyKcal": 168.125,
-              "fatG": 4.875,
-              "saturatedFatG": 0.5,
-              "carbohydrateG": 26.25,
-              "proteinG": 5.0,
-              "sodiumMg": 780.0,
-              "sugarsG": null
-            },
-            "sourceTier": "FOODCOM_DERIVED",
-            "fullyKnown": true,
-            "unknownNutrients": []
-          }
-        },
-        {
-          "configurationId": "C_ONE_DISH__FC_17382#HIGHER_ENERGY",
-          "preset": "HIGHER_ENERGY",
-          "portions": [
-            {
-              "dishId": "FC_17382",
-              "portionId": "FC_17382:1.5xSERVING",
-              "quantity": 1.5,
-              "unit": "SERVING",
-              "grams": null
-            }
-          ],
-          "nutrition": {
-            "totals": {
-              "energyKcal": 201.75,
-              "fatG": 5.85,
-              "saturatedFatG": 0.6,
-              "carbohydrateG": 31.5,
-              "proteinG": 6.0,
-              "sodiumMg": 936.0,
               "sugarsG": null
             },
             "sourceTier": "FOODCOM_DERIVED",
@@ -83147,56 +80842,6 @@
       ]
     },
     {
-      "combinationId": "C_ONE_DISH__FC_25625",
-      "templateId": "ONE_DISH",
-      "mealTypes": [
-        "LUNCH",
-        "DINNER"
-      ],
-      "cuisines": [
-        "American"
-      ],
-      "components": [
-        {
-          "slot": "COMPLETE",
-          "dishId": "FC_25625",
-          "role": "MAIN_DISH"
-        }
-      ],
-      "configurations": [
-        {
-          "configurationId": "C_ONE_DISH__FC_25625#HIGHER_ENERGY",
-          "preset": "HIGHER_ENERGY",
-          "portions": [
-            {
-              "dishId": "FC_25625",
-              "portionId": "FC_25625:1.5xSERVING",
-              "quantity": 1.5,
-              "unit": "SERVING",
-              "grams": null
-            }
-          ],
-          "nutrition": {
-            "totals": {
-              "energyKcal": 174.75,
-              "fatG": 2.925,
-              "saturatedFatG": 0.9,
-              "carbohydrateG": 27.0,
-              "proteinG": 5.25,
-              "sodiumMg": 288.0,
-              "sugarsG": null
-            },
-            "sourceTier": "FOODCOM_DERIVED",
-            "fullyKnown": true,
-            "unknownNutrients": []
-          }
-        }
-      ],
-      "evidence": [
-        "template ONE_DISH: a complete dish such as biryani, momo or pad thai stands alone"
-      ]
-    },
-    {
       "combinationId": "C_ONE_DISH__FC_27208",
       "templateId": "ONE_DISH",
       "mealTypes": [
@@ -83261,33 +80906,6 @@
               "carbohydrateG": 0.0,
               "proteinG": 61.875,
               "sodiumMg": 450.0,
-              "sugarsG": null
-            },
-            "sourceTier": "FOODCOM_DERIVED",
-            "fullyKnown": true,
-            "unknownNutrients": []
-          }
-        },
-        {
-          "configurationId": "C_ONE_DISH__FC_27208#LOWER_CARB",
-          "preset": "LOWER_CARB",
-          "portions": [
-            {
-              "dishId": "FC_27208",
-              "portionId": "FC_27208:0.75xSERVING",
-              "quantity": 0.75,
-              "unit": "SERVING",
-              "grams": null
-            }
-          ],
-          "nutrition": {
-            "totals": {
-              "energyKcal": 221.4,
-              "fatG": 6.825,
-              "saturatedFatG": 2.85,
-              "carbohydrateG": 0.0,
-              "proteinG": 37.125,
-              "sodiumMg": 270.0,
               "sugarsG": null
             },
             "sourceTier": "FOODCOM_DERIVED",
@@ -85914,83 +83532,6 @@
               "carbohydrateG": 85.5,
               "proteinG": 38.25,
               "sodiumMg": 2016.0,
-              "sugarsG": null
-            },
-            "sourceTier": "FOODCOM_DERIVED",
-            "fullyKnown": true,
-            "unknownNutrients": []
-          }
-        }
-      ],
-      "evidence": [
-        "template ONE_DISH: a complete dish such as biryani, momo or pad thai stands alone"
-      ]
-    },
-    {
-      "combinationId": "C_ONE_DISH__FC_81096",
-      "templateId": "ONE_DISH",
-      "mealTypes": [
-        "LUNCH",
-        "DINNER"
-      ],
-      "cuisines": [
-        "Chinese"
-      ],
-      "components": [
-        {
-          "slot": "COMPLETE",
-          "dishId": "FC_81096",
-          "role": "MAIN_DISH"
-        }
-      ],
-      "configurations": [
-        {
-          "configurationId": "C_ONE_DISH__FC_81096#HIGHER_PROTEIN",
-          "preset": "HIGHER_PROTEIN",
-          "portions": [
-            {
-              "dishId": "FC_81096",
-              "portionId": "FC_81096:1.25xSERVING",
-              "quantity": 1.25,
-              "unit": "SERVING",
-              "grams": null
-            }
-          ],
-          "nutrition": {
-            "totals": {
-              "energyKcal": 186.625,
-              "fatG": 5.688,
-              "saturatedFatG": 2.0,
-              "carbohydrateG": 7.5,
-              "proteinG": 23.75,
-              "sodiumMg": 1110.0,
-              "sugarsG": null
-            },
-            "sourceTier": "FOODCOM_DERIVED",
-            "fullyKnown": true,
-            "unknownNutrients": []
-          }
-        },
-        {
-          "configurationId": "C_ONE_DISH__FC_81096#HIGHER_ENERGY",
-          "preset": "HIGHER_ENERGY",
-          "portions": [
-            {
-              "dishId": "FC_81096",
-              "portionId": "FC_81096:1.5xSERVING",
-              "quantity": 1.5,
-              "unit": "SERVING",
-              "grams": null
-            }
-          ],
-          "nutrition": {
-            "totals": {
-              "energyKcal": 223.95,
-              "fatG": 6.825,
-              "saturatedFatG": 2.4,
-              "carbohydrateG": 9.0,
-              "proteinG": 28.5,
-              "sodiumMg": 1332.0,
               "sugarsG": null
             },
             "sourceTier": "FOODCOM_DERIVED",

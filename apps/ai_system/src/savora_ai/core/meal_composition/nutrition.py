@@ -13,6 +13,8 @@ For every portion configuration of every combination:
    the rounded portion vectors) and must agree; it must also be known and fall in a
    plausible meal range. A failing configuration is dropped with its reason; a
    combination left with none is rejected, never passed on half-checked.
+5. Preset intent. A non-STANDARD preset must do what its name says against STANDARD
+   (PRESET_INTENT); otherwise it is dropped (PRESET_INTENT_NOT_MET).
 """
 
 from collections import Counter
@@ -25,7 +27,7 @@ from savora_ai.core.meal_composition.models import (
     MealCombination,
     PortionConfiguration,
 )
-from savora_ai.schemas.enums import NutritionBasis, NutritionSource
+from savora_ai.schemas.enums import NutritionBasis, NutritionSource, PortionPreset
 
 # PROVISIONAL trust order, weakest first (ADR 0003 open item; Member 2 decides its use).
 # FOODCOM_DERIVED is converted from %DV with an assumed sodium/saturated-fat table.
@@ -130,6 +132,37 @@ def check_configuration(
     )
 
 
+# What each preset must actually achieve against STANDARD (nutrient, direction). A preset
+# is a rule of thumb (more main, less staple...), so its label is checked, not assumed:
+# e.g. LOWER_CARB on "aloo dum + rice" grew the potato curry more than it cut the rice.
+PRESET_INTENT: dict[PortionPreset, tuple[str, int]] = {
+    PortionPreset.HIGHER_PROTEIN: ("protein_g", +1),
+    PortionPreset.LOWER_CARB: ("carbohydrate_g", -1),
+    PortionPreset.HIGHER_ENERGY: ("energy_kcal", +1),
+    PortionPreset.LOWER_ENERGY: ("energy_kcal", -1),
+}
+
+
+def intent_problem(
+    configuration: PortionConfiguration, standard: PortionConfiguration | None
+) -> Problem | None:
+    """None if the preset does what its name says compared with STANDARD."""
+    if configuration.preset is PortionPreset.STANDARD:
+        return None
+    if standard is None or standard.nutrition is None or configuration.nutrition is None:
+        return Problem("PRESET_INTENT_UNVERIFIED", "no valid STANDARD to compare against")
+    nutrient, direction = PRESET_INTENT[configuration.preset]
+    mine = getattr(configuration.nutrition.totals, nutrient)
+    base = getattr(standard.nutrition.totals, nutrient)
+    if mine is None or base is None:
+        return Problem("PRESET_INTENT_UNVERIFIED", f"{nutrient} is unknown")
+    if (mine - base) * direction <= 0:
+        verb = "more" if direction > 0 else "less"
+        message = f"needs {verb} {nutrient} than STANDARD ({base:g}) but has {mine:g}"
+        return Problem("PRESET_INTENT_NOT_MET", message)
+    return None
+
+
 @dataclass(frozen=True)
 class ValidationResult:
     combinations: tuple[MealCombination, ...]
@@ -164,6 +197,17 @@ def validate_combinations(
                 problem_counts.update(p.code for p in checked.problems)
             else:
                 valid.append(checked.configuration)
+        standard = next((c for c in valid if c.preset is PortionPreset.STANDARD), None)
+        honest: list[PortionConfiguration] = []
+        for configuration in valid:
+            problem = intent_problem(configuration, standard)
+            if problem is None:
+                honest.append(configuration)
+            else:
+                dropped_configurations += 1
+                problems.append(f"{configuration.preset} {problem.code}: {problem.message}")
+                problem_counts[problem.code] += 1
+        valid = honest
         if valid:
             kept.append(
                 MealCombination.model_validate(
