@@ -115,14 +115,14 @@ strong inside it. The hybrid matches it, within the interval [-2.6, +0.9] points
 
 ## 7. Meal scoring (ADR 0004 D6)
 
-Proxy: the rank, among all 475 meals, of the best meal that contains the user's actual
-next recipe (228 cases).
+Proxy: the rank, among all 465 meals, of the best meal that contains the user's actual
+next recipe (227 cases; recomputed on the 465-meal export after the preset-intent check).
 
 | Aggregation | HR@10 | NDCG@10 | MRR |
 |---|---|---|---|
-| ANCHOR (shipped) | 51.3% | 0.276 | 0.221 |
-| MEAN of dishes | 51.3% | 0.274 | 0.223 |
-| popularity of anchor | 51.8% | 0.275 | 0.218 |
+| ANCHOR (shipped) | 51.5% | 0.278 | 0.222 |
+| MEAN of dishes | 51.5% | 0.275 | 0.224 |
+| popularity of anchor | 52.0% | 0.276 | 0.219 |
 
 There is no practical difference, so the simpler, explainable ANCHOR rule stays. No
 combination-level ground truth exists, so this is a sanity check, not a validation.

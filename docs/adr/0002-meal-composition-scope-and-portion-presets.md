@@ -81,7 +81,7 @@ composer serves planned meals and planned substitutions.
 - **Caps** (`CompositionLimits`): 2 staples per main, 1 vegetable side per main and staple,
   2 add-ons per breakfast base, chosen by a seeded hash; exceeding 600 meals per meal type
   is an error, never a silent cut.
-- **Result:** 475 meals (breakfast 179, lunch and dinner 300 each), 2,101 configurations
+- **Result:** 465 meals (breakfast 169, lunch and dinner 296 each), 2,036 configurations
   after validation (ADR 0003 D4).
 
 ## Consequences

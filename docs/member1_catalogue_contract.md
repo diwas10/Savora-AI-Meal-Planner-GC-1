@@ -18,7 +18,7 @@ which sorts chronologically as text):
 | File | Content | Size (current) |
 |---|---|---|
 | `Data/catalogue/<v>_catalogue.json` | 186 dishes: 164 Food.com recipes and 22 USDA staples, with portions and nutrition | 0.7 MB |
-| `Data/catalogue/<v>_combinations.json` | 475 validated meals of 1 to 3 dishes, 2,101 portion configurations | 2.5 MB |
+| `Data/catalogue/<v>_combinations.json` | 465 validated meals of 1 to 3 dishes, 2,036 portion configurations | 2.5 MB |
 | `Data/catalogue/<v>_build_report.json` | counts, strata, composition, validation and coverage | 15 KB |
 
 `<v>_combinations.json` carries `catalogueContentSha256`, the SHA-256 of the canonical
@@ -165,7 +165,7 @@ Gaps found while integrating, for Member 2:
    May a `PARTIAL` meal pass one?
 3. **Venkat:** integer rounding policy for `FixedMealMeasurement` (half-up to 1 kcal,
    1 mg, 0.1 g scaled?) and the trust order of `SOURCE_TRUST`.
-4. **Venkat:** solver time on 475 meals and about 4.4 configurations each. That sets
+4. **Venkat:** solver time on 465 meals and about 4.4 configurations each. That sets
    `CompositionLimits` and the quota of 10 per stratum.
 5. **Team:** under a STRICT cuisine policy, may breakfast use cuisine-neutral dishes?
    No Nepali breakfast exists in Food.com.

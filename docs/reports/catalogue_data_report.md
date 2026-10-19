@@ -1,6 +1,6 @@
 # Catalogue data report (Member 1)
 
-- **Export:** `Data/catalogue/20261018T192730Z_*` (catalogue, combinations, build report)
+- **Export:** `Data/catalogue/20261019T012206Z_*` (catalogue, combinations, build report)
 - **Rebuild:** `uv run python -m savora_ai.core.food_data.build_catalogue --source
   Data/Food.com/RAW_recipes.csv`; `--check` confirms the committed export is current
   (it passed on this export).
@@ -11,7 +11,7 @@
 
 All numbers below come from that build report; nothing is estimated.
 
-## 1. The funnel: 231,637 raw rows to 475 meals
+## 1. The funnel: 231,637 raw rows to 465 meals
 
 | Stage | Count | What happens |
 |---|---|---|
@@ -25,8 +25,8 @@ All numbers below come from that build report; nothing is estimated.
 | + curated USDA staples | 22 | rice, roti, naan, noodles, fruit, egg... |
 | **Catalogue dishes** | **186** | |
 | Meals composed | 479 | 6 templates, bounded |
-| Meals rejected by nutrition validation | 4 | every preset outside 150-2,000 kcal |
-| **Exported meals** | **475** | 2,101 portion configurations |
+| Meals rejected by nutrition validation | 14 | no valid STANDARD preset (energy out of range), so no preset can be verified |
+| **Exported meals** | **465** | 2,036 portion configurations |
 
 Every row is accounted for: accepted + quarantined = raw; plannable + review + not
 planning = accepted (tests assert both).
@@ -42,7 +42,8 @@ planning = accepted (tests assert both).
 | USDA identity | `fdcId` description equals the curated expectation | 22 of 22 matched |
 | USDA portion | pinned `food_portion.csv` row belongs to the food | 22 of 22 matched |
 | Meal energy | recomputed from base records within 1 kcal; within 150 to 2,000 kcal | 59 configurations dropped |
-| Completeness | energy, fat, saturated fat, carbohydrate, protein, sodium known | 2,101 of 2,101 FULLY_KNOWN |
+| Preset intent | each preset beats STANDARD on its own nutrient (e.g. LOWER_CARB has less carbohydrate) | 50 not met, 15 unverifiable: dropped |
+| Completeness | energy, fat, saturated fat, carbohydrate, protein, sodium known | 2,036 of 2,036 FULLY_KNOWN |
 
 ## 3. Plannable dishes by role and class (106,343)
 
@@ -84,22 +85,22 @@ Nepali is short, and that is a data limit, not a quota choice:
 | main needing an accompaniment | 8 / 10 | 8 |
 | vegetable side | 0 / 4 | 0 (cuisine-neutral USDA vegetables fill this role) |
 
-## 5. Meals (475 exported)
+## 5. Meals (465 exported)
 
 | Template | Meals | | Meal type | Meals |
 |---|---|---|---|---|
-| MAIN_STAPLE | 122 | | BREAKFAST | 179 |
-| MAIN_STAPLE_VEGETABLE | 122 | | LUNCH | 300 |
-| BREAKFAST_FRUIT | 98 | | DINNER | 300 |
-| ONE_DISH | 56 | | | |
-| BREAKFAST | 49 | | | |
+| MAIN_STAPLE | 122 | | BREAKFAST | 169 |
+| MAIN_STAPLE_VEGETABLE | 122 | | LUNCH | 296 |
+| BREAKFAST_FRUIT | 95 | | DINNER | 296 |
+| ONE_DISH | 52 | | | |
+| BREAKFAST | 42 | | | |
 | BREAKFAST_PROTEIN | 32 | | | |
 
-Per cuisine: American 90, Chinese 89, Indian 88, Thai 88, Italian 87, Mexican 85,
+Per cuisine: American 88, Thai 88, Mexican 85, Chinese 84, Indian 84, Italian 84,
 Nepali 39. 20 breakfast add-ons were skipped because the base already contained them
-(whole-word match). Portion configurations: 2,101, about 4.4 per meal.
+(whole-word match). Portion configurations: 2,036, about 4.4 per meal.
 
-**Source tier:** all 2,101 configurations are `FOODCOM_DERIVED`, because every meal has a
+**Source tier:** all 2,036 configurations are `FOODCOM_DERIVED`, because every meal has a
 Food.com anchor dish. Whether that tier counts as known for hard clinical rules is open
 question Q2 for Member 2.
 
@@ -110,17 +111,17 @@ lunch/dinner anchors (7 and 14 slots, at most 2 repeats a week).
 
 | Scenario | Breakfast | Lunch/dinner | Enough for a week |
 |---|---|---|---|
-| mixed, no restriction | 49 | 117 | yes |
-| Indian vegetarian, strict | 7 | 13 | yes |
+| mixed, no restriction | 49 | 113 | yes |
+| Indian vegetarian, strict | 7 | 12 | yes |
 | Nepali, strict | **0** | 15 | **no** |
-| Indian or Nepali, explicit beef exclusion | 10 | 30 | yes |
+| Indian or Nepali, explicit beef exclusion | 10 | 29 | yes |
 | Thai, strict, peanut excluded | 6 | 8 | yes |
 | Chinese, strict, pork excluded | 9 | 17 | yes |
 | Mexican vegetarian, strict | 5 | 10 | yes |
-| vegan, mixed | 8 | 25 | yes |
+| vegan, mixed | 8 | 23 | yes |
 
 **7 of 8 sufficient.** The previous export reached 6 of 8; fixing the breakfast stratum
-rule (code review) added 30 breakfast meals and made the Thai peanut-free scenario
+rule (code review) added 30 breakfast meals before the preset-intent check removed 10 and made the Thai peanut-free scenario
 sufficient. Nepali breakfast stays empty: Food.com has no Nepali breakfast dishes.
 Whether a STRICT cuisine user may receive cuisine-neutral breakfasts is team question Q5.
 

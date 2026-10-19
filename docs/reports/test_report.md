@@ -13,17 +13,17 @@
 | Check | Local (with torch) | CI-equivalent (no torch) |
 |---|---|---|
 | `ruff check` | passed (`apps`) | passed (whole repository, as CI runs it) |
-| `ruff format --check apps` | 120 files formatted | - |
+| `ruff format --check apps` | 126 files formatted | - |
 | `pyright` | 0 errors | 0 errors |
 | AI boundary check (no backend, FastAPI or SQLAlchemy imports in `ai_system`) | - | passed |
-| **`pytest`, whole repository** | **3,885 passed** in 6 min 13 s | **3,874 passed, 5 skipped** in 6 min 5 s |
+| **`pytest`, whole repository** | **3,901 passed** in 6 min 14 s | **3,890 passed, 5 skipped** in 10 min 6 s |
 | `build_catalogue --check` (export is reproducible) | up to date | needs raw data (local only) |
 
 The 5 CI skips are exactly the torch-dependent test files and tests
 (`test_torch_model.py`, `test_trained_model.py`, 3 tests in
 `test_evaluation_runners.py`), skipped by `pytest.importorskip("torch")`.
 
-## 2. Member 1 test inventory (300 tests)
+## 2. Member 1 test inventory (316 tests)
 
 | Area | File | Tests | What it protects |
 |---|---|---|---|
@@ -36,7 +36,7 @@ The 5 CI skips are exactly the torch-dependent test files and tests
 | USDA staples | `test_usda_staples.py` | 15 | identity guard, portion pinning, unknown vs zero, stale extract, unsalted rice |
 | Cuisine tags | `test_foodcom_cuisines.py` | 23 | exact-tag cuisine mapping (EDA) |
 | Composition | `test_meal_composition.py` | 17 | templates, pairings, presets, bounds, overlaps, unsupported shapes |
-| Meal nutrition | `test_combination_nutrition.py` | 7 | unknown propagation, weakest tier, recomputation, energy range |
+| Meal nutrition | `test_combination_nutrition.py` | 9 | unknown propagation, weakest tier, recomputation, energy range, preset intent |
 | Coverage | `test_meal_coverage.py` | 5 | repetition maths, fail-closed proxy, exclusions |
 | Explanations | `test_explanations.py` | 10 | every stage explained, honest wording, craving not budget-checked |
 | Member 2 adapter | `test_member2_adapter_integration.py` | 4 | real export through Member 2's `solve_daily_plan`: feasible, tightest cap, infeasible |
@@ -45,8 +45,11 @@ The 5 CI skips are exactly the torch-dependent test files and tests
 | Model | `test_torch_model.py` | 5 | training, zero ID vector for unseen items, no NaN, save/load, shared protocol |
 | Shipped model | `test_trained_model.py` | 3 | safe loading, determinism, content neighbours |
 | Runners | `test_evaluation_runners.py` | 5 | `evaluate.run`, the experiment suite end to end, bootstrap, duplicate weights |
-| Nutrition targets | `test_nutrition_models.py`, `test_nutrition_targets.py` | 32 | Mifflin-St Jeor, bounds, adult input range |
+| Nutrition targets | `test_nutrition_models.py`, `test_nutrition_targets.py` | 34 | Mifflin-St Jeor, AMDR macros, protein RDA, adult input range |
 | Enums | `test_enums.py` | 31 | wire tokens pinned |
+| %DV verification | `test_dv_verification.py` | 5 | right table gives ratio 1.0; rounding and trace-nutrient skips; single-ingredient filter |
+| Shortlist | `test_shortlist.py` | 4 | 2 meals x 4 presets per slot, meal-type filter, Member 2 budgets |
+| Review sample | `test_review_export.py` | 3 | every total = sum of contributions; IDs; sugar unknown; never SYNTHETIC |
 
 ## 3. Coverage (Member 1 modules, Member 1 tests)
 

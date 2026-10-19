@@ -94,8 +94,13 @@ This is a formal acceptance test before the catalogue is handed to Member 2.
   portion vectors) and must agree within 1 kcal; it must be known and within 150 to
   2,000 kcal. A failing configuration is dropped with a coded reason; a meal with none
   left is rejected and listed in the export.
-- Result on the current build: 2,101 configurations kept, 59 dropped and 4 meals
-  rejected, all for ENERGY_OUT_OF_RANGE. Every kept configuration is FULLY_KNOWN, and
+- Preset intent (added 19 Oct 2026 after reviewing real vectors): each non-STANDARD preset
+  must beat STANDARD on its own nutrient (HIGHER_PROTEIN more protein, LOWER_CARB less
+  carbohydrate, HIGHER_ENERGY more and LOWER_ENERGY less energy), else
+  PRESET_INTENT_NOT_MET; with no valid STANDARD it is PRESET_INTENT_UNVERIFIED.
+- Result on the current build: 2,036 configurations kept, 124 dropped (59 energy out of
+  range, 50 intent not met, 15 intent unverified) and 14 meals
+  rejected (no valid STANDARD to verify against). Every kept configuration is FULLY_KNOWN, and
   **every one has source tier FOODCOM_DERIVED**, because every meal has a Food.com anchor
   dish. Open item 2 therefore decides whether any meal can pass a hard clinical rule.
 

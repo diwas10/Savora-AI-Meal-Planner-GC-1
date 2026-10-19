@@ -39,7 +39,7 @@ rebuilt and checked with `--check`:
 | | Before | After |
 |---|---|---|
 | Catalogue dishes | 182 | 186 |
-| Meals | 446 | 475 |
+| Meals | 446 | 475 (465 after the later preset-intent check) |
 | Breakfast meals | 149 | **179** |
 | Scenarios with enough meals for a week | 6 of 8 | **7 of 8** |
 

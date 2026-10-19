@@ -28,7 +28,7 @@ RAW_recipes.csv (231,637 rows)            RAW_interactions.csv (1.13 M reviews)
   [4] portions                                  [T3] SASRec + content
   [6] curation (Nepali, pairings)                      |
   [7] stratified selection  --> 186 dishes             |
-  [8] compose 1-3 dish meals --> 475 meals             |
+  [8] compose 1-3 dish meals --> 465 meals             |
   [9] validate meal nutrition                          |
   [10] coverage per scenario                           |
   [11] export + --check                         [T4] rank_recipes / rank_combinations
@@ -290,7 +290,7 @@ failed on exactly this duplicate. Configurations are `<combinationId>#<PRESET>`.
 per pair, 2 add-ons per base, picked by seeded hash). Exceeding the safety bound is an
 error, never a silent cut.
 
-**Result.** 475 meals: breakfast 179, lunch and dinner 300 each.
+**Result.** 465 meals: breakfast 169, lunch and dinner 296 each.
 
 ## 11. Stage 9: meal nutrition validation
 
@@ -304,7 +304,10 @@ For every configuration (`meal_composition/nutrition.py:92 check_configuration`)
    portion vectors) and must agree within 1 kcal; it must lie in 150 to 2,000 kcal.
 
 A failing configuration is dropped with a coded reason; a meal with none left is
-rejected and listed. Result: 2,101 kept, 59 dropped, 4 meals rejected.
+rejected and listed. A fifth check, added after Member 2 asked for real vectors, makes
+each preset prove its label against STANDARD: LOWER_CARB on aloo dum + rice had MORE
+carbohydrate, because the potato curry grew more than the rice shrank. Result: 2,036
+kept, 124 dropped (59 energy, 50 intent not met, 15 unverifiable), 14 meals rejected.
 
 **The most important finding for the team.** Every kept meal has source tier
 `FOODCOM_DERIVED`, because every meal has a Food.com anchor dish. If Venkat's rules
@@ -474,6 +477,25 @@ What the integration taught:
   significantly worse; ID embeddings add nothing on this data
   (`ranking_evaluation_report.md`). Lesson: report the uncertainty, not one number.
 
+## 13c. Answering Member 2 with evidence (19 Oct 2026)
+
+Venkat's 12 questions (`docs/member2/member1_response_to_member2.md`) were answered with
+work, not assertions:
+
+- **Verifying a conversion without the missing quantity.** Food.com never gives serving
+  mass, but for a one-ingredient recipe, "sodium per kcal" is a property of the food. So
+  comparing it with USDA tests the DV factor with mass cancelled out. Fat, carbohydrate
+  and saturated fat confirmed the 1993 table; sodium was consistent; and sugar turned out
+  to use a 25 g reference, which nobody had documented
+  (`food_data/dv_verification.py`). Lesson: when a variable is missing, look for a ratio
+  in which it cancels.
+- **Real vectors expose bad labels.** Building the review sample showed a LOWER_CARB preset
+  with more carbohydrate than STANDARD. Every preset now has to prove its label (50 failed
+  and were removed). Lesson: a rule of thumb needs a check on its outcome.
+- **Macronutrient targets** from a citable source (IOM 2005 AMDR, protein RDA), kept
+  separate from clinical limits.
+- **Per-slot shortlist** sized to the consumer's real budgets (50 per slot, 150 per day).
+
 ## 14. Check yourself
 
 1. Why is a recipe without a course tag *unclassified* and not *defective*?
@@ -498,6 +520,8 @@ What the integration taught:
     chosen on validation?
 19. The no-ID ablation matches the full model. What does that say about the data?
 20. Why does a paired bootstrap use the same resampled cases for both models?
+21. How can a single-ingredient recipe verify a %DV factor without knowing the serving mass?
+22. Why must LOWER_CARB be checked against STANDARD instead of trusted from its rule?
 
 ## 15. Open items and where they are tracked
 
@@ -505,7 +529,7 @@ What the integration taught:
 |---|---|---|
 | Food.com-derived nutrition for hard clinical rules | Venkat | contract note Q2 |
 | PER_SERVING quantities in the CSP; integer rounding policy | Venkat | contract note Q1, Q3 |
-| Solver time on 475 meals x 4.4 configurations | Venkat | contract note Q4 |
+| Solver time on 465 meals x 4.4 configurations | Venkat | contract note Q4 |
 | Cuisine-neutral breakfasts under STRICT | team | contract note Q5 |
 | Storage of combinations | Aryaman | contract note Q6 |
 | Human confirmation of `ai-review:claude` curation | team | contract note Q7 |
