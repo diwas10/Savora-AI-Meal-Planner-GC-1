@@ -374,9 +374,9 @@ def weighted_ranks(
     # De-duplicate: (0.0, best) with best == 0.0 must not append every rank twice.
     weights = tuple(dict.fromkeys(weights))
     ranks: dict[float, list[int]] = {w: [] for w in weights}
-    pop: Tensor | None = None
+    device = next(model.parameters()).device
+    pop = log_popularity.to(device)
     for _, scores, targets in scored_batches(model, index, cases, candidate_rows):
-        pop = log_popularity.to(scores.device) if pop is None else pop
         for w in weights:
             ranks[w] += batch_ranks(scores + w * pop if w else scores, targets)
     return ranks

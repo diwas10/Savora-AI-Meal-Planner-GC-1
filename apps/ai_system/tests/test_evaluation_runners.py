@@ -81,7 +81,7 @@ def test_bootstrap_difference_brackets_the_truth() -> None:
 def test_experiment_suite_runs_end_to_end_on_tiny_data(tmp_path: Path) -> None:
     pytest.importorskip("torch")
     from savora_ai.core.recommendation import experiments
-    from savora_ai.core.recommendation.torch_model import ModelConfig, TrainConfig
+    from savora_ai.core.recommendation.torch_model import HYBRID_WEIGHTS, ModelConfig, TrainConfig
 
     interactions, recipes = write_data(tmp_path)
     catalogue = tmp_path / "catalogue"
@@ -129,7 +129,7 @@ def test_experiment_suite_runs_end_to_end_on_tiny_data(tmp_path: Path) -> None:
     assert set(meals) >= {"ANCHOR", "MEAN", "POPULARITY_ANCHOR"}
     assert (tmp_path / "models" / "main_seed7.pt").exists()
     for run in runs:
-        assert run["hybridWeightChosenOnValidation"] in experiments.HYBRID_WEIGHTS
+        assert run["hybridWeightChosenOnValidation"] in HYBRID_WEIGHTS
         assert run["catalogueRestricted"]["model"]["cases"] == USERS
 
 
