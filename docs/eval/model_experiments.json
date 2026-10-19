@@ -1327,27 +1327,28 @@
       }
     },
     "mealAggregation": {
-      "cases": 228,
-      "meals": 475,
+      "cases": 227,
+      "meals": 465,
       "protocol": "rank of the best meal containing the user's next recipe among all meals",
       "ANCHOR": {
-        "cases": 228,
-        "hr@10": 0.5131578947368421,
-        "ndcg@10": 0.2763739117119295,
-        "mrr": 0.22122912936083602
+        "cases": 227,
+        "hr@10": 0.5154185022026432,
+        "ndcg@10": 0.27759141793092473,
+        "mrr": 0.2221961771870012
       },
       "MEAN": {
-        "cases": 228,
-        "hr@10": 0.5131578947368421,
-        "ndcg@10": 0.27410564909444995,
-        "mrr": 0.2229415731818734
+        "cases": 227,
+        "hr@10": 0.5154185022026432,
+        "ndcg@10": 0.2753131629671127,
+        "mrr": 0.22392540602414276
       },
       "POPULARITY_ANCHOR": {
-        "cases": 228,
-        "hr@10": 0.5175438596491229,
-        "ndcg@10": 0.2750806608397276,
-        "mrr": 0.21791456534081938
-      }
+        "cases": 227,
+        "hr@10": 0.5198237885462555,
+        "ndcg@10": 0.2762924699183167,
+        "mrr": 0.21887652667219196
+      },
+      "note": "recomputed on catalogue 20261019T012206Z after the preset-intent check (465 meals)"
     }
   }
 }
