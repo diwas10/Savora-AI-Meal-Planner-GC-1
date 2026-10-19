@@ -163,9 +163,12 @@ request (v1: 1.1 ms).
 
 ## Open items
 
-0. A content-only model plus popularity matches the full model (ID embeddings add nothing
-   on this data) and is smaller; consider it once real Savora seed-dish data exists.
+0. ~~A content-only model plus popularity matches the full model (ID embeddings add
+   nothing on this data).~~ True for v1 only, whose ID embeddings were overfitted. For v2
+   they matter: without them the model alone falls from 1.91% to 0.24% HR@10 (Revision
+   v2, ablations). A content-only model is no longer a smaller equivalent.
 
-1. Onboarding seed dishes (Member 3, team).
-2. Whether the trained model file is shipped with the backend or loaded from storage.
+1. Onboarding seed dishes (Member 3, team): proposed in ADR 0005 D1.
+2. Whether the trained model file is shipped with the backend or loaded from storage:
+   proposed in ADR 0005 D2.
 3. Final cutoff dates, shared with the popularity cutoff.
