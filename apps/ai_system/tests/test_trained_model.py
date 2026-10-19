@@ -28,7 +28,7 @@ from savora_ai.core.recommendation.ranking import (  # noqa: E402
     load_scorer,
     rank_recipes,
 )
-from savora_ai.core.recommendation.torch_model import load  # noqa: E402
+from savora_ai.core.recommendation.torch_model import MODEL_VERSION, load  # noqa: E402
 
 
 def catalogue_dishes() -> list[dict[str, object]]:
@@ -51,7 +51,8 @@ def test_checkpoint_loads_safely_and_scores_deterministically() -> None:
     model, rows = load(MODEL)  # weights_only=True: tensors and plain containers only
     dishes = [str(d["recipeId"]) for d in catalogue_dishes() if str(d["recipeId"]) in rows]
     scorer = load_scorer(MODEL, {d: 10 for d in dishes})
-    assert scorer is not None and scorer.model_version.endswith("+pop8")
+    assert scorer is not None
+    assert scorer.model_version == f"{MODEL_VERSION}+pop{model.hybrid_weight:g}"
     history, candidates = dishes[:2], dishes[2:30]
     first = scorer.score(history, candidates)
     assert first == scorer.score(history, candidates)

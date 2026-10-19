@@ -3,17 +3,18 @@
 """T5: model experiments behind the evaluation report (ADR 0004).
 
     seeds        the main model trained with 3 seeds: mean and spread, not one lucky run
-    ablations    without content features / ID embeddings / popularity bias
+    ablations    without content features / ID embeddings / popularity bias, and the
+                 v1 learning rate (1e-3)
     hybrid       popularity weight chosen on VALIDATION only, then test scored once
     uncertainty  paired bootstrap 95% intervals for (model - popularity) on test
-    catalogue    ranking restricted to the 160 catalogue dishes: what the product does
+    catalogue    ranking restricted to the catalogue dishes: what the product does
     meals        anchor vs mean scoring of whole meals (ADR 0004 D6), on catalogue cases
 
-Usage (from apps/ai_system, needs the `ml` extra; about 30 minutes on a laptop CPU):
+Usage (from apps/ai_system, needs the `ml` extra; about 40 minutes on a laptop CPU):
     uv run --extra ml python -m savora_ai.core.recommendation.experiments \
         --interactions ../../Data/Food.com/RAW_interactions.csv \
         --recipes ../../Data/Food.com/RAW_recipes.csv \
-        --catalogue-dir ../../Data/catalogue --output ../../docs/eval/model_experiments.json
+        --catalogue-dir ../../Data/catalogue --output ../../docs/eval/v2/model_experiments.json
 """
 
 import argparse
@@ -22,8 +23,8 @@ import math
 import random
 import statistics
 import time
-from collections.abc import Callable, Sequence
-from dataclasses import asdict, dataclass, replace
+from collections.abc import Callable, Mapping, Sequence
+from dataclasses import asdict, dataclass, field, replace
 from pathlib import Path
 
 import torch
@@ -34,20 +35,20 @@ from savora_ai.core.recommendation.metrics import rank_metrics
 from savora_ai.core.recommendation.ranking import combination_dishes
 from savora_ai.core.recommendation.sequences import EvalCase, SplitData, load_interactions, split
 from savora_ai.core.recommendation.torch_model import (
+    HYBRID_WEIGHTS,
     ItemIndex,
     ModelConfig,
     SASRecContent,
     TrainConfig,
-    _left_pad,
+    _pad_batch,
     load_features,
+    log_popularity,
     pick_device,
-    rank_of,
     save,
-    scored_cases,
     train,
+    weighted_ranks,
 )
 
-HYBRID_WEIGHTS = (0.0, 0.5, 1.0, 2.0, 4.0, 8.0, 16.0)
 BOOTSTRAP_SAMPLES = 1000
 HISTORY_BUCKETS = ((1, 1), (2, 4), (5, 19), (20, 10**9))
 
@@ -57,6 +58,7 @@ class Run:
     name: str
     seed: int
     model: ModelConfig
+    train: Mapping[str, object] = field(default_factory=dict)  # overrides of train_config
 
 
 RUNS: tuple[Run, ...] = (
@@ -66,29 +68,11 @@ RUNS: tuple[Run, ...] = (
     Run("no_content", 7, ModelConfig(use_content=False)),
     Run("no_id", 7, ModelConfig(use_id=False)),
     Run("no_bias", 7, ModelConfig(use_bias=False)),
+    Run("v1_learning_rate", 7, ModelConfig(), {"lr": 1e-3}),
 )
 
-
-@torch.no_grad()
-def case_ranks(
-    model: SASRecContent,
-    index: ItemIndex,
-    cases: Sequence[EvalCase],
-    log_popularity: Tensor,
-    weights: Sequence[float],
-    candidate_rows: Tensor | None = None,
-) -> dict[float, list[int]]:
-    """Ranks for several hybrid weights (score + w * log(1 + count)) in one scoring pass,
-    using the SAME protocol as evaluate.py (`torch_model.scored_cases`)."""
-    device = next(model.parameters()).device
-    pop = log_popularity.to(device)
-    # De-duplicate: (0.0, best) with best == 0.0 must not append every rank twice.
-    weights = tuple(dict.fromkeys(weights))
-    ranks: dict[float, list[int]] = {w: [] for w in weights}
-    for _, row, target in scored_cases(model, index, cases, None, candidate_rows):
-        for w in weights:
-            ranks[w].append(rank_of(row + w * pop, target))
-    return ranks
+# Ranks for several hybrid weights in one pass, by the SAME protocol as evaluate.py.
+case_ranks = weighted_ranks
 
 
 def bootstrap_difference(
@@ -155,7 +139,7 @@ def meal_ablation(
     model: SASRecContent,
     index: ItemIndex,
     cases: Sequence[EvalCase],
-    log_popularity: Tensor,
+    log_pop: Tensor,
     weight: float,
     catalogue: Catalogue,
 ) -> dict[str, object]:
@@ -168,16 +152,15 @@ def meal_ablation(
     scorable = sorted({d for parts in dishes.values() for d in parts if d in index.row})
     rows = torch.tensor([index.row[d] for d in scorable], device=device)
     vectors = model.item_vectors(rows)
-    extra = model.item_bias(rows) + weight * log_popularity.to(device)[rows]
-    pop = {d: float(log_popularity[index.row[d]]) for d in scorable}  # case-independent
+    extra = model.item_bias(rows) + weight * log_pop.to(device)[rows]
+    pop = {d: float(log_pop[index.row[d]]) for d in scorable}  # case-independent
     results: dict[str, list[int]] = {"ANCHOR": [], "MEAN": [], "POPULARITY_ANCHOR": []}
     in_a_meal = {d for parts in dishes.values() for d in parts}
     cases = [c for c in cases if c.target in in_a_meal]  # a dish in no meal cannot be found
     for start in range(0, len(cases), 256):
         batch = cases[start : start + 256]
-        seqs = torch.tensor(
-            [_left_pad([index.row[r] for r in c.history], model.config.max_len) for c in batch],
-            device=device,
+        seqs = _pad_batch(
+            [[index.row[r] for r in c.history] for c in batch], model.config.max_len, device
         )
         dish_scores = model.encode(seqs)[:, -1] @ vectors.T + extra
         for b, case in enumerate(batch):
@@ -242,14 +225,14 @@ def run_all(
             features,
             universe,
             model_config=run.model,
-            train_config=replace(train_config, seed=run.seed),
+            train_config=replace(train_config, seed=run.seed, **run.train),
             device=device,
             log=log,
         )
         save(models_dir / f"{run.name}_seed{run.seed}.pt", model, index, report)
-        log_pop = torch.tensor([math.log1p(data.train_counts.get(i, 0)) for i in index.ids])
+        log_pop = log_popularity(index.ids, data.train_counts)
         valid = case_ranks(model, index, data.validation, log_pop, HYBRID_WEIGHTS)
-        best_w = max(HYBRID_WEIGHTS, key=lambda w: (sum(r <= 10 for r in valid[w]), -w))
+        best_w = model.hybrid_weight  # chosen with the epoch on validation during training
         test = case_ranks(model, index, data.test, log_pop, (0.0, best_w))
         cat_rows = torch.tensor([index.row[d] for d in catalogue.dish_ids])
         cat = case_ranks(model, index, cat_test, log_pop, (0.0, best_w), cat_rows)
@@ -259,6 +242,7 @@ def run_all(
             "seed": run.seed,
             "modelConfig": asdict(run.model),
             "epochs": report["epochs"],
+            "bestValidNdcg@10": report["bestValidNdcg@10"],
             "bestValidHr@10": report["bestValidHr@10"],
             "hybridWeightChosenOnValidation": best_w,
             "validationByWeight": {str(w): rank_metrics(valid[w]) for w in HYBRID_WEIGHTS},
@@ -315,7 +299,7 @@ def run_all(
             "catalogueRanking": f"{len(catalogue.dish_ids)} catalogue dishes, "
             f"{len(cat_test)} test cases whose target is a catalogue dish",
             "hybridWeights": list(HYBRID_WEIGHTS),
-            "hybridSelection": "highest validation HR@10, ties to the smaller weight",
+            "hybridSelection": "epoch by the model alone, then weight, each by validation NDCG@10",
             "bootstrap": f"paired, {BOOTSTRAP_SAMPLES} resamples",
             "trainConfig": asdict(train_config),
             "device": str(device),
@@ -343,7 +327,7 @@ def main() -> None:
     parser.add_argument("--recipes", type=Path, default=data / "RAW_recipes.csv")
     parser.add_argument("--catalogue-dir", type=Path, default=Path("Data/catalogue"))
     parser.add_argument("--models-dir", type=Path, default=Path("Data/models/experiments"))
-    parser.add_argument("--output", type=Path, default=Path("docs/eval/model_experiments.json"))
+    parser.add_argument("--output", type=Path, default=Path("docs/eval/v2/model_experiments.json"))
     parser.add_argument("--device", default="cpu")
     args = parser.parse_args()
     report = run_all(

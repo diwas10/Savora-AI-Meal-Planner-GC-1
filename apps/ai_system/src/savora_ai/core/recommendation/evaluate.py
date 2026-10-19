@@ -7,10 +7,12 @@ Usage (from the repo root):
     cd apps/ai_system && uv run --extra ml python -m savora_ai.core.recommendation.evaluate \
         --interactions ../../Data/Food.com/RAW_interactions.csv \
         --recipes ../../Data/Food.com/RAW_recipes.csv \
-        --model ../../Data/models/sasrec_content.pt --output ../../docs/eval/ranking_evaluation.json
+        --model ../../Data/models/sasrec_content.pt \
+        --output ../../docs/eval/v2/ranking_evaluation.json
 
-Writes docs/eval/ranking_evaluation.json. Every ranker sees the same cases, the same
-universe (every Food.com recipe) and the same tie-break, so the numbers are comparable.
+Writes docs/eval/v2/ranking_evaluation.json (v1's results are kept in docs/eval/v1/).
+Every ranker sees the same cases, the same universe (every Food.com recipe) and the same
+tie-break, so the numbers are comparable.
 """
 
 import argparse
@@ -110,17 +112,14 @@ def main() -> None:
     )
     parser.add_argument("--recipes", type=Path, default=Path("Data/Food.com/RAW_recipes.csv"))
     parser.add_argument("--model", type=Path, default=None)
-    parser.add_argument("--output", type=Path, default=Path("docs/eval/ranking_evaluation.json"))
+    parser.add_argument("--output", type=Path, default=Path("docs/eval/v2/ranking_evaluation.json"))
     args = parser.parse_args()
     extra: dict[str, Callable[..., dict[str, object]]] = {}
     if args.model is not None:
-        from savora_ai.core.recommendation.torch_model import (  # needs torch
-            HYBRID_POPULARITY_WEIGHT,
-            evaluator,
-        )
+        from savora_ai.core.recommendation.torch_model import evaluator  # needs torch
 
         extra["sasrec_content"] = evaluator(args.model)
-        extra["sasrec_content+popularity"] = evaluator(args.model, HYBRID_POPULARITY_WEIGHT)
+        extra["sasrec_content+popularity"] = evaluator(args.model, hybrid=True)
     report = run(args.interactions, args.recipes, extra)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")

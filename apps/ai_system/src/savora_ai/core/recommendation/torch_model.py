@@ -5,14 +5,16 @@
     item vector  v(i) = [i seen in training] * E_id[i] + mean(E_tag[tags(i)])
                         + mean(E_ingredient[ingredients(i)])
     user state   h    = causal self-attention over the last 50 item vectors (+ position)
-    score(i)          = h . v(i)
+    score(i)          = h . v(i) + b(i)   (b: learned per-item bias, 0 if unseen)
 
 Why content: the median user has ONE training interaction and 13.6% of test targets are
 recipes never seen in training. An ID-only model gives those items an untrained random
 vector; here an unseen recipe is still placed by its tags and ingredients, and its ID
 part is exactly zero, never noise. Training: next-item prediction at every position of
-every training-period sequence, softmax over the target plus shared uniform negatives,
-early stopping on validation HR@10 (full ranking). Sized for a laptop (CPU or Apple MPS).
+every training-period sequence, sampled softmax with logQ correction, early stopping on
+the WHOLE validation period by the model alone, then the weight w of the shipped hybrid
+(model + w log popularity) for that epoch, saved with the model. Sized for a laptop (CPU
+or Apple MPS): batches are trimmed to their longest sequence, and ranking is batched.
 
 Usage (from the repo root):
     uv run --extra ml python -m savora_ai.core.recommendation.torch_model \
@@ -49,11 +51,12 @@ from savora_ai.core.recommendation.sequences import (
     split,
 )
 
-MODEL_VERSION = "sasrec-content-v1"
-# Hybrid: score + w * log(1 + training count). w = 8 was chosen on VALIDATION HR@10 only
-# (tried 0, 0.5, 1, 2, 4, 8); test was scored once afterwards (ADR 0004 results).
-HYBRID_POPULARITY_WEIGHT = 8.0
+MODEL_VERSION = "sasrec-content-v2"
+# Hybrid: score + w * log(1 + training count). w is chosen for the selected epoch on
+# VALIDATION only and saved in the checkpoint; test is scored once afterwards.
+HYBRID_WEIGHTS = (0.0, 0.5, 1.0, 2.0, 4.0, 8.0, 16.0)
 PAD = 0  # item index 0 and feature index 0 are padding
+EVAL_BATCH = 256
 
 
 @dataclass(frozen=True)
@@ -77,10 +80,16 @@ class TrainConfig:
     epochs: int = 40
     batch_size: int = 256
     negatives: int = 1024
-    lr: float = 1e-3
+    # 1e-3 (v1) memorises training sequences within one or two epochs and validation
+    # falls from there; 1e-4 climbs for several epochs to a higher peak (ADR 0004).
+    lr: float = 1e-4
+    # The tag and ingredient tables are shared by many recipes and cannot memorise one
+    # sequence; at 1e-4 they barely move and content no longer separates cuisines (Indian
+    # neighbours of Indian dishes: 1.6x chance at 1e-4, 15.6x at 3e-4; validation equal).
+    content_lr: float = 3e-4
     weight_decay: float = 1e-5
     patience: int = 3
-    validation_cases: int = 3000  # subsample for early stopping; reported test uses all
+    validation_cases: int = 0  # 0 = every validation case (cheap since ranking is batched)
     # Negatives come from q = share * popularity^0.75 + (1 - share) * uniform, and every
     # logit is corrected by -log(K q(i)) (sampled softmax with logQ correction), so the
     # sampled loss approximates the full-catalogue softmax that evaluation ranks with.
@@ -130,24 +139,19 @@ class ItemIndex:
         }
 
 
-def _mean_bag(table: nn.Embedding, index: Tensor) -> Tensor:
-    """Mean of non-padding feature vectors; an item with no features gives zeros."""
-    vectors = table(index)
-    mask = (index != PAD).unsqueeze(-1).float()
-    return (vectors * mask).sum(-2) / mask.sum(-2).clamp(min=1.0)
-
-
 class SASRecContent(nn.Module):
     feat_tags: Tensor  # registered buffers, saved with the model
     feat_ingredients: Tensor
     has_id: Tensor
+    hybrid_weight: float = 0.0  # chosen on validation; restored by `load`
 
     def __init__(self, items: int, tags: int, ingredients: int, config: ModelConfig) -> None:
         super().__init__()
         self.config = config
         self.item = nn.Embedding(items, config.dim, padding_idx=PAD)
-        self.tag = nn.Embedding(tags + 1, config.dim, padding_idx=PAD)
-        self.ingredient = nn.Embedding(ingredients + 1, config.dim, padding_idx=PAD)
+        # Mean over a recipe's non-padding features; a recipe with none gives zeros.
+        self.tag = nn.EmbeddingBag(tags + 1, config.dim, mode="mean", padding_idx=PAD)
+        self.ingredient = nn.EmbeddingBag(ingredients + 1, config.dim, mode="mean", padding_idx=PAD)
         self.position = nn.Embedding(config.max_len, config.dim)
         layer = nn.TransformerEncoderLayer(
             config.dim,
@@ -167,7 +171,7 @@ class SASRecContent(nn.Module):
         self.register_buffer("has_id", torch.zeros(items))
         # Per-item popularity bias, learned; masked to 0 for items unseen in training.
         self.bias = nn.Embedding(items, 1)
-        # Small init: three N(0, 1) embeddings summed give dot products near +/-100, which
+        # Small init: N(0, 1) embeddings summed give dot products near +/-100, which
         # saturate the softmax (measured: loss 23.5 and HR@10 0 after one epoch).
         for table in (self.item, self.tag, self.ingredient, self.position):
             nn.init.normal_(table.weight, std=0.02)
@@ -182,13 +186,14 @@ class SASRecContent(nn.Module):
         self.has_id.copy_(index.has_id)
 
     def item_vectors(self, rows: Tensor) -> Tensor:
-        vector = torch.zeros(*rows.shape, self.config.dim, device=rows.device)
+        flat = rows.reshape(-1)
+        vector = torch.zeros(len(flat), self.config.dim, device=rows.device)
         if self.config.use_id:
-            vector = vector + self.item(rows) * self.has_id[rows].unsqueeze(-1)
+            vector = vector + self.item(flat) * self.has_id[flat].unsqueeze(-1)
         if self.config.use_content:
-            vector = vector + _mean_bag(self.tag, self.feat_tags[rows])
-            vector = vector + _mean_bag(self.ingredient, self.feat_ingredients[rows])
-        return vector
+            vector = vector + self.tag(self.feat_tags[flat])
+            vector = vector + self.ingredient(self.feat_ingredients[flat])
+        return vector.reshape(*rows.shape, self.config.dim)
 
     def item_bias(self, rows: Tensor) -> Tensor:
         if not self.config.use_bias:
@@ -200,20 +205,25 @@ class SASRecContent(nn.Module):
         return states @ self.item_vectors(rows).T + self.item_bias(rows)
 
     def encode(self, sequences: Tensor) -> Tensor:
-        """[batch, len] left-padded rows -> [batch, len, dim] causal states."""
+        """[batch, len <= max_len] left-padded rows -> [batch, len, dim] causal states.
+
+        Positions count from the END (the last item always uses position max_len - 1), so
+        a batch may be trimmed to its longest sequence: leading padding is masked out and
+        never changes a real position's state, it only costs time.
+        """
         length = sequences.size(1)
-        positions = torch.arange(length, device=sequences.device)
+        if length > self.config.max_len:
+            raise ValueError(f"sequence length {length} exceeds max_len {self.config.max_len}")
+        device = sequences.device
+        positions = torch.arange(self.config.max_len - length, self.config.max_len, device=device)
         x = self.item_vectors(sequences) + self.position(positions)
         x = self.dropout(x) * (sequences != PAD).unsqueeze(-1)
         # Block future keys and padding keys, but always let a position see itself, so a
         # padded position never has an all-blocked row (which would give NaN gradients).
-        future = torch.triu(
-            torch.ones(length, length, dtype=torch.bool, device=sequences.device), diagonal=1
-        )
+        future = torch.triu(torch.ones(length, length, dtype=torch.bool, device=device), 1)
         blocked = future.unsqueeze(0) | (sequences == PAD).unsqueeze(1)  # [B, L, L]
-        blocked = blocked & ~torch.eye(length, dtype=torch.bool, device=sequences.device)
-        heads = self.config.heads
-        mask = blocked.repeat_interleave(heads, dim=0)  # [B * heads, L, L]
+        blocked = blocked & ~torch.eye(length, dtype=torch.bool, device=device)
+        mask = blocked.repeat_interleave(self.config.heads, dim=0)  # [B * heads, L, L]
         return self.norm(self.encoder(x, mask=mask))
 
     def all_item_vectors(self, chunk: int = 50_000) -> Tensor:
@@ -250,8 +260,18 @@ def _left_pad(rows: list[int], length: int) -> list[int]:
     return [PAD] * (length - len(rows)) + rows
 
 
+def _pad_batch(sequences: Sequence[list[int]], max_len: int, device: torch.device) -> Tensor:
+    """Left-pad to the batch's longest sequence (at most max_len), not always to max_len."""
+    length = max(1, min(max_len, max(len(s) for s in sequences)))
+    return torch.tensor([_left_pad(s, length) for s in sequences], device=device)
+
+
 def _training_windows(data: SplitData, index: ItemIndex, max_len: int) -> list[list[int]]:
-    """Each training sequence's last max_len+1 items; positions 1.. are the targets."""
+    """Each training sequence's last max_len+1 items; positions 1.. are the targets.
+
+    Measured: also training on the older part of long sequences (twice the targets, mostly
+    from heavy users' early years) did not improve validation, and doubled the epoch time.
+    """
     windows = []
     for sequence in data.train_sequences.values():
         rows = [index.row[r] for r in sequence if r in index.row]
@@ -260,55 +280,63 @@ def _training_windows(data: SplitData, index: ItemIndex, max_len: int) -> list[l
     return windows
 
 
+def _length_batches(
+    windows: Sequence[list[int]], batch_size: int, rng: random.Random
+) -> list[list[int]]:
+    """Random batches of similar-length windows (sorted within random chunks), so a
+    trimmed batch carries little padding; batch order is shuffled again."""
+    order = list(range(len(windows)))
+    rng.shuffle(order)
+    chunk = batch_size * 50
+    batches: list[list[int]] = []
+    for start in range(0, len(order), chunk):
+        part = sorted(order[start : start + chunk], key=lambda i: len(windows[i]))
+        batches += [part[j : j + batch_size] for j in range(0, len(part), batch_size)]
+    rng.shuffle(batches)
+    return batches
+
+
 # --- evaluation ---------------------------------------------------------------------
 
 
 @torch.no_grad()
-def scored_cases(
+def scored_batches(
     model: SASRecContent,
     index: ItemIndex,
     cases: Sequence[EvalCase],
-    extra_bias: Tensor | None = None,
     candidate_rows: Tensor | None = None,
-) -> Iterator[tuple[EvalCase, Tensor, int]]:
+) -> Iterator[tuple[Sequence[EvalCase], Tensor, Tensor]]:
     """THE evaluation protocol, shared by evaluate.py and experiments.py.
 
-    Yields (case, scores over every item row, target row). Padding, items outside
-    `candidate_rows` and the user's own history (except the target) score -inf.
+    Yields (cases, scores [cases, every item row], target rows [cases]). Padding, items
+    outside `candidate_rows` and each user's own history (except the target) score -inf.
     """
     model.eval()
     device = next(model.parameters()).device
     vectors = model.all_item_vectors()
     vectors[PAD] = 0
     bias = model.item_bias(torch.arange(len(vectors), device=device))
-    if extra_bias is not None:
-        bias = bias + extra_bias.to(device)
-    allowed = None
+    blocked = torch.zeros(len(vectors), dtype=torch.bool, device=device)
     if candidate_rows is not None:
-        allowed = torch.zeros(len(vectors), dtype=torch.bool, device=device)
-        allowed[candidate_rows.to(device)] = True
-    for start in range(0, len(cases), 256):
-        batch = cases[start : start + 256]
-        seqs = torch.tensor(
-            [_left_pad([index.row[r] for r in c.history], model.config.max_len) for c in batch],
-            device=device,
-        )
-        scores = model.encode(seqs)[:, -1] @ vectors.T + bias
-        scores[:, PAD] = float("-inf")
-        if allowed is not None:
-            scores[:, ~allowed] = float("-inf")
-        for b, case in enumerate(batch):
-            row = scores[b]
-            target = index.row[case.target]
-            history = list({index.row[r] for r in case.history} - {target})
-            if history:
-                row[history] = float("-inf")
-            yield case, row, target
+        blocked[:] = True
+        blocked[candidate_rows.to(device)] = False
+    blocked[PAD] = True
+    for start in range(0, len(cases), EVAL_BATCH):
+        batch = cases[start : start + EVAL_BATCH]
+        histories = [[index.row[r] for r in c.history] for c in batch]
+        states = model.encode(_pad_batch(histories, model.config.max_len, device))[:, -1]
+        scores = (states @ vectors.T + bias).masked_fill_(blocked, float("-inf"))
+        targets = torch.tensor([index.row[c.target] for c in batch], device=device)
+        target_scores = scores.gather(1, targets.unsqueeze(1))
+        scores.scatter_(1, _pad_batch(histories, MAX_HISTORY, device), float("-inf"))
+        scores.scatter_(1, targets.unsqueeze(1), target_scores)  # the target is never excluded
+        yield batch, scores, targets
 
 
-def rank_of(row: Tensor, target: int) -> int:
-    """1-based rank: items scoring strictly higher, plus one (ties favour the target)."""
-    return int((row > row[target]).sum().item()) + 1
+def batch_ranks(scores: Tensor, targets: Tensor) -> list[int]:
+    """1-based ranks: items scoring strictly higher, plus one (ties favour the target)."""
+    target_scores = scores.gather(1, targets.unsqueeze(1))
+    return ((scores > target_scores).sum(1) + 1).tolist()
 
 
 def dense_ranks(
@@ -323,17 +351,43 @@ def dense_ranks(
 ) -> list[int]:
     del device  # the model's own device is used
     ranks: list[int] = []
-    for i, (_, row, target) in enumerate(
-        scored_cases(model, index, cases, log_popularity, candidate_rows)
-    ):
-        ranks.append(rank_of(row, target))
-        if tops is not None and i < top_cases:
-            tops.append([index.ids[j] for j in torch.topk(row, 10).indices.tolist()])
+    for batch, scores, targets in scored_batches(model, index, cases, candidate_rows):
+        if log_popularity is not None:
+            scores = scores + log_popularity.to(scores.device)
+        if tops is not None and len(tops) < top_cases:
+            take = min(len(batch), top_cases - len(tops))
+            for top in torch.topk(scores[:take], 10).indices.tolist():
+                tops.append([index.ids[j] for j in top])
+        ranks += batch_ranks(scores, targets)
+    return ranks
+
+
+def weighted_ranks(
+    model: SASRecContent,
+    index: ItemIndex,
+    cases: Sequence[EvalCase],
+    log_popularity: Tensor,
+    weights: Sequence[float],
+    candidate_rows: Tensor | None = None,
+) -> dict[float, list[int]]:
+    """Ranks for several hybrid weights (score + w * log(1 + count)) in one scoring pass."""
+    # De-duplicate: (0.0, best) with best == 0.0 must not append every rank twice.
+    weights = tuple(dict.fromkeys(weights))
+    ranks: dict[float, list[int]] = {w: [] for w in weights}
+    pop: Tensor | None = None
+    for _, scores, targets in scored_batches(model, index, cases, candidate_rows):
+        pop = log_popularity.to(scores.device) if pop is None else pop
+        for w in weights:
+            ranks[w] += batch_ranks(scores + w * pop if w else scores, targets)
     return ranks
 
 
 def _hr10(ranks: Sequence[int]) -> float:
     return sum(r <= 10 for r in ranks) / max(1, len(ranks))
+
+
+def _ndcg10(ranks: Sequence[int]) -> float:
+    return sum(1 / math.log2(r + 1) for r in ranks if r <= 10) / max(1, len(ranks))
 
 
 # --- training -----------------------------------------------------------------------
@@ -345,6 +399,10 @@ def pick_device(name: str) -> torch.device:
             return torch.device("mps")
         return torch.device("cuda" if torch.cuda.is_available() else "cpu")
     return torch.device(name)
+
+
+def log_popularity(ids: Sequence[str], counts: Mapping[str, int]) -> Tensor:
+    return torch.tensor([math.log1p(counts.get(i, 0)) for i in ids])
 
 
 def train(
@@ -361,12 +419,19 @@ def train(
     torch.manual_seed(train_config.seed)
     index = ItemIndex(sorted(universe), features, set(data.train_counts), model_config)
     model = SASRecContent(
-        len(index.ids), len(index.tag_row), len(index.ingredient_row), model_config
+        len(index.ids),
+        len(index.tag_row),
+        len(index.ingredient_row),
+        model_config,
     )
     model.set_features(index)
     model.to(device)
+    content = [model.tag.weight, model.ingredient.weight]
+    rest = [p for p in model.parameters() if all(p is not c for c in content)]
     optimizer = torch.optim.AdamW(
-        model.parameters(), lr=train_config.lr, weight_decay=train_config.weight_decay
+        [{"params": rest}, {"params": content, "lr": train_config.content_lr}],
+        lr=train_config.lr,
+        weight_decay=train_config.weight_decay,
     )
     windows = _training_windows(data, index, model_config.max_len)
     train_rows = sorted(index.row[r] for r in data.train_counts if r in index.row)
@@ -380,21 +445,19 @@ def train(
     generator = torch.Generator(device="cpu").manual_seed(train_config.seed)
     rng = random.Random(train_config.seed)
     valid = list(data.validation)
-    rng.shuffle(valid)
-    valid = valid[: train_config.validation_cases]
-    best_hr, best_state, stale, history = -1.0, None, 0, []
+    if train_config.validation_cases:
+        rng.shuffle(valid)
+        valid = valid[: train_config.validation_cases]
+    popularity = log_popularity(index.ids, data.train_counts)
+    best: tuple[float, float] = (-1.0, -1.0)  # (validation NDCG@10, HR@10), model alone
+    best_state, best_weight, stale, history = None, 0.0, 0, []
     for epoch in range(1, train_config.epochs + 1):
         model.train()
-        rng.shuffle(windows)
         started, total, steps = time.time(), 0.0, 0
-        for start in range(0, len(windows), train_config.batch_size):
-            batch = windows[start : start + train_config.batch_size]
-            inputs = torch.tensor(
-                [_left_pad(w[:-1], model_config.max_len) for w in batch], device=device
-            )
-            targets = torch.tensor(
-                [_left_pad(w[1:], model_config.max_len) for w in batch], device=device
-            )
+        for batch_rows in _length_batches(windows, train_config.batch_size, rng):
+            batch = [windows[i] for i in batch_rows]
+            inputs = _pad_batch([w[:-1] for w in batch], model_config.max_len, device)
+            targets = _pad_batch([w[1:] for w in batch], model_config.max_len, device)
             states = model.encode(inputs)  # [B, L, d]
             mask = targets != PAD
             h, pos = states[mask], targets[mask]  # [N, d], [N]
@@ -421,12 +484,30 @@ def train(
             optimizer.step()
             total += float(loss.item())
             steps += 1
-        hr = _hr10(dense_ranks(model, index, valid, device))
-        history.append({"epoch": epoch, "loss": total / max(1, steps), "validHr@10": hr})
-        log(f"epoch {epoch}: loss {total / max(1, steps):.4f}  valid HR@10 {hr:.4f}  "
+        # Selection: the epoch by the MODEL ALONE on validation NDCG@10 (HR@10 breaks
+        # ties). Recipes without training counts (curated dishes, new recipes) are ranked
+        # by the model alone, and the hybrid curve is too flat to choose an epoch: every
+        # epoch's best hybrid is within noise. Then the hybrid weight for that epoch.
+        by_weight = weighted_ranks(model, index, valid, popularity, HYBRID_WEIGHTS)
+        alone = (_ndcg10(by_weight[0.0]), _hr10(by_weight[0.0]))
+        weight = max(HYBRID_WEIGHTS, key=lambda w: (_ndcg10(by_weight[w]), _hr10(by_weight[w])))
+        history.append(
+            {
+                "epoch": epoch,
+                "loss": total / max(1, steps),
+                "validNdcg@10": alone[0],
+                "validHr@10": alone[1],
+                "validHybridWeight": weight,
+                "validHybridNdcg@10": _ndcg10(by_weight[weight]),
+                "validHybridHr@10": _hr10(by_weight[weight]),
+            }
+        )
+        log(f"epoch {epoch}: loss {total / max(1, steps):.4f}  valid NDCG@10 {alone[0]:.4f} "
+            f"HR@10 {alone[1]:.4f}  hybrid(w={weight:g}) NDCG@10 "
+            f"{_ndcg10(by_weight[weight]):.4f} HR@10 {_hr10(by_weight[weight]):.4f}  "
             f"({time.time() - started:.0f}s)")  # fmt: skip
-        if hr > best_hr:
-            best_hr, stale = hr, 0
+        if alone > best:
+            best, best_weight, stale = alone, weight, 0
             best_state = {k: v.detach().cpu().clone() for k, v in model.state_dict().items()}
         else:
             stale += 1
@@ -434,15 +515,19 @@ def train(
                 break
     if best_state is not None:
         model.load_state_dict(best_state)
+    model.hybrid_weight = best_weight
     report = {
         "modelVersion": MODEL_VERSION,
         "modelConfig": asdict(model_config),
         "trainConfig": asdict(train_config),
         "trainingWindows": len(windows),
+        "trainingTargets": sum(len(w) - 1 for w in windows),
         "items": len(index.ids) - 1,
         "itemsWithIdVector": int(index.has_id.sum().item()),
         "epochs": history,
-        "bestValidHr@10": best_hr,
+        "hybridWeight": best_weight,
+        "bestValidNdcg@10": best[0],
+        "bestValidHr@10": best[1],
         "device": str(device),
     }
     return model, index, report
@@ -452,9 +537,11 @@ def save(path: Path, model: SASRecContent, index: ItemIndex, report: dict[str, o
     path.parent.mkdir(parents=True, exist_ok=True)
     torch.save(
         {
+            "modelVersion": MODEL_VERSION,
             "state": {k: v.cpu() for k, v in model.state_dict().items()},
             "config": asdict(model.config),
             "index": index.state(),
+            "hybridWeight": model.hybrid_weight,
             "report": report,
         },
         path,
@@ -462,9 +549,14 @@ def save(path: Path, model: SASRecContent, index: ItemIndex, report: dict[str, o
 
 
 def load(path: Path, device: torch.device | None = None) -> tuple[SASRecContent, dict[str, int]]:
-    """The trained model and its recipe-ID -> row map."""
+    """The trained model (with its validated `hybrid_weight`) and its recipe-ID -> row map."""
     # weights_only: tensors and plain containers only, never arbitrary pickled objects.
     checkpoint = torch.load(path, map_location="cpu", weights_only=True)
+    if checkpoint.get("modelVersion") != MODEL_VERSION:
+        raise ValueError(
+            f"{path} is {checkpoint.get('modelVersion', 'sasrec-content-v1')!r}, "
+            f"this code reads {MODEL_VERSION!r}: retrain the model"
+        )
     config = ModelConfig(**checkpoint["config"])
     ids: list[str] = checkpoint["index"]["ids"]
     model = SASRecContent(
@@ -474,17 +566,15 @@ def load(path: Path, device: torch.device | None = None) -> tuple[SASRecContent,
         config,
     )
     model.load_state_dict(checkpoint["state"])
+    model.hybrid_weight = float(checkpoint["hybridWeight"])
     model.to(device or torch.device("cpu"))
     model.eval()
     return model, {rid: i for i, rid in enumerate(ids)}
 
 
-def log_popularity_vector(ids: Sequence[str], counts: Mapping[str, int], weight: float) -> Tensor:
-    return torch.tensor([weight * math.log1p(counts.get(i, 0)) for i in ids])
-
-
-def evaluator(model_path: Path, popularity_weight: float = 0.0) -> Callable[..., dict[str, object]]:
-    """Adapter for evaluate.run: same cases, same universe, full ranking."""
+def evaluator(model_path: Path, hybrid: bool = False) -> Callable[..., dict[str, object]]:
+    """Adapter for evaluate.run: same cases, same universe, full ranking. `hybrid` adds
+    the checkpoint's validated popularity weight."""
 
     def evaluate(
         *,
@@ -497,8 +587,8 @@ def evaluator(model_path: Path, popularity_weight: float = 0.0) -> Callable[...,
         model, rows = load(model_path, device)
         index = _RowsOnly(rows)
         popularity = (
-            log_popularity_vector(index.ids, data.train_counts, popularity_weight)
-            if popularity_weight
+            model.hybrid_weight * log_popularity(index.ids, data.train_counts)
+            if hybrid and model.hybrid_weight
             else None
         )
         tops: list[list[str]] = []
@@ -515,33 +605,39 @@ def evaluator(model_path: Path, popularity_weight: float = 0.0) -> Callable[...,
 class TorchScorer:
     """The trained model behind ranking.SequenceScorer; CPU inference is enough.
 
-    With training counts it scores the validated hybrid; without them, the pure model.
+    With training counts it scores the validated hybrid (the checkpoint's weight unless
+    one is given); without them, the pure model. Item vectors do not depend on the user,
+    so they are computed once at load; a request only encodes its history.
     """
 
     def __init__(
         self,
         path: Path,
         popularity_counts: Mapping[str, int] | None = None,
-        popularity_weight: float = HYBRID_POPULARITY_WEIGHT,
+        popularity_weight: float | None = None,
     ) -> None:
         self.model, self.rows = load(path, torch.device("cpu"))
         self.counts = dict(popularity_counts or {})
-        self.weight = popularity_weight if popularity_counts is not None else 0.0
+        weight = self.model.hybrid_weight if popularity_weight is None else popularity_weight
+        self.weight = weight if popularity_counts is not None else 0.0
         self.model_version = MODEL_VERSION + (f"+pop{self.weight:g}" if self.weight else "")
+        with torch.inference_mode():
+            self._vectors = self.model.all_item_vectors()
+            self._bias = self.model.item_bias(torch.arange(len(self._vectors)))
 
     def knows(self, recipe_id: str) -> bool:
         return recipe_id in self.rows
 
-    @torch.no_grad()
+    @torch.inference_mode()
     def score(self, history: Sequence[str], candidates: Sequence[str]) -> dict[str, float]:
         rows = [self.rows[h] for h in history if h in self.rows]
         known = [c for c in candidates if c in self.rows]
         if not rows or not known:
             return {}
-        seq = torch.tensor([_left_pad(rows, self.model.config.max_len)])
+        seq = torch.tensor([rows[-self.model.config.max_len :]])  # no padding needed
         state = self.model.encode(seq)[0, -1]
         rows_t = torch.tensor([self.rows[c] for c in known])
-        values = self.model.score(state.unsqueeze(0), rows_t)[0].tolist()
+        values = (self._vectors[rows_t] @ state + self._bias[rows_t]).tolist()
         return {
             c: float(v) + self.weight * math.log1p(self.counts.get(c, 0))
             for c, v in zip(known, values, strict=True)

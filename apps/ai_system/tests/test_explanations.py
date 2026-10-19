@@ -181,6 +181,6 @@ def test_only_a_feasible_plan_claims_the_constraints_were_met(outcome: str) -> N
 def test_pure_model_ranking_does_not_claim_a_popularity_blend() -> None:
     from savora_ai.core.explainability.explanation import _ranking_reason
 
-    pure = _ranking_reason("sasrec-content-v1", None, 1, 3)
-    hybrid = _ranking_reason("sasrec-content-v1+pop8", None, 1, 3)
+    pure = _ranking_reason("sasrec-content-v2", None, 1, 3)
+    hybrid = _ranking_reason("sasrec-content-v2+pop4", None, 1, 3)
     assert "popularity" not in pure.message and "blended with popularity" in hybrid.message
