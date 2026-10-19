@@ -93,7 +93,7 @@ GC1 stores no consumption or ratings, so a real user starts with no history. Onb
 asks for 3 to 5 liked dishes (requires Member 3 and team approval); those are the only
 history. Saved plans are never treated as history or positive feedback.
 
-## Results (18 Oct 2026, `docs/eval/ranking_evaluation.json`)
+## Results, v1 (18 Oct 2026, `docs/eval/v1/ranking_evaluation.json`)
 
 Test (2013+), 9,200 users, full ranking: popularity HR@10 1.91%, Markov 0.90%, item-kNN
 0.15%, SASRec + content 1.52%, hybrid (model + 8 log(1 + count), weight chosen on
@@ -104,14 +104,54 @@ popularity's 220k. **Decision:** the ranking API uses the hybrid (`TorchScorer` 
 training counts); without the model it falls back to popularity, explicitly.
 
 **Confirmed with 3 seeds and a paired bootstrap (19 Oct 2026,
-`docs/eval/model_experiments.json`):** model alone 1.56% +/- 0.03 HR@10, significantly
+`docs/eval/v1/model_experiments.json`):** model alone 1.56% +/- 0.03 HR@10, significantly
 below popularity (difference -0.39 points, 95% interval [-0.62, -0.16]); hybrid 1.94% +/-
 0.06, tied with popularity (+0.04 points, interval [-0.02, +0.11]). Within the 164-dish
 catalogue (the product's task): hybrid 69.7% vs popularity 70.6% HR@10, tied. Ablations:
 removing ID embeddings changes nothing measurable (1.58%), removing content features
 worsens cold placement (median rank 95k vs 85k). Meal scoring: ANCHOR, MEAN and
 popularity-anchor give the same proxy HR@10 (about 51%), so ANCHOR stays. Full write-up:
-`docs/reports/ranking_evaluation_report.md`.
+`docs/reports/ranking_evaluation_report_v1.md`.
+
+## Revision v2: faster training and a better model alone (19 Oct 2026)
+
+`sasrec-content-v2` replaces v1 (report `docs/reports/ranking_evaluation_report_v2.md`, raw
+results `docs/eval/v2/`; v1's are kept in `docs/eval/v1/`). The architecture, data, split, objective and ranking API
+are unchanged; v1 checkpoints are refused on load (retrain with the one command).
+
+**Accuracy.** v1 trained at lr 1e-3 and stopped early on a 3,000-case validation sample.
+Its validation peaked at epoch 1 or 2 while training loss kept falling: the per-recipe
+ID embeddings memorised training sequences. Changes, each measured on the whole
+validation period (6,883 cases) before test was scored once:
+
+| Change | Why |
+|---|---|
+| lr 1e-4 (was 1e-3) | validation climbs for several epochs to a higher peak instead of decaying after one; v1's code at 1e-4 alone gets the same gain, so this is the main cause |
+| tag/ingredient tables at lr 3e-4 | at 1e-4 the shared content tables barely learn: Indian dishes' nearest neighbours fall to chance (1.6x base rate). 3e-4 gives 15.6x (v1: 6x) at equal validation accuracy |
+| early stopping on every validation case, by the model alone (NDCG@10) | a 3,000-case sample is noisy, and the hybrid's validation curve is too flat to choose an epoch; the model alone is what ranks recipes without counts (curated dishes) |
+| hybrid weight chosen for that epoch on validation, stored in the checkpoint | `TorchScorer` no longer hard-codes w = 8 |
+
+Test (2013+, shipped seed 7): model alone HR@10 1.52% -> 1.91%, NDCG@10 0.0070 ->
+0.0093, MRR 0.0065 -> 0.0089, now equal to popularity (1.91%, 0.0091, 0.0085). The
+hybrid is unchanged within noise (1.96% -> 1.93% HR@10). Over 3 seeds the model alone
+gives 1.95% +/- 0.06 HR@10 (v1: 1.56% +/- 0.03); the paired bootstrap against
+popularity, [-0.19, +0.20] points, is now a tie where v1 was significantly below. The
+v1 learning rate in the v2 pipeline gives 1.74%. Trade-off: the model alone's top-10
+lists cover 0.03% of recipes (v1: 0.22%).
+
+**Tried and not adopted** (no validation gain, so not kept): training on every window of
+long sequences (2x targets), a recipe-author embedding (also no better for cold
+recipes), down-weighting same-day targets (a third of training targets are same-day bulk
+reviews, while 83% of validation cases follow a gap of over 90 days), a popularity prior
+inside the training logits (the model alone becomes useless for recipes without counts),
+dropout 0.5, weight decay 0.1, 4,096 negatives and 128 dimensions.
+
+**Speed.** Batches are trimmed to their longest sequence (positions count from the end,
+so trimming never changes a state) and grouped by length; tag/ingredient means use
+`EmbeddingBag`; evaluation ranks a whole batch at once on the device. One epoch is 15 s
+on a laptop CPU (v1: 22 s), the full experiment suite (7 runs) 20 minutes (v1: 91 minutes
+for 6), and `TorchScorer` precomputes item vectors once at load: 0.5 ms median per
+request (v1: 1.1 ms).
 
 ## Consequences
 

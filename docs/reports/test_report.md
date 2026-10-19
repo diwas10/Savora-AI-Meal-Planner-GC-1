@@ -42,7 +42,7 @@ The 5 CI skips are exactly the torch-dependent test files and tests
 | Member 2 adapter | `test_member2_adapter_integration.py` | 4 | real export through Member 2's `solve_daily_plan`: feasible, tightest cap, infeasible |
 | Evaluation | `test_recommendation_eval.py` | 15 | time split, metrics, exact full rank vs brute force (300 random cases) |
 | Ranking API | `test_ranking_api.py` | 14 | only supplied IDs, explicit fallbacks, wire format, meal aggregation |
-| Model | `test_torch_model.py` | 5 | training, zero ID vector for unseen items, no NaN, save/load, shared protocol |
+| Model | `test_torch_model.py` | 9 | training, zero ID vector for unseen items, no NaN, save/load, shared protocol, trimmed padding = padded, batched ranks = case-by-case count, validated hybrid weight saved, cached scorer = model, v1 checkpoint refused |
 | Shipped model | `test_trained_model.py` | 3 | safe loading, determinism, content neighbours |
 | Runners | `test_evaluation_runners.py` | 5 | `evaluate.run`, the experiment suite end to end, bootstrap, duplicate weights |
 | Nutrition targets | `test_nutrition_models.py`, `test_nutrition_targets.py` | 34 | Mifflin-St Jeor, AMDR macros, protein RDA, adult input range |

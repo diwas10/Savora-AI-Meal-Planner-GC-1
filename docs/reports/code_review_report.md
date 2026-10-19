@@ -65,5 +65,5 @@ rebuilt and checked with `--check`:
 - The Member 2 adapter labels real data SYNTHETIC because Member 2's contracts accept
   nothing else; it must not feed production.
 - The model does not beat popularity on full-catalogue next-review prediction
-  (`ranking_evaluation_report.md`).
+  (`ranking_evaluation_report_v1.md`).
 - The curated lists need human confirmation.

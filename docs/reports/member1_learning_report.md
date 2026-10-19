@@ -5,7 +5,7 @@
 - **Read with:** ADR 0001 to 0004 in `docs/adr/`, the contract note
   `docs/member1_catalogue_contract.md`, and the code paths cited below.
 - **Companion reports** (`docs/reports/`): `catalogue_data_report.md` (the data funnel),
-  `ranking_evaluation_report.md` (all model results), `model_card.md`,
+  `ranking_evaluation_report_v1.md` and `_v2.md` (all model results), `model_card_v1.md` and `_v2.md`,
   `test_report.md` (what ran, coverage) and `code_review_report.md` (findings and fixes).
 
 This report explains **what** was built, **why** each decision was made, **how** the code
@@ -392,7 +392,7 @@ compares it with brute-force sorting on 300 random cases.
 ### 13.6 Results
 
 Test period (2013+), 9,200 users, full ranking over 231,637 recipes
-(`docs/eval/ranking_evaluation.json`):
+(`docs/eval/v1/ranking_evaluation.json`):
 
 | Model | HR@10 | NDCG@10 | MRR | Coverage@10 |
 |---|---|---|---|---|
@@ -475,7 +475,7 @@ What the integration taught:
 - **Model evaluation:** 3 seeds, ablations, bootstrap intervals, catalogue-restricted
   ranking and a meal-scoring ablation. The hybrid ties popularity; the model alone is
   significantly worse; ID embeddings add nothing on this data
-  (`ranking_evaluation_report.md`). Lesson: report the uncertainty, not one number.
+  (`ranking_evaluation_report_v1.md`). Lesson: report the uncertainty, not one number.
 
 ## 13c. Answering Member 2 with evidence (19 Oct 2026)
 

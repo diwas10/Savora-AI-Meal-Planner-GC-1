@@ -217,7 +217,7 @@ are a team decision.
 - With lunch and dinner sharing options, a day is about 16-24 distinct options, under your 75 weekly-distinct ceiling only if the week reuses meals. We should measure this together.
 
 **Model quality.** The Transformer + popularity hybrid ties popularity (HR@10 1.94% vs 1.91%;
-69.7% vs 70.6% inside the catalogue). See `docs/reports/ranking_evaluation_report.md`.
+69.7% vs 70.6% inside the catalogue). See `docs/reports/ranking_evaluation_report_v1.md` (v2, with a stronger model alone: `ranking_evaluation_report_v2.md`).
 
 ## 11. Implementation status
 
