@@ -5,7 +5,7 @@ from fastapi import APIRouter
 from savora_backend.auth import auth_router
 from savora_backend.core.catalogue import catalogue_router
 from savora_backend.core.cravings import cravings_router
-from savora_backend.core.meal_plans import meal_plans_router
+from savora_backend.core.meal_plans import meal_plans_router, substitutions_router
 from savora_backend.core.nutrition_profiles import profile_router
 from savora_backend.core.onboarding import onboarding_router
 
@@ -16,6 +16,7 @@ api_router.include_router(catalogue_router)
 api_router.include_router(onboarding_router)
 api_router.include_router(cravings_router)
 api_router.include_router(meal_plans_router)
+api_router.include_router(substitutions_router)
 
 
 @api_router.get("/health")
