@@ -295,3 +295,14 @@ def test_substitution_rejects_a_partial_plan(bundle: CatalogueBundle) -> None:
             week_id="w",
             start_date=START,
         )
+
+
+def test_substitution_refuses_to_lock_meals_the_profile_no_longer_allows(
+    bundle: CatalogueBundle, week: WeekPlan
+) -> None:
+    current = {m.slot_id: m.option_id for m in week.meals}
+    vegan = profile(diet="VEGAN", cuisinePolicy="STRICT", cuisines=["Indian"])
+    with pytest.raises(ValueError, match="no longer fit the profile"):
+        substitute_slot(
+            vegan, bundle, current=current, slot="D2_LUNCH", week_id="w", start_date=START
+        )
