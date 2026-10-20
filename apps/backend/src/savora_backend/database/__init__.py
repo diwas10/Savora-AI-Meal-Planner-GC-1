@@ -7,7 +7,8 @@ from contextlib import asynccontextmanager
 from datetime import UTC, datetime
 from typing import Any
 
-from sqlalchemy import Boolean, DateTime, Uuid, create_engine
+from sqlalchemy import JSON, Boolean, DateTime, String, Uuid, create_engine
+from sqlalchemy.dialects.postgresql import ARRAY, JSONB
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
     AsyncSession,
@@ -16,6 +17,7 @@ from sqlalchemy.ext.asyncio import (
 )
 from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column, sessionmaker
 from sqlalchemy.pool import StaticPool
+from sqlalchemy.types import TypeDecorator
 
 from savora_backend.config import get_settings
 from savora_backend.contexts import RequestContextProvider
@@ -57,6 +59,21 @@ class PrimaryEntity(CommonEntity):
     __abstract__ = True
 
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+
+
+class StringArrayType(TypeDecorator[list[str]]):
+    """Uses PostgreSQL TEXT[] in Postgres and JSON array in SQLite."""
+
+    impl = JSON
+    cache_ok = True
+
+    def load_dialect_impl(self, dialect: Any) -> Any:
+        if dialect.name == "postgresql":
+            return dialect.type_descriptor(ARRAY(String))
+        return dialect.type_descriptor(JSON())
+
+
+JsonbType = JSON().with_variant(JSONB(), "postgresql")
 
 
 class SyncToAsyncSessionAdapter:

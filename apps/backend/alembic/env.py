@@ -11,7 +11,7 @@ from sqlalchemy import create_engine, pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
-import savora_backend.core.users  # noqa: F401
+from savora_backend.core import nutrition_profiles, users  # noqa: F401
 from savora_backend.database import Base
 
 load_dotenv(Path(__file__).resolve().parents[3] / ".env")
