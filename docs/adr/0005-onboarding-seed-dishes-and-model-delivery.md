@@ -1,8 +1,8 @@
 # ADR 0005: Onboarding seed dishes and delivery of the trained model
 
-- **Status:** Proposed by Member 1 for team approval. D1 needs Member 3 (onboarding,
-  persistence) and the team, because it adds a stored profile field.
-- **Date:** 2026-10-19
+- **Status:** D1 **Accepted** by the whole team on 2026-10-20 (as written). D2 mechanism
+  accepted; the hosting choice is **deferred** (see open items).
+- **Date:** 2026-10-19 (proposed); 2026-10-20 (team decision)
 - **Owner:** Member 1 (ranking); Member 3 wires the endpoints, storage and UI.
 - **Relates to:** ARCHITECTURE.md sections 4.1, 7, 9.2, 11; ADR 0004 D7 and open items 1-2;
   AGENTS.md "Persist generated plans and substitutions only"
@@ -78,9 +78,21 @@ evaluated model.
   dataset (Majumder et al., 2019); the team should confirm the dataset's terms allow it.
   If not, use Supabase Storage with a private bucket and the same manifest.
 
+## Team decision (2026-10-20)
+
+1. **D1 accepted as written.** Seed dishes are stored on the profile as `seed_recipe_ids`
+   (3 to 5, in pick order, edited only by the user, revalidated on profile change).
+2. **D2 hosting deferred.** The manifest and checksum verification stay as decided, but
+   the model is not published yet: public GitHub release vs a private Supabase bucket is
+   decided once the Food.com dataset terms are checked, before the final demo. Until
+   then the backend runs the labelled popularity fallback (`MODEL_UNAVAILABLE`), and
+   developers who hold the file locally get it verified against the manifest.
+3. **Names accepted** (docs/member3/IMPLEMENTATION_SPEC.md section 4): profile field
+   `seed_recipe_ids`; `GET /api/onboarding/seed-suggestions` returns `SeedSuggestions`;
+   `PUT /api/onboarding/seed-picks` takes `{recipeIds}` and returns `{seedRecipeIds}`.
+
 ## Open items
 
-1. Team approval of D1 (stored seed IDs on the profile).
-2. Upload of the `model-sasrec-content-v2` release asset (D2); the manifest already names
-   its URL.
-3. Final DTO and field names with Member 3.
+1. Decide D2 hosting (public release or private Supabase bucket) after checking the
+   Food.com dataset terms; then upload `model-sasrec-content-v2` and update `sourceUrl`
+   in the manifest if the location changes.

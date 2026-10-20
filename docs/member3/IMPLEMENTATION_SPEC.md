@@ -134,8 +134,8 @@ jobs** with polling (S7, S8). Never run them inside a request handler.
    - Fall back to the deterministic template parser when the key is unset, on timeout or
      on invalid output, and record which parser was used.
    - A local `transformers` adapter is optional, behind the existing `ml` extra.
-5. **Seed dishes** are stored on the profile (ADR 0005 D1). They are still marked
-   "proposed", so mention it in the PR.
+5. **Seed dishes** are stored on the profile as `seed_recipe_ids` (ADR 0005 D1, accepted
+   by the team on 2026-10-20, together with the seed endpoint names in section 4).
 
 ## 3. Work plan (one branch per slice, in order; each slice ends green)
 
@@ -462,8 +462,8 @@ make dev-frontend  # http://localhost:3000
 | Member 2 (Venkat) | Weekly CSP performance (about 2–3 min per plan; the rule filter reruns per meal option) | That is why plans and swaps are background jobs. Faster solves need no change from you. |
 | Member 2 (Venkat) | Search ordering by rank (the solver orders options by ID) and energy/nutrient DAY rules | The pipelines offer one option per slot until this exists. |
 | Member 2 (Venkat) | `PLANNED_SWAP` workflow in the daily/weekly CSP contracts (today only `WEEKLY_PLAN` is admitted) | `substitute_slot` solves the swap as a locked week. The result is still labelled `PLANNED_SWAP`, so nothing changes for you. |
-| Member 1 (Diwash) | Upload of the `model-sasrec-content-v2` release asset (ADR 0005 D2; held pending dataset-terms check) | Until then, the popularity fallback, labelled. |
-| Team | Approval of ADR 0005 D1 (seed IDs on the profile) and of this spec's section 2 decisions | Note them in each PR. |
+| Team / Member 1 (Diwash) | Model hosting for ADR 0005 D2 (deferred by the team on 2026-10-20 until the dataset terms are checked) | Until then, the popularity fallback, labelled. |
+| Team | Approval of this spec's section 2 decisions 1 to 4 | Note them in each PR. |
 
 ## 10. Known limitations to state in the handoff
 
