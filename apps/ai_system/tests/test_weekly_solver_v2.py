@@ -336,10 +336,7 @@ def test_backwards_clock():
 
 @pytest.mark.parametrize(
     "policy,variable,value,propagation",
-    (
-        (v2.WeeklyStrategyPolicyV2.REVERSE_VALUES, "CHRONOLOGICAL", "OPTION_ID_DESC", "NONE"),
-        (v2.WeeklyStrategyPolicyV2.MRV, "MRV", "OPTION_ID_ASC", "KNOWN_FAILURE_FORWARD_CHECK"),
-    ),
+    ((v2.WeeklyStrategyPolicyV2.MRV, "MRV", "OPTION_ID_ASC", "KNOWN_FAILURE_FORWARD_CHECK"),),
 )
 def test_future_declarations_not_executable(policy, variable, value, propagation):
     c = build_week_case("single")

@@ -36,6 +36,19 @@ storage is released on a nonclosure; completed work is never refunded. Reported
 proof reservations retain committed records plus the envelope, not the sum of
 temporary allocations. Snapshot reservations remain cumulative across emitted
 events. Failure to reserve potential storage still terminates with TIMEOUT.
+
+Incremental variants use synthetic-weekly-incremental-work-reservation.v2. Only
+under that policy, heuristic units additionally reserve source metadata admission,
+each selection plus its prepaid rollback, and DAY/WEEK aggregate extraction.
+The checker reconstructs those protocol costs but always derives full facts from
+original sources, without importing or constructing execution's incremental state.
+See the _incremental_*_cost helpers and the Phase 7.2d handoff for exact units.
+
+Ordered variants use synthetic-weekly-ordered-work-reservation.v2: first reserve
+21 + total ORIGINAL domain cardinalities for fixed order preparation, mirrored
+for verification. Applicable forward/incremental charges above also apply under
+this token. Their explicit ordered coverage policy binds the permutation of actual
+slot identities and the value-rank bijection; old policies retain old encodings.
 """
 
 import hashlib
@@ -43,17 +56,22 @@ import json
 from collections.abc import Callable
 from dataclasses import dataclass
 from math import prod
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from pydantic import BaseModel
 
 from savora_ai.core.reasoning.combinations import _evaluate_prepared_combination
-from savora_ai.core.reasoning.day_checks import _assess_day, _slot_status
+from savora_ai.core.reasoning.day_checks import _assess_day, _evaluate_day, _slot_status
 from savora_ai.core.reasoning.facts import _validated_fact_index
 from savora_ai.core.reasoning.filtering import filter_candidates
 from savora_ai.core.reasoning.manifest import _mandatory_checks, _ManifestRequest
 from savora_ai.core.reasoning.preparation import _PreparedRecipePool
-from savora_ai.core.reasoning.week_checks import _assess_week, _compile_week, _prepare_option
+from savora_ai.core.reasoning.week_checks import (
+    _assess_week,
+    _compile_week,
+    _evaluate_week,
+    _prepare_option,
+)
 from savora_ai.core.reasoning.weekly import _manifest, _WeekRequest
 from savora_ai.core.reasoning.weekly_bounds import _attempts, _check_bound, _cost, _metadata
 from savora_ai.schemas import weekly_search_v2 as v2
@@ -85,6 +103,9 @@ from savora_ai.schemas.weekly import (
 )
 from savora_ai.schemas.weekly_evaluation import _week_explanations
 from savora_ai.schemas.weekly_search import WeeklyWitness, WeeklyWitnessDay
+
+if TYPE_CHECKING:
+    from savora_ai.core.reasoning.weekly_incremental import _IncrementalState
 
 
 def _bytes(value: Any) -> bytes:
@@ -190,8 +211,17 @@ def _material(
     if strategy.policy not in (
         v2.WeeklyStrategyPolicyV2.CHRONOLOGICAL,
         v2.WeeklyStrategyPolicyV2.FORWARD_CHECKING,
+        v2.WeeklyStrategyPolicyV2.INCREMENTAL,
+        v2.WeeklyStrategyPolicyV2.INCREMENTAL_FORWARD_CHECKING,
+        v2.WeeklyStrategyPolicyV2.REVERSE_VALUES,
+        v2.WeeklyStrategyPolicyV2.STATIC_MRV,
+        v2.WeeklyStrategyPolicyV2.STATIC_MRV_FORWARD_CHECKING,
+        v2.WeeklyStrategyPolicyV2.STATIC_MRV_INCREMENTAL,
+        v2.WeeklyStrategyPolicyV2.STATIC_MRV_INCREMENTAL_FORWARD_CHECKING,
     ):
-        raise ValueError("only chronological and forward-checking v2 execution are available")
+        raise ValueError(
+            "only chronological, reverse and static original-domain MRV v2 policies execute"
+        )
     request = manifest.request
     context = request.source.daily_source.context
     domains = tuple(
@@ -254,13 +284,19 @@ def _material(
         kb_digest=manifest.knowledge.content_digest,
         strategy=strategy,
     )
-    return dict(
+    material: dict[str, Any] = dict(
         request=request,
         identity=identity,
         rule_obligations=obligations,
         original_domains=domains,
         limits=limits,
     )
+    if (
+        strategy.value_order == "OPTION_ID_DESC"
+        or strategy.variable_order == "STATIC_MRV_ORIGINAL_DOMAINS"
+    ):
+        material["proof_policy_version"] = "synthetic-weekly-ordered-coverage.v2"
+    return material
 
 
 def _scope(
@@ -268,10 +304,17 @@ def _scope(
     path: tuple[int, ...],
     alternatives: tuple[int, ...] = (),
 ) -> v2.WeeklyBranchScopeV2:
+    prefix = "p" + ".".join(str(i) for i in path)
+    branch_id = prefix + ("a" + ".".join(map(str, alternatives)) if alternatives else "")
+    if len(branch_id) > 128:
+        # Keep every previously valid ID unchanged. Wide original domains can
+        # exceed the opaque-ID ceiling in reservation/suffix scopes. This exact
+        # one-character encoding preserves all 0..49 indices without truncation
+        # or treating a hash as branch identity authority.
+        alphabet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmn"
+        branch_id = prefix + "a:" + "".join(alphabet[i] for i in alternatives)
     return v2.WeeklyBranchScopeV2(
-        branch_id="p"
-        + ".".join(str(i) for i in path)
-        + ("a" + ".".join(map(str, alternatives)) if alternatives else ""),
+        branch_id=branch_id,
         extent="SLOT_ALTERNATIVES"
         if alternatives
         else "LEAF"
@@ -289,7 +332,7 @@ def _scope(
 
 
 def _rest(
-    domains: tuple[v2.WeeklyOriginalDomainV2, ...], rank: int
+    domains: tuple[v2.WeeklyOriginalDomainV2, ...], rank: int, *, reverse: bool = False
 ) -> tuple[v2.WeeklyFrontierBranchV2, ...]:
     """Compact suffix partition, independent of the executor's mutable DFS cursors."""
     sizes = tuple(len(d.options) for d in domains)
@@ -298,12 +341,17 @@ def _rest(
     if rank == 0:
         scopes = [_scope(domains, ())]
     else:
-        digits = tuple((rank // prod(sizes[i + 1 :])) % sizes[i] for i in range(21))
+        ranks = tuple((rank // prod(sizes[i + 1 :])) % sizes[i] for i in range(21))
+        digits = tuple(sizes[i] - 1 - p if reverse else p for i, p in enumerate(ranks))
         scopes = [_scope(domains, digits)]
         scopes.extend(
-            _scope(domains, digits[:i], tuple(range(digits[i] + 1, sizes[i])))
+            _scope(
+                domains,
+                digits[:i],
+                tuple(range(digits[i])) if reverse else tuple(range(digits[i] + 1, sizes[i])),
+            )
             for i in reversed(range(21))
-            if digits[i] + 1 < sizes[i]
+            if ranks[i] + 1 < sizes[i]
         )
     return tuple(
         v2.WeeklyFrontierBranchV2(scope=s, state=v2.WeeklyFrontierStateV2.UNEXPLORED)
@@ -402,7 +450,7 @@ def _forward_payload(material, domains, path, program, attempt, bounds=None) -> 
     )
     result["remaining_domains"] = tuple(
         dict(slot=d.slot, original_domain_indexes=tuple(range(len(d.options))))
-        for d in domains[len(path) :]
+        for d in sorted(domains[len(path) :], key=lambda d: d.slot.canonical_index)
     )
     maximum = 21 * ((2**63 - 1) // 3)
     lo, hi = bounds if bounds is not None else (maximum, maximum)
@@ -417,8 +465,8 @@ def _forward_payload(material, domains, path, program, attempt, bounds=None) -> 
     return result
 
 
-def _envelope(material: dict[str, Any]) -> int:
-    domains = material["original_domains"]
+def _envelope(material: dict[str, Any], *, ordered_domains=None) -> int:
+    domains = material["original_domains"] if ordered_domains is None else ordered_domains
     # Bound all 22 possible suffix scopes, including the longest option references.
     longest = tuple(
         max(range(len(d.options)), key=lambda j: len(_bytes(d.options[j]))) if d.options else 0
@@ -464,15 +512,48 @@ def _seal(
     raise ValueError("proof encoding did not reach its bounded byte fixed point")
 
 
+def _incremental_initial_cost(manifest, domains) -> dict[str, int]:
+    """Protocol metadata costs only; no aggregate state is used by the checker."""
+    required = {ref for domain in domains for ref in domain.options}
+    return dict(
+        heuristic_evaluations=1
+        + sum(
+            1 + len(option.combination.components)
+            for option in manifest.request.source.daily_source.options
+            if option.reference in required
+        )
+    )
+
+
+def _incremental_update_cost(manifest, ref) -> dict[str, int]:
+    option = next(o for o in manifest.request.source.daily_source.options if o.reference == ref)
+    # Prepay publication AND exact rollback, even on success/interruption. Component
+    # occurrences conservatively cover deduplicated recipe updates. No refund.
+    return dict(heuristic_evaluations=2 * (1 + len(option.combination.components)))
+
+
+def _incremental_week_cost(manifest, domains, path) -> dict[str, int]:
+    original = {o.reference: o for o in manifest.request.source.daily_source.options}
+    return dict(
+        heuristic_evaluations=1
+        + sum(
+            len(original[domains[i].options[p]].combination.components) for i, p in enumerate(path)
+        )
+    )
+
+
 def _day(
     program: Any,
     domains: tuple[v2.WeeklyOriginalDomainV2, ...],
     path: tuple[int, ...],
     decisions: dict[str, DailyOptionDecision],
+    *,
+    incremental: "_IncrementalState | None" = None,
 ) -> DailyAssignmentEvaluation:
-    index = len(path) // 3 - 1
+    index = domains[len(path) - 1].slot.canonical_index // 3
     daily = program.days[index]
-    chosen = tuple(domains[i].options[path[i]] for i in range(index * 3, index * 3 + 3))
+    selected = {domains[i].slot.canonical_index: domains[i].options[p] for i, p in enumerate(path)}
+    chosen = tuple(selected[i] for i in range(index * 3, index * 3 + 3))
     trial = DailyTrial.build(
         dict(
             request_digest=daily.request.content_digest,
@@ -481,7 +562,7 @@ def _day(
             ),
         )
     )
-    facts, trace, status = _assess_day(
+    arguments = (
         daily,
         tuple(zip(MealSlot, chosen, strict=True)),
         tuple(decisions[r.option_id].slots[i].status for i, r in enumerate(chosen)),
@@ -489,6 +570,11 @@ def _day(
         program.day_program,
         _evidence_union(tuple(decisions[r.option_id].combination.evidence for r in chosen)),
     )
+    if incremental is None:
+        facts, trace, status = _assess_day(*arguments)
+    else:
+        incremental.bind_path(domains, path)
+        facts, trace, status = _evaluate_day(*arguments, quantity=incremental.day_values(index))
     return DailyAssignmentEvaluation(
         trial=trial,
         facts=facts,
@@ -504,6 +590,8 @@ def _leaf(
     path: tuple[int, ...],
     decisions: dict[str, DailyOptionDecision],
     days: tuple[DailyAssignmentEvaluation, ...],
+    *,
+    incremental: "_IncrementalState | None" = None,
 ) -> tuple[RuleStatus, str, WeeklyWitness | None, tuple[v2.WeeklyObligationV2, ...]]:
     manifest = program.manifest
     request = manifest.request
@@ -515,19 +603,36 @@ def _leaf(
             start_date=request.start_date,
             choices=tuple(
                 WeeklyTrialChoice(day=d.slot.day, slot=d.slot.slot, option=d.options[p])
-                for d, p in zip(domains, path, strict=True)
+                for d, p in sorted(
+                    zip(domains, path, strict=True), key=lambda pair: pair[0].slot.canonical_index
+                )
             ),
         )
     )
     selected = {c.option.option_id for c in trial.choices}
-    records, facts, trace, _, status = _assess_week(
-        program,
-        trial,
-        tuple(decisions[key] for key in sorted(selected)),
-        assessed_days=tuple(
-            (domains[i * 3].slot.day, program.days[i].content_digest, e) for i, e in enumerate(days)
-        ),
+    arguments = (program, trial, tuple(decisions[key] for key in sorted(selected)))
+    days = tuple(
+        sorted(
+            days,
+            key=lambda e: next(
+                i
+                for i, daily in enumerate(program.days)
+                if daily.request.content_digest == e.trial.request_digest
+            ),
+        )
     )
+    canonical_domains = sorted(domains, key=lambda d: d.slot.canonical_index)
+    assessed_days = tuple(
+        (canonical_domains[i * 3].slot.day, program.days[i].content_digest, e)
+        for i, e in enumerate(days)
+    )
+    if incremental is None:
+        records, facts, trace, _, status = _assess_week(*arguments, assessed_days=assessed_days)
+    else:
+        incremental.bind_path(domains, path)
+        records, facts, trace, _, status = _evaluate_week(
+            *arguments, assessed_days=assessed_days, aggregates=incremental.week_values()
+        )
     digest = _digest((trial, *(r[2] for r in records), *facts, trace))
     unresolved: list[v2.WeeklyObligationV2] = []
     for scope, evaluations in (
@@ -660,13 +765,45 @@ def check_weekly_proof_v2(
     if (termination == "DEADLINE") != (execution_deadline_checkpoint is not None):
         raise ValueError("v2 execution deadline termination binding differs")
 
-    domains = material["original_domains"]
+    # Independently derive selection order from full original domain cardinalities;
+    # never import the executor's ordering helper or trust event selection claims.
+    strategy = certificate.identity.strategy
+    ordered = (
+        strategy.value_order == "OPTION_ID_DESC"
+        or strategy.variable_order == "STATIC_MRV_ORIGINAL_DOMAINS"
+    )
+    reverse = strategy.value_order == "OPTION_ID_DESC"
+    expected_proof_policy = (
+        "synthetic-weekly-ordered-coverage.v2"
+        if ordered
+        else "synthetic-weekly-coverage-declarations.v2"
+    )
+    if certificate.proof_policy_version != expected_proof_policy:
+        raise ValueError("v2 coverage policy does not match exact execution strategy")
+    canonical = material["original_domains"]
+    selection = list(range(21))
+    domains = canonical
     sizes = tuple(len(d.options) for d in domains)
     weights = tuple(prod(sizes[i + 1 :]) for i in range(21))
     total = prod(sizes)
-    forward = certificate.identity.strategy.policy is v2.WeeklyStrategyPolicyV2.FORWARD_CHECKING
+    forward = certificate.identity.strategy.policy in (
+        v2.WeeklyStrategyPolicyV2.FORWARD_CHECKING,
+        v2.WeeklyStrategyPolicyV2.INCREMENTAL_FORWARD_CHECKING,
+        v2.WeeklyStrategyPolicyV2.STATIC_MRV_FORWARD_CHECKING,
+        v2.WeeklyStrategyPolicyV2.STATIC_MRV_INCREMENTAL_FORWARD_CHECKING,
+    )
+    incremental = certificate.identity.strategy.policy in (
+        v2.WeeklyStrategyPolicyV2.INCREMENTAL,
+        v2.WeeklyStrategyPolicyV2.INCREMENTAL_FORWARD_CHECKING,
+        v2.WeeklyStrategyPolicyV2.STATIC_MRV_INCREMENTAL,
+        v2.WeeklyStrategyPolicyV2.STATIC_MRV_INCREMENTAL_FORWARD_CHECKING,
+    )
     accounting_policy = (
-        "synthetic-weekly-forward-work-reservation.v2"
+        "synthetic-weekly-ordered-work-reservation.v2"
+        if ordered
+        else "synthetic-weekly-incremental-work-reservation.v2"
+        if incremental
+        else "synthetic-weekly-forward-work-reservation.v2"
         if forward
         else "synthetic-weekly-work-reservation.v2"
     )
@@ -782,12 +919,17 @@ def check_weekly_proof_v2(
             raise ValueError("v2 event differs from independent evaluation/order/accounting")
         scope = event.scope
         path = tuple(c.original_domain_index for c in scope.path)
-        start = sum(p * weights[i] for i, p in enumerate(path))
+        if tuple(c.slot.canonical_index for c in scope.path) != tuple(selection[: len(path)]):
+            raise ValueError("v2 path differs from independently selected original-domain order")
+        start = sum((sizes[i] - 1 - p if reverse else p) * weights[i] for i, p in enumerate(path))
         width = prod(sizes[len(path) :])
         if scope.extent == "SLOT_ALTERNATIVES":
             if scope.decision_slot != domains[len(path)].slot:
-                raise ValueError("unary exclusion is not at the chronological decision")
-            start += scope.original_domain_indexes[0] * weights[len(path)]
+                raise ValueError("unary exclusion is not at the independently selected decision")
+            original_index = scope.original_domain_indexes[0]
+            start += (
+                sizes[len(path)] - 1 - original_index if reverse else original_index
+            ) * weights[len(path)]
             width = weights[len(path)]
         if start != covered or width <= 0:
             raise ValueError("v2 terminal cover has a gap, overlap or noncanonical interval")
@@ -819,9 +961,15 @@ def check_weekly_proof_v2(
     option_cost = recipe_cost + sum(r.scope is RuleScope.COMBINATION for r in rules)
     decisions: dict[str, DailyOptionDecision] = {}
     preparation: _PreparedRecipePool | None = None
-    if permit(
+    ordering_ready = not ordered or permit(dict(heuristic_evaluations=21 + sum(sizes)))
+    if ordering_ready and strategy.variable_order == "STATIC_MRV_ORIGINAL_DOMAINS":
+        selection = sorted(selection, key=lambda index: (len(canonical[index].options), index))
+        domains = tuple(canonical[index] for index in selection)
+        sizes = tuple(len(d.options) for d in domains)
+        weights = tuple(prod(sizes[i + 1 :]) for i in range(21))
+    if ordering_ready and permit(
         dict(candidate_preparations=len(pool), predicate_obligations=recipe_cost),
-        envelope=_envelope(material),
+        envelope=_envelope(material, ordered_domains=domains) if ordered else _envelope(material),
     ):
         if reuse_preparation:
             preparation = _preparation_session(manifest, pool, preparation_cache_entries)
@@ -856,7 +1004,8 @@ def check_weekly_proof_v2(
                 # task includes immutable path/DAY state; rollback tasks enforce
                 # counters without trusting any claimed branch-exhaustion marker.
                 tasks: list[tuple[str, tuple[int, ...], tuple[DailyAssignmentEvaluation, ...]]] = []
-                if total:
+                ready = not incremental or permit(_incremental_initial_cost(manifest, domains))
+                if total and ready:
                     tasks = [("expand", (), ())]
                 while tasks and stop is None and expired_checkpoint is None and witness is None:
                     action, path, day_records = tasks.pop()
@@ -866,7 +1015,9 @@ def check_weekly_proof_v2(
                     if action == "expand":
                         closed = False
                         if forward:
-                            for attempt in _attempts(program, len(path)):
+                            for attempt in _attempts(
+                                program, domains[len(path)].slot.canonical_index
+                            ):
                                 template = _forward_payload(
                                     material, domains, path, program, attempt
                                 )
@@ -890,13 +1041,20 @@ def check_weekly_proof_v2(
                         if not closed:
                             tasks.extend(
                                 ("choose", (*path, i), day_records)
-                                for i in reversed(range(sizes[len(path)]))
+                                for i in (
+                                    range(sizes[len(path)])
+                                    if reverse
+                                    else reversed(range(sizes[len(path)]))
+                                )
                             )
                         continue
                     depth = len(path) - 1
                     ref = domains[depth].options[path[-1]]
                     decision = decisions[ref.option_id]
-                    if decision.slots[depth % 3].status is RuleStatus.FAIL:
+                    if (
+                        decision.slots[domains[depth].slot.canonical_index % 3].status
+                        is RuleStatus.FAIL
+                    ):
                         scope = _scope(domains, path[:-1], (path[-1],))
                         payload = _payload(material, "UNARY_FAILURE", scope)
                         if not permit({}, payload=payload):
@@ -905,11 +1063,18 @@ def check_weekly_proof_v2(
                         continue
                     if not permit({}, node=True):
                         break
+                    if incremental and not permit(_incremental_update_cost(manifest, ref)):
+                        break
                     tasks.append(("rollback", path, day_records))
-                    if len(path) % 3 == 0:
+                    actual_day = domains[depth].slot.day.day_index
+                    if sum(d.slot.day.day_index == actual_day for d in domains[: len(path)]) == 3:
                         scope = _scope(domains, path)
                         if not permit(
-                            dict(day_assessments=1, predicate_obligations=len(manifest.day_checks)),
+                            dict(
+                                day_assessments=1,
+                                predicate_obligations=len(manifest.day_checks),
+                                **(dict(heuristic_evaluations=1) if incremental else {}),
+                            ),
                         ):
                             break
                         evaluation = _day(program, domains, path, decisions)
@@ -927,6 +1092,11 @@ def check_weekly_proof_v2(
                             dict(
                                 week_assessments=1,
                                 predicate_obligations=len(manifest.required_checks),
+                                **(
+                                    _incremental_week_cost(manifest, domains, path)
+                                    if incremental
+                                    else {}
+                                ),
                             ),
                             payload=template,
                         ):
@@ -963,7 +1133,10 @@ def check_weekly_proof_v2(
         raise ValueError("v2 final counters/reservations or event count differ")
     # Independently prove all original completions accounted for, even on timeout
     # and early FEASIBLE: terminal intervals plus a canonical unexplored suffix.
-    expected_frontier = (*branches, *_rest(domains, covered))
+    expected_frontier = (
+        *branches,
+        *(_rest(domains, covered, reverse=True) if reverse else _rest(domains, covered)),
+    )
     if certificate.frontier != expected_frontier or covered > total:
         raise ValueError("v2 frontier is not the exact original-domain partition")
     # Independent interval algebra also checks the suffix encoder itself. Merely
@@ -971,13 +1144,24 @@ def check_weekly_proof_v2(
     cursor = 0
     for branch in certificate.frontier:
         prefix = branch.scope.path
-        lower = sum(c.original_domain_index * weights[i] for i, c in enumerate(prefix))
+        if tuple(c.slot.canonical_index for c in prefix) != tuple(selection[: len(prefix)]):
+            raise ValueError(
+                "frontier selected slots differ from independently reconstructed order"
+            )
+        lower = sum(
+            (sizes[i] - 1 - c.original_domain_index if reverse else c.original_domain_index)
+            * weights[i]
+            for i, c in enumerate(prefix)
+        )
         width = prod(sizes[len(prefix) :])
         if branch.scope.extent == "SLOT_ALTERNATIVES":
             indexes = branch.scope.original_domain_indexes
             if indexes != tuple(range(indexes[0], indexes[-1] + 1)):
                 raise ValueError("frontier alternative interval contains holes")
-            lower += indexes[0] * weights[len(prefix)]
+            if branch.scope.decision_slot != domains[len(prefix)].slot:
+                raise ValueError("frontier decision slot differs from independent selection")
+            first_rank = sizes[len(prefix)] - 1 - indexes[-1] if reverse else indexes[0]
+            lower += first_rank * weights[len(prefix)]
             width = len(indexes) * weights[len(prefix)]
         if lower != cursor or width <= 0:
             raise ValueError("frontier interval has an overlap or coverage gap")

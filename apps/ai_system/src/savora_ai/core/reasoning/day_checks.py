@@ -118,6 +118,25 @@ def _assess_day(
     program: _DayProgram,
     prerequisite_evidence: tuple[EvidenceReference, ...] = (),
 ) -> tuple[tuple[DayFact, ...], RuleTrace, RuleStatus]:
+    # The authoritative path always derives from the selected original records.
+    return _evaluate_day(manifest, choices, statuses, trial_digest, program, prerequisite_evidence)
+
+
+def _evaluate_day(
+    manifest: ExpectedDayCheckManifest,
+    choices: tuple[tuple[MealSlot, MealOptionReference], ...],
+    statuses: tuple[RuleStatus, ...],
+    trial_digest: str,
+    program: _DayProgram,
+    prerequisite_evidence: tuple[EvidenceReference, ...] = (),
+    *,
+    quantity: tuple[int | None, bool] | None = None,
+) -> tuple[tuple[DayFact, ...], RuleTrace, RuleStatus]:
+    """Assemble full evidence and evaluate every rule; optional private arithmetic only.
+
+    Only execution's incremental adapter supplies quantity. Authoritative verification
+    calls _assess_day, which never accepts an aggregate or skips full derivation.
+    """
     request = manifest.request
     selected = tuple(program.options[ref.option_id] for _, ref in choices)
     source = request.source
@@ -127,14 +146,22 @@ def _assess_day(
         for (slot, _), option in zip(choices, selected, strict=True)
         if option.measurements
     )
-    numeric_complete = len(contributions) == 3 and all(
-        item.measurement.complete and item.measurement.value is not None for item in contributions
-    )
-    total = (
-        sum(item.measurement.value for item in contributions if item.measurement.value is not None)
-        if numeric_complete
-        else None
-    )
+    if quantity is None:
+        numeric_complete = len(contributions) == 3 and all(
+            item.measurement.complete and item.measurement.value is not None
+            for item in contributions
+        )
+        total = (
+            sum(
+                item.measurement.value
+                for item in contributions
+                if item.measurement.value is not None
+            )
+            if numeric_complete
+            else None
+        )
+    else:
+        total, numeric_complete = quantity
     derivation = _derivation_evidence()
     evidence = _evidence_union((source.evidence, selected, derivation, prerequisite_evidence))
     bindings: dict[str, object] = dict(

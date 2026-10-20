@@ -21,10 +21,34 @@ from savora_ai.schemas.weekly_solver import ComputedWeeklySolveResult
 
 
 def strategy(policy=v2.WeeklyStrategyPolicyV2.CHRONOLOGICAL) -> v2.WeeklySearchStrategyV2:
+    if policy in (
+        v2.WeeklyStrategyPolicyV2.STATIC_MRV,
+        v2.WeeklyStrategyPolicyV2.STATIC_MRV_FORWARD_CHECKING,
+        v2.WeeklyStrategyPolicyV2.STATIC_MRV_INCREMENTAL,
+        v2.WeeklyStrategyPolicyV2.STATIC_MRV_INCREMENTAL_FORWARD_CHECKING,
+    ):
+        return v2.WeeklySearchStrategyV2(
+            policy=policy,
+            variable_order="STATIC_MRV_ORIGINAL_DOMAINS",
+            value_order="OPTION_ID_ASC",
+            propagation="KNOWN_FAILURE_FORWARD_CHECK"
+            if policy
+            in (
+                v2.WeeklyStrategyPolicyV2.STATIC_MRV_FORWARD_CHECKING,
+                v2.WeeklyStrategyPolicyV2.STATIC_MRV_INCREMENTAL_FORWARD_CHECKING,
+            )
+            else "NONE",
+        )
     variable, value, propagation = {
         v2.WeeklyStrategyPolicyV2.CHRONOLOGICAL: ("CHRONOLOGICAL", "OPTION_ID_ASC", "NONE"),
         v2.WeeklyStrategyPolicyV2.REVERSE_VALUES: ("CHRONOLOGICAL", "OPTION_ID_DESC", "NONE"),
         v2.WeeklyStrategyPolicyV2.FORWARD_CHECKING: (
+            "CHRONOLOGICAL",
+            "OPTION_ID_ASC",
+            "KNOWN_FAILURE_FORWARD_CHECK",
+        ),
+        v2.WeeklyStrategyPolicyV2.INCREMENTAL: ("CHRONOLOGICAL", "OPTION_ID_ASC", "NONE"),
+        v2.WeeklyStrategyPolicyV2.INCREMENTAL_FORWARD_CHECKING: (
             "CHRONOLOGICAL",
             "OPTION_ID_ASC",
             "KNOWN_FAILURE_FORWARD_CHECK",

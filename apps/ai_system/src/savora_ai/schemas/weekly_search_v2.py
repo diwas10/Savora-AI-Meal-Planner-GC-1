@@ -111,7 +111,15 @@ class WeeklyStrategyPolicyV2(StrEnum):
     CHRONOLOGICAL = "synthetic-chronological-weekly-search.v2"
     REVERSE_VALUES = "synthetic-reverse-option-weekly-search.v2"
     FORWARD_CHECKING = "synthetic-forward-checking-weekly-search.v2"
+    INCREMENTAL = "synthetic-incremental-weekly-search.v2"
+    INCREMENTAL_FORWARD_CHECKING = "synthetic-incremental-forward-checking-weekly-search.v2"
     MRV = "synthetic-mrv-weekly-search.v2"
+    STATIC_MRV = "synthetic-static-original-mrv-weekly-search.v2"
+    STATIC_MRV_FORWARD_CHECKING = "synthetic-static-original-mrv-forward-weekly-search.v2"
+    STATIC_MRV_INCREMENTAL = "synthetic-static-original-mrv-incremental-weekly-search.v2"
+    STATIC_MRV_INCREMENTAL_FORWARD_CHECKING = (
+        "synthetic-static-original-mrv-incremental-forward-weekly-search.v2"
+    )
 
 
 class WeeklySearchStrategyV2(_V2Model):
@@ -119,7 +127,7 @@ class WeeklySearchStrategyV2(_V2Model):
     policy: WeeklyStrategyPolicyV2
     support: Literal["DECLARED_ONLY"] = "DECLARED_ONLY"
     criterion: Literal["FIRST_FEASIBLE"] = "FIRST_FEASIBLE"
-    variable_order: Literal["CHRONOLOGICAL", "MRV"]
+    variable_order: Literal["CHRONOLOGICAL", "MRV", "STATIC_MRV_ORIGINAL_DOMAINS"]
     value_order: Literal["OPTION_ID_ASC", "OPTION_ID_DESC"]
     propagation: Literal["NONE", "KNOWN_FAILURE_FORWARD_CHECK"]
     variable_tie_break: Literal["CANONICAL_SLOT_INDEX"] = "CANONICAL_SLOT_INDEX"
@@ -137,7 +145,33 @@ class WeeklySearchStrategyV2(_V2Model):
                 "OPTION_ID_ASC",
                 "KNOWN_FAILURE_FORWARD_CHECK",
             ),
+            WeeklyStrategyPolicyV2.INCREMENTAL: ("CHRONOLOGICAL", "OPTION_ID_ASC", "NONE"),
+            WeeklyStrategyPolicyV2.INCREMENTAL_FORWARD_CHECKING: (
+                "CHRONOLOGICAL",
+                "OPTION_ID_ASC",
+                "KNOWN_FAILURE_FORWARD_CHECK",
+            ),
             WeeklyStrategyPolicyV2.MRV: ("MRV", "OPTION_ID_ASC", "KNOWN_FAILURE_FORWARD_CHECK"),
+            WeeklyStrategyPolicyV2.STATIC_MRV: (
+                "STATIC_MRV_ORIGINAL_DOMAINS",
+                "OPTION_ID_ASC",
+                "NONE",
+            ),
+            WeeklyStrategyPolicyV2.STATIC_MRV_FORWARD_CHECKING: (
+                "STATIC_MRV_ORIGINAL_DOMAINS",
+                "OPTION_ID_ASC",
+                "KNOWN_FAILURE_FORWARD_CHECK",
+            ),
+            WeeklyStrategyPolicyV2.STATIC_MRV_INCREMENTAL: (
+                "STATIC_MRV_ORIGINAL_DOMAINS",
+                "OPTION_ID_ASC",
+                "NONE",
+            ),
+            WeeklyStrategyPolicyV2.STATIC_MRV_INCREMENTAL_FORWARD_CHECKING: (
+                "STATIC_MRV_ORIGINAL_DOMAINS",
+                "OPTION_ID_ASC",
+                "KNOWN_FAILURE_FORWARD_CHECK",
+            ),
         }
         if (self.variable_order, self.value_order, self.propagation) != permitted[self.policy]:
             raise ValueError("strategy fields must match the exact versioned allowlisted policy")
@@ -318,7 +352,10 @@ class WeeklyWorkV2(_V2Model):
 class WeeklyAccountingV2(_V2Model):
     schema_version: Literal["weekly-search-accounting.v2"] = "weekly-search-accounting.v2"
     policy: Literal[
-        "synthetic-weekly-work-reservation.v2", "synthetic-weekly-forward-work-reservation.v2"
+        "synthetic-weekly-work-reservation.v2",
+        "synthetic-weekly-forward-work-reservation.v2",
+        "synthetic-weekly-incremental-work-reservation.v2",
+        "synthetic-weekly-ordered-work-reservation.v2",
     ] = "synthetic-weekly-work-reservation.v2"
     logical_nodes: _Nodes = 0
     backtracks: _Nodes = 0
@@ -627,9 +664,9 @@ class WeeklySearchCertificateV2(_V2Model):
     """Structural transcript only. Empty frontier/caller hashes cannot authorize a verdict."""
 
     schema_version: Literal["weekly-coverage.v2"] = "weekly-coverage.v2"
-    proof_policy_version: Literal["synthetic-weekly-coverage-declarations.v2"] = (
-        "synthetic-weekly-coverage-declarations.v2"
-    )
+    proof_policy_version: Literal[
+        "synthetic-weekly-coverage-declarations.v2", "synthetic-weekly-ordered-coverage.v2"
+    ] = "synthetic-weekly-coverage-declarations.v2"
     verification_state: Literal["NOT_VERIFIED"] = "NOT_VERIFIED"
     semantic_validation: Literal["DEFERRED_TO_PHASE_7_2A"] = "DEFERRED_TO_PHASE_7_2A"
     outcome: None = None

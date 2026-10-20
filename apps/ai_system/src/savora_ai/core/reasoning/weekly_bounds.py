@@ -25,7 +25,11 @@ class _BoundAttempt:
 
 
 def _attempts(program: _WeekProgram, depth: int) -> tuple[_BoundAttempt, ...]:
-    """Fixed DAY-then-WEEK, rule-ID order; no adaptive variable/value ordering."""
+    """DAY of the next actual canonical slot, then WEEK, in fixed rule-ID order.
+
+    The retained argument name is historical; callers pass canonical slot index,
+    which equals traversal depth only under chronological variable order.
+    """
     day = depth // 3
     return tuple(
         _BoundAttempt(r, tuple(range(day * 3, day * 3 + 3)), day + 1)
@@ -40,7 +44,11 @@ def _attempts(program: _WeekProgram, depth: int) -> tuple[_BoundAttempt, ...]:
 
 def _cost(attempt: _BoundAttempt, domains, path: tuple[int, ...]) -> dict[str, int]:
     # One rule visit, one input occurrence scan, and one required-fact check.
-    scans = sum(1 if i < len(path) else len(domains[i].options) for i in attempt.indexes)
+    positions = {d.slot.canonical_index: i for i, d in enumerate(domains)}
+    scans = sum(
+        1 if positions[i] < len(path) else len(domains[positions[i]].options)
+        for i in attempt.indexes
+    )
     return dict(
         heuristic_evaluations=1 + scans + len(attempt.rule.required_facts), predicate_obligations=1
     )
@@ -122,8 +130,14 @@ def _derive_bound(
     if not _admitted(program, attempt):
         return None
     lower = upper = 0
+    positions = {d.slot.canonical_index: i for i, d in enumerate(domains)}
     for i in attempt.indexes:
-        refs = (domains[i].options[path[i]],) if i < len(path) else domains[i].options
+        position = positions[i]
+        refs = (
+            (domains[position].options[path[position]],)
+            if position < len(path)
+            else domains[position].options
+        )
         values: list[int] = []
         for ref in refs:
             option = program.day_program.options[ref.option_id]
@@ -155,11 +169,13 @@ def _check_bound(
         return None
     original = {o.reference: o for o in program.manifest.request.source.daily_source.options}
     extrema: list[tuple[int, int]] = []
+    by_slot = {d.slot.canonical_index: d for d in domains}
+    assigned = {d.slot.canonical_index: p for d, p in zip(domains[: len(path)], path, strict=True)}
     for index in attempt.indexes:
         lo: int | None = None
         hi: int | None = None
-        for position, ref in enumerate(domains[index].options):
-            if index < len(path) and position != path[index]:
+        for position, ref in enumerate(by_slot[index].options):
+            if index in assigned and position != assigned[index]:
                 continue
             records = original[ref].measurements
             if len(records) != 1 or records[0].value is None or records[0].complete is not True:

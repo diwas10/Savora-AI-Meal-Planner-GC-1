@@ -1,4 +1,4 @@
-"""Additive FIRST_FEASIBLE v2: chronological baseline or exact quantity bounds."""
+"""Explicit FIRST_FEASIBLE v2 policies with independent original-product proofs."""
 
 from collections.abc import Callable
 from math import isfinite, prod
@@ -9,6 +9,13 @@ from savora_ai.core.reasoning.filtering import filter_candidates
 from savora_ai.core.reasoning.manifest import _mandatory_checks
 from savora_ai.core.reasoning.week_checks import _compile_week, _prepare_option
 from savora_ai.core.reasoning.weekly_bounds import _attempts, _cost, _derive_bound
+from savora_ai.core.reasoning.weekly_incremental import _IncrementalState
+from savora_ai.core.reasoning.weekly_ordering import (
+    ORDERED_POLICIES,
+    _day_completed,
+    _ordered_domains,
+    _ordering_cost,
+)
 from savora_ai.core.reasoning.weekly_proof_v2 import (
     _admit,
     _charge,
@@ -16,6 +23,9 @@ from savora_ai.core.reasoning.weekly_proof_v2 import (
     _digest,
     _envelope,
     _forward_payload,
+    _incremental_initial_cost,
+    _incremental_update_cost,
+    _incremental_week_cost,
     _leaf,
     _material,
     _payload,
@@ -73,7 +83,7 @@ def solve_weekly_plan_v2(
     """Return only independently checked synthetic v2 outcomes.
 
     Sources/context/KB/candidate pool must be independently selected by orchestration.
-    Only the exact chronological and forward-checking policies execute here.
+    Only exact allowlisted chronological, reverse and static-original-MRV policies execute.
     max_cache_entries is a capacity, never an instruction to cache.
     See weekly_proof_v2's module contract for semantic work/byte charging. Input
     admission precedes budgets; malformed sources remain errors even at zero work.
@@ -105,9 +115,26 @@ def solve_weekly_plan_v2(
     limits = v2.WeeklySearchLimitsV2.model_validate(limits)
     manifest, pool = _admit(request, candidates, knowledge, context, sources)
     material = _material(manifest, pool, strategy, limits)
-    forward = strategy.policy is v2.WeeklyStrategyPolicyV2.FORWARD_CHECKING
+    forward = strategy.policy in (
+        v2.WeeklyStrategyPolicyV2.FORWARD_CHECKING,
+        v2.WeeklyStrategyPolicyV2.INCREMENTAL_FORWARD_CHECKING,
+        v2.WeeklyStrategyPolicyV2.STATIC_MRV_FORWARD_CHECKING,
+        v2.WeeklyStrategyPolicyV2.STATIC_MRV_INCREMENTAL_FORWARD_CHECKING,
+    )
+    incremental = strategy.policy in (
+        v2.WeeklyStrategyPolicyV2.INCREMENTAL,
+        v2.WeeklyStrategyPolicyV2.INCREMENTAL_FORWARD_CHECKING,
+        v2.WeeklyStrategyPolicyV2.STATIC_MRV_INCREMENTAL,
+        v2.WeeklyStrategyPolicyV2.STATIC_MRV_INCREMENTAL_FORWARD_CHECKING,
+    )
+    ordered = strategy.policy in ORDERED_POLICIES
+    reverse = strategy.value_order == "OPTION_ID_DESC"
     accounting_policy = (
-        "synthetic-weekly-forward-work-reservation.v2"
+        "synthetic-weekly-ordered-work-reservation.v2"
+        if ordered
+        else "synthetic-weekly-incremental-work-reservation.v2"
+        if incremental
+        else "synthetic-weekly-forward-work-reservation.v2"
         if forward
         else "synthetic-weekly-work-reservation.v2"
     )
@@ -233,12 +260,13 @@ def solve_weekly_plan_v2(
     decisions: dict[str, DailyOptionDecision] = {}
     program: Any = None
     preparation = None
+    aggregate_state: _IncrementalState | None = None
 
     def visit(path: tuple[int, ...], day_records: tuple[DailyAssignmentEvaluation, ...]) -> None:
         nonlocal backtracks, found, record_reservations, byte_reservations
         depth = len(path)
         if forward:
-            for attempt in _attempts(program, depth):
+            for attempt in _attempts(program, domains[depth].slot.canonical_index):
                 template = _forward_payload(material, domains, path, program, attempt)
                 if not reserve(_cost(attempt, domains, path), payload=template):
                     return
@@ -248,10 +276,11 @@ def solve_weekly_plan_v2(
                     return
                 record_reservations -= 1
                 byte_reservations -= _charge(template)
-        for index, ref in enumerate(domains[depth].options):
+        for index in reversed(range(sizes[depth])) if reverse else range(sizes[depth]):
+            ref = domains[depth].options[index]
             chosen = (*path, index)
             decision = decisions[ref.option_id]
-            if decision.slots[depth % 3].status is RuleStatus.FAIL:
+            if decision.slots[domains[depth].slot.canonical_index % 3].status is RuleStatus.FAIL:
                 scope = _scope(domains, path, (index,))
                 template = _payload(material, "UNARY_FAILURE", scope)
                 if not reserve({}, payload=template):
@@ -260,42 +289,69 @@ def solve_weekly_plan_v2(
                 continue
             if not reserve({}, node=True):
                 return
-            assessed = day_records
-            if len(chosen) % 3 == 0:
-                scope = _scope(domains, chosen)
-                if not reserve(
-                    dict(day_assessments=1, predicate_obligations=len(manifest.day_checks)),
-                ):
+            frame = None
+            if aggregate_state is not None:
+                if not reserve(_incremental_update_cost(manifest, ref)):
                     return
-                day = _day(program, domains, chosen, decisions)
-                assessed = (*assessed, day)
-                if day.status is RuleStatus.FAIL:
-                    template = _payload(material, "DAY_FAILURE", scope)
-                    if not reserve({}, payload=template):
+                frame = aggregate_state.push(domains[depth].slot, ref)
+            try:
+                assessed = day_records
+                if _day_completed(domains, chosen):
+                    scope = _scope(domains, chosen)
+                    if not reserve(
+                        dict(
+                            day_assessments=1,
+                            predicate_obligations=len(manifest.day_checks),
+                            **(dict(heuristic_evaluations=1) if incremental else {}),
+                        ),
+                    ):
                         return
-                    emit(_payload(material, "DAY_FAILURE", scope, _digest(day)))
-                    backtracks += 1
-                    continue
-            if len(chosen) == 21:
-                scope = _scope(domains, chosen)
-                template = _payload(material, "COMPLETED_LEAF", scope)
-                if not reserve(
-                    dict(week_assessments=1, predicate_obligations=len(manifest.required_checks)),
-                    payload=template,
-                ):
+                    day = _day(program, domains, chosen, decisions, incremental=aggregate_state)
+                    assessed = (*assessed, day)
+                    if day.status is RuleStatus.FAIL:
+                        template = _payload(material, "DAY_FAILURE", scope)
+                        if not reserve({}, payload=template):
+                            return
+                        emit(_payload(material, "DAY_FAILURE", scope, _digest(day)))
+                        backtracks += 1
+                        continue
+                if len(chosen) == 21:
+                    scope = _scope(domains, chosen)
+                    template = _payload(material, "COMPLETED_LEAF", scope)
+                    if not reserve(
+                        dict(
+                            week_assessments=1,
+                            predicate_obligations=len(manifest.required_checks),
+                            **(
+                                _incremental_week_cost(manifest, domains, chosen)
+                                if incremental
+                                else {}
+                            ),
+                        ),
+                        payload=template,
+                    ):
+                        return
+                    status, digest, _, missing = _leaf(
+                        program, domains, chosen, decisions, assessed, incremental=aggregate_state
+                    )
+                    emit(_payload(material, "COMPLETED_LEAF", scope, digest, status), missing)
+                    found = status is RuleStatus.PASS
+                else:
+                    visit(chosen, assessed)
+                if found or termination is not None:
                     return
-                status, digest, _, missing = _leaf(program, domains, chosen, decisions, assessed)
-                emit(_payload(material, "COMPLETED_LEAF", scope, digest, status), missing)
-                found = status is RuleStatus.PASS
-            else:
-                visit(chosen, assessed)
-            if found or termination is not None:
-                return
-            backtracks += 1
+                backtracks += 1
+            finally:
+                if aggregate_state is not None and frame is not None:
+                    aggregate_state.pop(frame)
 
-    if reserve(
+    ordering_ready = not ordered or reserve(_ordering_cost(domains))
+    if ordered and ordering_ready:
+        domains = _ordered_domains(domains, strategy)
+        sizes = tuple(len(d.options) for d in domains)
+    if ordering_ready and reserve(
         dict(candidate_preparations=len(pool), predicate_obligations=recipe_cost),
-        envelope=_envelope(material),
+        envelope=_envelope(material, ordered_domains=domains) if ordered else _envelope(material),
     ):
         if reuse_preparation:
             preparation = _preparation_session(manifest, pool, preparation_cache_entries)
@@ -326,12 +382,26 @@ def solve_weekly_plan_v2(
             )
         if termination is None and reserve({}):
             program = _compile_week(manifest)
-            if all(sizes):
+            if (
+                termination is None
+                and incremental
+                and reserve(_incremental_initial_cost(manifest, domains))
+            ):
+                aggregate_state = _IncrementalState(
+                    program, material["original_domains"], decisions
+                )
+            if termination is None and all(sizes):
                 visit((), ())
+            if aggregate_state is not None:
+                aggregate_state.assert_empty()
+    aggregate_state = None  # The checker never receives execution aggregates or frames.
     certificate = v2.WeeklySearchCertificateV2(
         **material,
         events=tuple(events),
-        frontier=(*frontier, *_rest(domains, covered)),
+        frontier=(
+            *frontier,
+            *(_rest(domains, covered, reverse=True) if reverse else _rest(domains, covered)),
+        ),
         accounting=snapshot(),
     )
     # The schema invokes the independent checker and DERIVES the outcome/witness;

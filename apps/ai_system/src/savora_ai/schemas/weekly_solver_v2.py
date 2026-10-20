@@ -51,7 +51,15 @@ class WeeklyPreparationAccountingV2(_V2Model):
 class ComputedWeeklySolveResultV2(_V2Model):
     schema_version: Literal["computed-weekly-solve-result.v2"] = "computed-weekly-solve-result.v2"
     search_policy_version: Literal[
-        "synthetic-chronological-weekly-search.v2", "synthetic-forward-checking-weekly-search.v2"
+        "synthetic-chronological-weekly-search.v2",
+        "synthetic-forward-checking-weekly-search.v2",
+        "synthetic-incremental-weekly-search.v2",
+        "synthetic-incremental-forward-checking-weekly-search.v2",
+        "synthetic-reverse-option-weekly-search.v2",
+        "synthetic-static-original-mrv-weekly-search.v2",
+        "synthetic-static-original-mrv-forward-weekly-search.v2",
+        "synthetic-static-original-mrv-incremental-weekly-search.v2",
+        "synthetic-static-original-mrv-incremental-forward-weekly-search.v2",
     ] = "synthetic-chronological-weekly-search.v2"
     verification_policy_version: Literal["synthetic-independent-weekly-cover.v2"] = (
         "synthetic-independent-weekly-cover.v2"
