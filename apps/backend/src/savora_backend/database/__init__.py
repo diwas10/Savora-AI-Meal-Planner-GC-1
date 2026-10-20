@@ -1,20 +1,26 @@
 """Async SQLAlchemy 2 engine, session factory, and base ORM entities."""
 
+import sqlite3
 import uuid
 from collections.abc import AsyncGenerator
+from contextlib import asynccontextmanager
 from datetime import UTC, datetime
+from typing import Any
 
-from sqlalchemy import Boolean, DateTime, Uuid
+from sqlalchemy import Boolean, DateTime, Uuid, create_engine
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
     AsyncSession,
     async_sessionmaker,
     create_async_engine,
 )
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column, sessionmaker
+from sqlalchemy.pool import StaticPool
 
 from savora_backend.config import get_settings
 from savora_backend.contexts import RequestContextProvider
+
+sqlite3.register_adapter(uuid.UUID, str)
 
 
 class Base(DeclarativeBase):
@@ -53,8 +59,65 @@ class PrimaryEntity(CommonEntity):
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
 
+class SyncToAsyncSessionAdapter:
+    """Wraps a sync SQLAlchemy Session with an AsyncSession-compatible interface."""
+
+    def __init__(self, sync_session: Session) -> None:
+        self._session = sync_session
+
+    async def __aenter__(self) -> "SyncToAsyncSessionAdapter":
+        return self
+
+    async def __aexit__(self, exc_type: Any, exc: Any, tb: Any) -> None:
+        self._session.close()
+
+    @asynccontextmanager
+    async def begin(self) -> AsyncGenerator["SyncToAsyncSessionAdapter", None]:
+        if self._session.in_transaction():
+            yield self
+            return
+        with self._session.begin():
+            yield self
+
+    def add(self, instance: object) -> None:
+        self._session.add(instance)
+
+    def add_all(self, instances: Any) -> None:
+        self._session.add_all(instances)
+
+    async def delete(self, instance: object) -> None:
+        self._session.delete(instance)
+
+    async def flush(self) -> None:
+        self._session.flush()
+
+    async def commit(self) -> None:
+        self._session.commit()
+
+    async def rollback(self) -> None:
+        self._session.rollback()
+
+    async def refresh(self, instance: object) -> None:
+        self._session.refresh(instance)
+
+    async def execute(self, statement: Any, params: Any | None = None) -> Any:
+        return self._session.execute(statement, params)
+
+    async def scalar(self, statement: Any, params: Any | None = None) -> Any:
+        return self._session.scalar(statement, params)
+
+    async def scalars(self, statement: Any, params: Any | None = None) -> Any:
+        return self._session.scalars(statement, params)
+
+    async def get(self, entity: Any, ident: Any) -> Any:
+        return self._session.get(entity, ident)
+
+    async def close(self) -> None:
+        self._session.close()
+
+
 _engine: AsyncEngine | None = None
-_session_factory: async_sessionmaker[AsyncSession] | None = None
+_session_factory: Any = None
 
 
 def get_engine() -> AsyncEngine:
@@ -65,27 +128,43 @@ def get_engine() -> AsyncEngine:
     return _engine
 
 
-def get_session_factory() -> async_sessionmaker[AsyncSession]:
+def get_session_factory() -> Any:
     global _session_factory
     if _session_factory is None:
-        _session_factory = async_sessionmaker(
-            bind=get_engine(),
-            class_=AsyncSession,
-            expire_on_commit=False,
-        )
+        settings = get_settings()
+        if settings.database_url.startswith("sqlite://"):
+            is_memory = ":memory:" in settings.database_url
+            sync_engine = create_engine(
+                settings.database_url,
+                connect_args={"check_same_thread": False},
+                poolclass=StaticPool if is_memory else None,
+                future=True,
+            )
+            sync_maker = sessionmaker(bind=sync_engine, expire_on_commit=False)
+
+            def _make_adapter() -> SyncToAsyncSessionAdapter:
+                return SyncToAsyncSessionAdapter(sync_maker())
+
+            _session_factory = _make_adapter
+        else:
+            _session_factory = async_sessionmaker(
+                bind=get_engine(),
+                class_=AsyncSession,
+                expire_on_commit=False,
+            )
     return _session_factory
 
 
 def reset_database_state(
     engine: AsyncEngine | None = None,
-    session_factory: async_sessionmaker[AsyncSession] | None = None,
+    session_factory: Any = None,
 ) -> None:
     global _engine, _session_factory
     _engine = engine
     _session_factory = session_factory
 
 
-async def get_session() -> AsyncGenerator[AsyncSession, None]:
+async def get_session() -> AsyncGenerator[Any, None]:
     """Yield an async session with an explicit transaction per request."""
     factory = get_session_factory()
     async with factory() as session, session.begin():
