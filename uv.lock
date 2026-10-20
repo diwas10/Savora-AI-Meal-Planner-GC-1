@@ -1,5 +1,5 @@
 version = 1
-revision = 5
+revision = 3
 requires-python = ">=3.12"
 resolution-markers = [
     "python_full_version >= '3.14'",
@@ -1627,6 +1627,7 @@ name = "savora-ai"
 version = "0.1.0"
 source = { editable = "apps/ai_system" }
 dependencies = [
+    { name = "httpx" },
     { name = "pydantic" },
 ]
 
@@ -1638,6 +1639,7 @@ ml = [
 
 [package.metadata]
 requires-dist = [
+    { name = "httpx", specifier = ">=0.27" },
     { name = "pydantic", specifier = ">=2.9" },
     { name = "torch", marker = "extra == 'ml'", specifier = ">=2.5" },
     { name = "transformers", marker = "extra == 'ml'", specifier = ">=4.46" },
