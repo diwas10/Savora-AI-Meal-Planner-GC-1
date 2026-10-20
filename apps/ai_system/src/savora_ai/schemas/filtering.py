@@ -223,6 +223,63 @@ def _validate_day_rule_policy(rule: RuleDefinition) -> None:
             raise ValueError("unsupported DAY prerequisite or non-DAY food ownership")
 
 
+_WEEK_MAX_TOTAL = 64_563_604_257_983_430_642
+_WEEK_ATTRIBUTES = MappingProxyType(
+    {
+        "synthetic_week_complete": None,
+        "synthetic_week_quantity_total": MeasurementUnit.MG,
+        "synthetic_week_max_recipe_slot_occurrences": MeasurementUnit.DIMENSIONLESS,
+    }
+)
+
+
+def _validate_week_rule_policy(rule: RuleDefinition) -> None:
+    """Admit synthetic WEEK ownership only; never derive facts or execute predicates."""
+    if (
+        rule.attribute not in _WEEK_ATTRIBUTES
+        or rule.scope is not RuleScope.WEEK
+        or rule.domain is not RuleDomain.CULINARY
+        or rule.environment is not RuleEnvironment.SYNTHETIC
+        or rule.lifecycle is not RuleLifecycle.ACTIVE
+        or rule.severity is not RuleSeverity.ABSOLUTE
+        or rule.approval_status is not ApprovalStatus.APPROVED
+        or rule.unit is not _WEEK_ATTRIBUTES.get(rule.attribute)
+        or (rule.applicability_reference.rule_id, rule.applicability_reference.version)
+        != ("synthetic-context-enabled", "1")
+    ):
+        raise ValueError("unsupported WEEK scope/domain/unit/applicability or admission metadata")
+    numeric = rule.attribute != "synthetic_week_complete"
+    operators = (
+        (
+            PredicateOperator.LT,
+            PredicateOperator.LE,
+            PredicateOperator.GT,
+            PredicateOperator.GE,
+            PredicateOperator.EQ,
+            PredicateOperator.NE,
+        )
+        if numeric
+        else (PredicateOperator.EQ, PredicateOperator.NE)
+    )
+    maximum = _WEEK_MAX_TOTAL if rule.attribute == "synthetic_week_quantity_total" else 21
+    valid_value = (
+        type(rule.value) is int and 0 <= rule.value <= maximum
+        if numeric
+        else type(rule.value) is bool
+    )
+    if rule.operator not in operators or not valid_value:
+        raise ValueError("unsupported WEEK predicate/value")
+    for name in rule.required_facts:
+        if name in _WEEK_ATTRIBUTES:
+            continue
+        policy = _ATTRIBUTES.get(name)
+        if policy is None or policy.subject not in (
+            FactSubjectKind.PROFILE,
+            FactSubjectKind.CONTEXT,
+        ):
+            raise ValueError("unsupported WEEK prerequisite or non-WEEK food ownership")
+
+
 class _ManifestContent(_ContractModel):
     schema_version: Literal["expected-check-manifest.v1"] = "expected-check-manifest.v1"
     stage: Literal["RECIPE_FILTER"] = "RECIPE_FILTER"
@@ -240,6 +297,7 @@ class _ManifestContent(_ContractModel):
         "synthetic-attributes.v2",
         "synthetic-attributes.v3-combination",
         "synthetic-attributes.v4-day",
+        "synthetic-attributes.v5-week",
     ] = "synthetic-attributes.v1"
     identity_policy_version: Literal["synthetic-manifest-identity.v1"] = (
         "synthetic-manifest-identity.v1"
@@ -272,6 +330,7 @@ class _ManifestContent(_ContractModel):
         seen: set[str] = set()
         has_combination_attributes = False
         has_day_attributes = False
+        has_week_attributes = False
         for deferred, checks in ((False, self.required_checks), (True, self.deferred_checks)):
             for rule in checks:
                 if rule.rule_id in seen:
@@ -291,7 +350,15 @@ class _ManifestContent(_ContractModel):
                 if any(name in _DAY_ATTRIBUTES for name in rule.required_facts):
                     has_day_attributes = True
                     _validate_day_rule_policy(rule)
-        if has_day_attributes:
+                if any(name in _WEEK_ATTRIBUTES for name in rule.required_facts):
+                    has_week_attributes = True
+                    _validate_week_rule_policy(rule)
+        if has_week_attributes:
+            if self.attribute_policy_version != "synthetic-attributes.v5-week":
+                raise ValueError("WEEK attributes require their exact scope-aware policy version")
+        elif self.attribute_policy_version == "synthetic-attributes.v5-week":
+            raise ValueError("WEEK policy version requires WEEK-owned attributes")
+        elif has_day_attributes:
             if self.attribute_policy_version != "synthetic-attributes.v4-day":
                 raise ValueError("DAY attributes require their exact scope-aware policy version")
         elif self.attribute_policy_version == "synthetic-attributes.v4-day":
