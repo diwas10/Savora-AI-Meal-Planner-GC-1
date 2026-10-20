@@ -533,6 +533,6 @@ work, not assertions:
 | Cuisine-neutral breakfasts under STRICT | team | contract note Q5 |
 | Storage of combinations | Aryaman | contract note Q6 |
 | Human confirmation of `ai-review:claude` curation | team | contract note Q7 |
-| Onboarding seed dishes as history | Aryaman, team | ADR 0004 D7 |
+| Onboarding seed dishes as history | Aryaman, team | ADR 0004 D7, proposed in ADR 0005 D1 |
 | Sodium / saturated-fat DV source verification | team | ADR 0001 D1 |
 | Production evidence path (Member 2 contracts accept SYNTHETIC only) | team | contract note 4 |

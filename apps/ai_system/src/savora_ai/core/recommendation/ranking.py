@@ -24,6 +24,8 @@ from typing import Protocol
 from pydantic import BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_camel
 
+from savora_ai.core.recommendation.model_store import ModelManifest, verify_model
+
 POPULARITY_VERSION = "popularity-fallback-v1"
 
 
@@ -125,12 +127,19 @@ def popularity_from_catalogue(recipes: Iterable[Mapping[str, object]]) -> Popula
 
 
 def load_scorer(
-    path: Path, popularity_counts: Mapping[str, int] | None = None
+    path: Path,
+    popularity_counts: Mapping[str, int] | None = None,
+    manifest: ModelManifest | None = None,
 ) -> SequenceScorer | None:
     """The trained Transformer (the validated hybrid when training counts are given), or
-    None if the file or the `ml` extra is missing."""
+    None if the file or the `ml` extra is missing.
+
+    With a manifest, a file that is not the pinned one raises ModelIntegrityError instead
+    of loading (load once at startup: hashing the file takes about half a second)."""
     if not path.exists():
         return None
+    if manifest is not None:
+        verify_model(path, manifest)
     try:
         from savora_ai.core.recommendation.torch_model import TorchScorer
     except ImportError:
