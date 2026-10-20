@@ -1,7 +1,10 @@
-export default function DashboardPage() {
-  return (
-    <main className="p-8">
-      <h1 className="text-xl font-semibold">Dashboard</h1>
-    </main>
-  );
+import { WeeklyPlannerView } from "@/core/private/MealPlanning/components/WeeklyPlannerView";
+
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ swapSlot?: string }>;
+}) {
+  const params = await searchParams;
+  return <WeeklyPlannerView initialSwapSlot={params.swapSlot ?? null} />;
 }

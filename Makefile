@@ -34,4 +34,5 @@ build:
 	pnpm build
 
 contracts:
-	uv run python -c "import json; from pathlib import Path; from savora_backend.main import app; Path('packages/contracts/openapi.json').write_text(json.dumps(app.openapi(), indent=2) + '\n')"
+	uv run python -c "import json; from pathlib import Path; from savora_backend.main import app; Path('packages/contracts/openapi.json').write_text(json.dumps(app.openapi(), indent=2) + '\n', encoding='utf-8')"
+	pnpm --filter @savora/contracts generate

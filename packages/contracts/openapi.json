@@ -1,0 +1,2770 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Savora API",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/api/auth/register": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Register",
+        "operationId": "register_api_auth_register_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/login": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Login",
+        "operationId": "login_api_auth_login_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/me": {
+      "get": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Get Me",
+        "operationId": "get_me_api_auth_me_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/profile": {
+      "get": {
+        "tags": [
+          "profile"
+        ],
+        "summary": "Get Profile",
+        "operationId": "get_profile_api_profile_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileEnvelopeData"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "profile"
+        ],
+        "summary": "Put Profile",
+        "operationId": "put_profile_api_profile_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProfileUpsertRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileEnvelopeData"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/catalogue/cuisines": {
+      "get": {
+        "tags": [
+          "catalogue"
+        ],
+        "summary": "List Cuisines",
+        "operationId": "list_cuisines_api_catalogue_cuisines_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/CuisineOptionDto"
+                  },
+                  "type": "array",
+                  "title": "Response List Cuisines Api Catalogue Cuisines Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/catalogue/dishes": {
+      "get": {
+        "tags": [
+          "catalogue"
+        ],
+        "summary": "Search Dishes",
+        "description": "Return Food.com seed-eligible dishes matching query `q`.",
+        "operationId": "search_dishes_api_catalogue_dishes_get",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "maxLength": 100,
+              "default": "",
+              "title": "Q"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CatalogueDishDto"
+                  },
+                  "title": "Response Search Dishes Api Catalogue Dishes Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/onboarding/seed-suggestions": {
+      "get": {
+        "tags": [
+          "onboarding"
+        ],
+        "summary": "Get Seed Suggestions",
+        "operationId": "get_seed_suggestions_api_onboarding_seed_suggestions_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SeedSuggestions"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/onboarding/seed-picks": {
+      "put": {
+        "tags": [
+          "onboarding"
+        ],
+        "summary": "Put Seed Picks",
+        "operationId": "put_seed_picks_api_onboarding_seed_picks_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SeedPicksRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SeedPicksResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/cravings": {
+      "post": {
+        "tags": [
+          "cravings"
+        ],
+        "summary": "Post Craving",
+        "operationId": "post_craving_api_cravings_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CravingTextRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/CravingRecommendationsResponse"
+                    },
+                    {
+                      "$ref": "#/components/schemas/CravingSwapSuggestedResponse"
+                    }
+                  ],
+                  "title": "Response Post Craving Api Cravings Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/meal-plans": {
+      "post": {
+        "tags": [
+          "meal-plans"
+        ],
+        "summary": "Create Meal Plan",
+        "operationId": "create_meal_plan_api_meal_plans_post",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GeneratePlanRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GeneratePlanAcceptedDto"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "meal-plans"
+        ],
+        "summary": "List Meal Plans",
+        "operationId": "list_meal_plans_api_meal_plans_get",
+        "parameters": [
+          {
+            "name": "current",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Current"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MealPlanSummaryDto"
+                  },
+                  "title": "Response List Meal Plans Api Meal Plans Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/meal-plans/{plan_id}": {
+      "get": {
+        "tags": [
+          "meal-plans"
+        ],
+        "summary": "Get Meal Plan",
+        "operationId": "get_meal_plan_api_meal_plans__plan_id__get",
+        "parameters": [
+          {
+            "name": "plan_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Plan Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MealPlanDetailDto"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/meal-plans/{plan_id}/substitutions": {
+      "post": {
+        "tags": [
+          "meal-plans"
+        ],
+        "summary": "Create Meal Plan Substitution",
+        "operationId": "create_meal_plan_substitution_api_meal_plans__plan_id__substitutions_post",
+        "parameters": [
+          {
+            "name": "plan_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Plan Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSubstitutionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateSubstitutionAcceptedDto"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/substitutions/{substitution_id}": {
+      "get": {
+        "tags": [
+          "substitutions"
+        ],
+        "summary": "Get Substitution",
+        "operationId": "get_substitution_api_substitutions__substitution_id__get",
+        "parameters": [
+          {
+            "name": "substitution_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Substitution Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubstitutionDetailDto"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/health": {
+      "get": {
+        "summary": "Health",
+        "operationId": "health_api_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object",
+                  "title": "Response Health Api Health Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ActivityLevel": {
+        "type": "string",
+        "enum": [
+          "SEDENTARY",
+          "LIGHT",
+          "MODERATE",
+          "ACTIVE",
+          "VERY_ACTIVE"
+        ],
+        "title": "ActivityLevel"
+      },
+      "AuthResponse": {
+        "properties": {
+          "user": {
+            "$ref": "#/components/schemas/UserDto"
+          },
+          "accessToken": {
+            "type": "string",
+            "title": "Accesstoken"
+          }
+        },
+        "type": "object",
+        "required": [
+          "user",
+          "accessToken"
+        ],
+        "title": "AuthResponse"
+      },
+      "Bounds": {
+        "properties": {
+          "min": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Min"
+          },
+          "target": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target"
+          },
+          "max": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "Bounds",
+        "description": "None means unknown or unbounded, never zero."
+      },
+      "CatalogueDishDto": {
+        "properties": {
+          "recipeId": {
+            "type": "string",
+            "title": "Recipeid"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "cuisines": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Cuisines"
+          }
+        },
+        "type": "object",
+        "required": [
+          "recipeId",
+          "name",
+          "cuisines"
+        ],
+        "title": "CatalogueDishDto"
+      },
+      "CravingCounts": {
+        "properties": {
+          "retrieved": {
+            "type": "integer",
+            "title": "Retrieved"
+          },
+          "screenedOut": {
+            "type": "integer",
+            "title": "Screenedout"
+          },
+          "ruleChecked": {
+            "type": "integer",
+            "title": "Rulechecked"
+          },
+          "ruleExcluded": {
+            "type": "integer",
+            "title": "Ruleexcluded"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "retrieved",
+          "screenedOut",
+          "ruleChecked",
+          "ruleExcluded"
+        ],
+        "title": "CravingCounts"
+      },
+      "CravingIntent": {
+        "type": "string",
+        "enum": [
+          "CRAVING_RECOMMEND",
+          "SWAP_MEAL"
+        ],
+        "title": "CravingIntent"
+      },
+      "CravingItem": {
+        "properties": {
+          "recipeId": {
+            "type": "string",
+            "title": "Recipeid"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "rank": {
+            "type": "integer",
+            "title": "Rank"
+          },
+          "score": {
+            "type": "number",
+            "title": "Score"
+          },
+          "cuisines": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Cuisines"
+          },
+          "explanation": {
+            "$ref": "#/components/schemas/RecipeExplanation"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "recipeId",
+          "name",
+          "rank",
+          "score",
+          "cuisines",
+          "explanation"
+        ],
+        "title": "CravingItem"
+      },
+      "CravingParseMeta": {
+        "properties": {
+          "parser": {
+            "type": "string",
+            "enum": [
+              "TEMPLATE",
+              "QWEN"
+            ],
+            "title": "Parser"
+          },
+          "promptVersion": {
+            "type": "string",
+            "title": "Promptversion"
+          },
+          "fallbackReason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fallbackreason"
+          },
+          "clarification": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Clarification"
+          }
+        },
+        "type": "object",
+        "required": [
+          "parser",
+          "promptVersion"
+        ],
+        "title": "CravingParseMeta"
+      },
+      "CravingRecommendation": {
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/CravingStatus"
+          },
+          "workflow": {
+            "type": "string",
+            "const": "CRAVING_DISCOVERY",
+            "title": "Workflow",
+            "default": "CRAVING_DISCOVERY"
+          },
+          "request": {
+            "$ref": "#/components/schemas/CravingRequest"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/CravingItem"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "modelVersion": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Modelversion"
+          },
+          "fallbackReason": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/FallbackReason"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "unknownCuisineIds": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Unknowncuisineids"
+          },
+          "unmatchedFlavorTags": {
+            "items": {
+              "$ref": "#/components/schemas/FlavorTag"
+            },
+            "type": "array",
+            "title": "Unmatchedflavortags"
+          },
+          "counts": {
+            "$ref": "#/components/schemas/CravingCounts"
+          },
+          "kbId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Kbid"
+          },
+          "kbVersion": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Kbversion"
+          },
+          "safety": {
+            "$ref": "#/components/schemas/SafetyVerification"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "status",
+          "request",
+          "items",
+          "modelVersion",
+          "fallbackReason",
+          "unknownCuisineIds",
+          "unmatchedFlavorTags",
+          "counts",
+          "kbId",
+          "kbVersion",
+          "safety"
+        ],
+        "title": "CravingRecommendation"
+      },
+      "CravingRecommendationsResponse": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "const": "RECOMMENDATIONS",
+            "title": "Kind",
+            "default": "RECOMMENDATIONS"
+          },
+          "parse": {
+            "$ref": "#/components/schemas/CravingParseMeta"
+          },
+          "result": {
+            "$ref": "#/components/schemas/CravingRecommendation"
+          }
+        },
+        "type": "object",
+        "required": [
+          "parse",
+          "result"
+        ],
+        "title": "CravingRecommendationsResponse"
+      },
+      "CravingRequest": {
+        "properties": {
+          "intent": {
+            "$ref": "#/components/schemas/CravingIntent"
+          },
+          "cuisineIds": {
+            "items": {
+              "type": "string",
+              "pattern": "^[A-Z][A-Z0-9_]{0,63}$"
+            },
+            "type": "array",
+            "maxItems": 10,
+            "title": "Cuisineids",
+            "default": []
+          },
+          "flavorTags": {
+            "items": {
+              "$ref": "#/components/schemas/FlavorTag"
+            },
+            "type": "array",
+            "maxItems": 5,
+            "title": "Flavortags",
+            "default": []
+          },
+          "excludedIngredientIds": {
+            "items": {
+              "type": "string",
+              "pattern": "^[A-Z][A-Z0-9_]{0,63}$"
+            },
+            "type": "array",
+            "maxItems": 10,
+            "title": "Excludedingredientids",
+            "default": []
+          },
+          "mealSlotId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^D[1-7]_(BREAKFAST|LUNCH|DINNER)$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mealslotid"
+          },
+          "requiresClarification": {
+            "type": "boolean",
+            "title": "Requiresclarification",
+            "default": false
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "intent"
+        ],
+        "title": "CravingRequest"
+      },
+      "CravingStatus": {
+        "type": "string",
+        "enum": [
+          "OK",
+          "NEEDS_CLARIFICATION",
+          "NO_MATCH"
+        ],
+        "title": "CravingStatus"
+      },
+      "CravingSwapSuggestedResponse": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "const": "SWAP_SUGGESTED",
+            "title": "Kind",
+            "default": "SWAP_SUGGESTED"
+          },
+          "parse": {
+            "$ref": "#/components/schemas/CravingParseMeta"
+          },
+          "request": {
+            "$ref": "#/components/schemas/CravingRequest"
+          },
+          "clarification": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Clarification"
+          }
+        },
+        "type": "object",
+        "required": [
+          "parse",
+          "request"
+        ],
+        "title": "CravingSwapSuggestedResponse"
+      },
+      "CravingTextRequest": {
+        "properties": {
+          "text": {
+            "type": "string",
+            "maxLength": 500,
+            "title": "Text"
+          }
+        },
+        "type": "object",
+        "required": [
+          "text"
+        ],
+        "title": "CravingTextRequest"
+      },
+      "CreateSubstitutionAcceptedDto": {
+        "properties": {
+          "substitutionId": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Substitutionid"
+          },
+          "status": {
+            "$ref": "#/components/schemas/MealPlanJobStatus",
+            "default": "GENERATING"
+          }
+        },
+        "type": "object",
+        "required": [
+          "substitutionId"
+        ],
+        "title": "CreateSubstitutionAcceptedDto"
+      },
+      "CreateSubstitutionRequest": {
+        "properties": {
+          "slotId": {
+            "type": "string",
+            "pattern": "^D[1-7]_(BREAKFAST|LUNCH|DINNER)$",
+            "title": "Slotid"
+          },
+          "expectedRevision": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Expectedrevision"
+          },
+          "excludeCombinationIds": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Excludecombinationids"
+          }
+        },
+        "type": "object",
+        "required": [
+          "slotId",
+          "expectedRevision"
+        ],
+        "title": "CreateSubstitutionRequest"
+      },
+      "CuisineOptionDto": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name"
+        ],
+        "title": "CuisineOptionDto"
+      },
+      "CuisinePolicy": {
+        "type": "string",
+        "enum": [
+          "STRICT",
+          "MAJORITY",
+          "MIXED"
+        ],
+        "title": "CuisinePolicy",
+        "description": "Provisional; the shared team document uses different names for the last two."
+      },
+      "DailyOutcome": {
+        "type": "string",
+        "enum": [
+          "FEASIBLE",
+          "INFEASIBLE",
+          "INSUFFICIENT_DATA",
+          "TIMEOUT"
+        ],
+        "title": "DailyOutcome"
+      },
+      "DayTotals": {
+        "properties": {
+          "dayIndex": {
+            "type": "integer",
+            "maximum": 7.0,
+            "minimum": 1.0,
+            "title": "Dayindex"
+          },
+          "calendarDate": {
+            "type": "string",
+            "title": "Calendardate"
+          },
+          "totals": {
+            "$ref": "#/components/schemas/NutrientVector"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "dayIndex",
+          "calendarDate",
+          "totals"
+        ],
+        "title": "DayTotals"
+      },
+      "DietPattern": {
+        "type": "string",
+        "enum": [
+          "VEGETARIAN",
+          "VEGAN"
+        ],
+        "title": "DietPattern"
+      },
+      "DishLine": {
+        "properties": {
+          "dishId": {
+            "type": "string",
+            "title": "Dishid"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "role": {
+            "type": "string",
+            "title": "Role"
+          },
+          "portion": {
+            "type": "string",
+            "title": "Portion"
+          },
+          "nutritionSource": {
+            "$ref": "#/components/schemas/NutritionSource"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "dishId",
+          "name",
+          "role",
+          "portion",
+          "nutritionSource"
+        ],
+        "title": "DishLine"
+      },
+      "FallbackReason": {
+        "type": "string",
+        "enum": [
+          "NO_HISTORY",
+          "MODEL_UNAVAILABLE",
+          "CANDIDATES_UNKNOWN_TO_MODEL"
+        ],
+        "title": "FallbackReason"
+      },
+      "FlavorTag": {
+        "type": "string",
+        "enum": [
+          "SPICY",
+          "SWEET",
+          "SOUR",
+          "SMOKY",
+          "CREAMY"
+        ],
+        "title": "FlavorTag",
+        "description": "Closed vocabulary; the craving pipeline maps each tag to ingredient words."
+      },
+      "GeneratePlanAcceptedDto": {
+        "properties": {
+          "planId": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Planid"
+          },
+          "status": {
+            "$ref": "#/components/schemas/MealPlanJobStatus",
+            "default": "GENERATING"
+          }
+        },
+        "type": "object",
+        "required": [
+          "planId"
+        ],
+        "title": "GeneratePlanAcceptedDto"
+      },
+      "GeneratePlanRequest": {
+        "properties": {
+          "weekStart": {
+            "type": "string",
+            "format": "date",
+            "title": "Weekstart"
+          }
+        },
+        "type": "object",
+        "required": [
+          "weekStart"
+        ],
+        "title": "GeneratePlanRequest"
+      },
+      "Goal": {
+        "type": "string",
+        "enum": [
+          "LOSE",
+          "MAINTAIN",
+          "GAIN"
+        ],
+        "title": "Goal"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "HealthCondition": {
+        "type": "string",
+        "enum": [
+          "TYPE_2_DIABETES",
+          "HYPERTENSION",
+          "DYSLIPIDEMIA"
+        ],
+        "title": "HealthCondition",
+        "description": "The three conditions in GC1 scope (ARCHITECTURE.md section 1)."
+      },
+      "LoginRequest": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "title": "Email"
+          },
+          "password": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Password"
+          }
+        },
+        "type": "object",
+        "required": [
+          "email",
+          "password"
+        ],
+        "title": "LoginRequest"
+      },
+      "MealEnergyRange": {
+        "properties": {
+          "mealType": {
+            "$ref": "#/components/schemas/MealType"
+          },
+          "minFraction": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Minfraction"
+          },
+          "maxFraction": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Maxfraction"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "mealType",
+          "minFraction",
+          "maxFraction"
+        ],
+        "title": "MealEnergyRange",
+        "description": "What share of the day's calories a meal should provide, e.g. lunch 30% to 40%."
+      },
+      "MealExplanation": {
+        "properties": {
+          "explanationVersion": {
+            "type": "string",
+            "const": "explanation-v1",
+            "title": "Explanationversion",
+            "default": "explanation-v1"
+          },
+          "combinationId": {
+            "type": "string",
+            "title": "Combinationid"
+          },
+          "configurationId": {
+            "type": "string",
+            "title": "Configurationid"
+          },
+          "slotId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Slotid"
+          },
+          "dishes": {
+            "items": {
+              "$ref": "#/components/schemas/DishLine"
+            },
+            "type": "array",
+            "title": "Dishes"
+          },
+          "totals": {
+            "$ref": "#/components/schemas/NutrientVector"
+          },
+          "sourceTier": {
+            "$ref": "#/components/schemas/NutritionSource"
+          },
+          "unknownNutrients": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Unknownnutrients"
+          },
+          "reasons": {
+            "items": {
+              "$ref": "#/components/schemas/Reason"
+            },
+            "type": "array",
+            "title": "Reasons"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "combinationId",
+          "configurationId",
+          "slotId",
+          "dishes",
+          "totals",
+          "sourceTier",
+          "unknownNutrients",
+          "reasons"
+        ],
+        "title": "MealExplanation"
+      },
+      "MealPlanDetailDto": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "userId": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Userid"
+          },
+          "weekStart": {
+            "type": "string",
+            "format": "date",
+            "title": "Weekstart"
+          },
+          "revision": {
+            "type": "integer",
+            "title": "Revision"
+          },
+          "status": {
+            "$ref": "#/components/schemas/MealPlanJobStatus"
+          },
+          "message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Message"
+          },
+          "profileVersion": {
+            "type": "integer",
+            "title": "Profileversion"
+          },
+          "catalogueVersion": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Catalogueversion"
+          },
+          "modelVersion": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Modelversion"
+          },
+          "fallbackReason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fallbackreason"
+          },
+          "kbId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Kbid"
+          },
+          "kbVersion": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Kbversion"
+          },
+          "parentPlanId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parentplanid"
+          },
+          "isCurrent": {
+            "type": "boolean",
+            "title": "Iscurrent"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Createdat"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updatedat"
+          },
+          "safety": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SafetyVerification"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "search": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SearchSummary"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "dayTotals": {
+            "items": {
+              "$ref": "#/components/schemas/DayTotals"
+            },
+            "type": "array",
+            "title": "Daytotals"
+          },
+          "slots": {
+            "items": {
+              "$ref": "#/components/schemas/MealPlanSlotDto"
+            },
+            "type": "array",
+            "title": "Slots"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "userId",
+          "weekStart",
+          "revision",
+          "status",
+          "message",
+          "profileVersion",
+          "catalogueVersion",
+          "modelVersion",
+          "fallbackReason",
+          "kbId",
+          "kbVersion",
+          "parentPlanId",
+          "isCurrent",
+          "createdAt",
+          "updatedAt"
+        ],
+        "title": "MealPlanDetailDto"
+      },
+      "MealPlanJobStatus": {
+        "type": "string",
+        "enum": [
+          "GENERATING",
+          "FEASIBLE",
+          "INFEASIBLE",
+          "INSUFFICIENT_DATA",
+          "TIMEOUT",
+          "FAILED"
+        ],
+        "title": "MealPlanJobStatus"
+      },
+      "MealPlanSlotDto": {
+        "properties": {
+          "slotId": {
+            "type": "string",
+            "title": "Slotid"
+          },
+          "dayIndex": {
+            "type": "integer",
+            "title": "Dayindex"
+          },
+          "calendarDate": {
+            "type": "string",
+            "title": "Calendardate"
+          },
+          "mealType": {
+            "type": "string",
+            "title": "Mealtype"
+          },
+          "optionId": {
+            "type": "string",
+            "title": "Optionid"
+          },
+          "combinationId": {
+            "type": "string",
+            "title": "Combinationid"
+          },
+          "configurationId": {
+            "type": "string",
+            "title": "Configurationid"
+          },
+          "preset": {
+            "type": "string",
+            "title": "Preset"
+          },
+          "snapshot": {
+            "$ref": "#/components/schemas/PlannedMeal"
+          }
+        },
+        "type": "object",
+        "required": [
+          "slotId",
+          "dayIndex",
+          "calendarDate",
+          "mealType",
+          "optionId",
+          "combinationId",
+          "configurationId",
+          "preset",
+          "snapshot"
+        ],
+        "title": "MealPlanSlotDto"
+      },
+      "MealPlanSummaryDto": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "userId": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Userid"
+          },
+          "weekStart": {
+            "type": "string",
+            "format": "date",
+            "title": "Weekstart"
+          },
+          "revision": {
+            "type": "integer",
+            "title": "Revision"
+          },
+          "status": {
+            "$ref": "#/components/schemas/MealPlanJobStatus"
+          },
+          "message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Message"
+          },
+          "profileVersion": {
+            "type": "integer",
+            "title": "Profileversion"
+          },
+          "catalogueVersion": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Catalogueversion"
+          },
+          "modelVersion": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Modelversion"
+          },
+          "fallbackReason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fallbackreason"
+          },
+          "kbId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Kbid"
+          },
+          "kbVersion": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Kbversion"
+          },
+          "parentPlanId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parentplanid"
+          },
+          "isCurrent": {
+            "type": "boolean",
+            "title": "Iscurrent"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Createdat"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updatedat"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "userId",
+          "weekStart",
+          "revision",
+          "status",
+          "message",
+          "profileVersion",
+          "catalogueVersion",
+          "modelVersion",
+          "fallbackReason",
+          "kbId",
+          "kbVersion",
+          "parentPlanId",
+          "isCurrent",
+          "createdAt",
+          "updatedAt"
+        ],
+        "title": "MealPlanSummaryDto"
+      },
+      "MealType": {
+        "type": "string",
+        "enum": [
+          "BREAKFAST",
+          "LUNCH",
+          "DINNER"
+        ],
+        "title": "MealType"
+      },
+      "NutrientBounds": {
+        "properties": {
+          "nutrient": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "\\S",
+            "title": "Nutrient"
+          },
+          "bounds": {
+            "$ref": "#/components/schemas/Bounds"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "nutrient",
+          "bounds"
+        ],
+        "title": "NutrientBounds"
+      },
+      "NutrientVector": {
+        "properties": {
+          "energyKcal": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Energykcal"
+          },
+          "fatG": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fatg"
+          },
+          "saturatedFatG": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Saturatedfatg"
+          },
+          "carbohydrateG": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Carbohydrateg"
+          },
+          "proteinG": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Proteing"
+          },
+          "sodiumMg": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sodiummg"
+          },
+          "sugarsG": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sugarsg"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "NutrientVector",
+        "description": "Nutrient amounts for one basis quantity, in canonical units.\n\nEvery field is optional because sources differ: None means UNKNOWN and is never\ntreated as zero (ARCHITECTURE.md section 3). Food.com sugar is always None (ADR 0001)."
+      },
+      "NutritionSource": {
+        "type": "string",
+        "enum": [
+          "FOODCOM_DERIVED",
+          "USDA_FNDDS",
+          "USDA_SR_LEGACY",
+          "USDA_FOUNDATION",
+          "CURATED"
+        ],
+        "title": "NutritionSource",
+        "description": "Where a nutrient value came from (ADR 0003 D1). A dish keeps its own source."
+      },
+      "NutritionTargets": {
+        "properties": {
+          "profileVersion": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Profileversion"
+          },
+          "formulaVersion": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "\\S",
+            "title": "Formulaversion"
+          },
+          "method": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "\\S",
+            "title": "Method"
+          },
+          "inputHash": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Inputhash"
+          },
+          "calculatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Calculatedat"
+          },
+          "energyKcal": {
+            "$ref": "#/components/schemas/Bounds"
+          },
+          "nutrientBounds": {
+            "items": {
+              "$ref": "#/components/schemas/NutrientBounds"
+            },
+            "type": "array",
+            "title": "Nutrientbounds",
+            "default": []
+          },
+          "mealEnergyPolicy": {
+            "items": {
+              "$ref": "#/components/schemas/MealEnergyRange"
+            },
+            "type": "array",
+            "title": "Mealenergypolicy",
+            "default": []
+          },
+          "bmi": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bmi"
+          },
+          "provenance": {
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "\\S"
+            },
+            "type": "array",
+            "title": "Provenance",
+            "default": []
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "profileVersion",
+          "formulaVersion",
+          "method",
+          "inputHash",
+          "calculatedAt",
+          "energyKcal"
+        ],
+        "title": "NutritionTargets"
+      },
+      "PlannedMeal": {
+        "properties": {
+          "slotId": {
+            "type": "string",
+            "pattern": "^D[1-7]_(BREAKFAST|LUNCH|DINNER)$",
+            "title": "Slotid"
+          },
+          "dayIndex": {
+            "type": "integer",
+            "maximum": 7.0,
+            "minimum": 1.0,
+            "title": "Dayindex"
+          },
+          "calendarDate": {
+            "type": "string",
+            "title": "Calendardate"
+          },
+          "mealType": {
+            "$ref": "#/components/schemas/MealType"
+          },
+          "optionId": {
+            "type": "string",
+            "title": "Optionid"
+          },
+          "combinationId": {
+            "type": "string",
+            "title": "Combinationid"
+          },
+          "configurationId": {
+            "type": "string",
+            "title": "Configurationid"
+          },
+          "preset": {
+            "$ref": "#/components/schemas/PortionPreset"
+          },
+          "explanation": {
+            "$ref": "#/components/schemas/MealExplanation"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "slotId",
+          "dayIndex",
+          "calendarDate",
+          "mealType",
+          "optionId",
+          "combinationId",
+          "configurationId",
+          "preset",
+          "explanation"
+        ],
+        "title": "PlannedMeal"
+      },
+      "PortionPreset": {
+        "type": "string",
+        "enum": [
+          "STANDARD",
+          "HIGHER_PROTEIN",
+          "LOWER_CARB",
+          "HIGHER_ENERGY",
+          "LOWER_ENERGY"
+        ],
+        "title": "PortionPreset",
+        "description": "Curated whole-meal portion configurations (ADR 0002 D2), not proportional scaling."
+      },
+      "ProfileEnvelopeData": {
+        "properties": {
+          "profile": {
+            "$ref": "#/components/schemas/UserProfileDto"
+          },
+          "targets": {
+            "$ref": "#/components/schemas/NutritionTargets"
+          },
+          "needsSeedPicks": {
+            "type": "boolean",
+            "title": "Needsseedpicks"
+          }
+        },
+        "type": "object",
+        "required": [
+          "profile",
+          "targets",
+          "needsSeedPicks"
+        ],
+        "title": "ProfileEnvelopeData"
+      },
+      "ProfileUpsertRequest": {
+        "properties": {
+          "ageYears": {
+            "type": "integer",
+            "maximum": 100.0,
+            "minimum": 19.0,
+            "title": "Ageyears"
+          },
+          "sex": {
+            "$ref": "#/components/schemas/Sex"
+          },
+          "heightCm": {
+            "type": "number",
+            "maximum": 250.0,
+            "minimum": 100.0,
+            "title": "Heightcm"
+          },
+          "weightKg": {
+            "type": "number",
+            "maximum": 300.0,
+            "minimum": 30.0,
+            "title": "Weightkg"
+          },
+          "activity": {
+            "$ref": "#/components/schemas/ActivityLevel"
+          },
+          "goal": {
+            "$ref": "#/components/schemas/Goal"
+          },
+          "diet": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DietPattern"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "cuisinePolicy": {
+            "$ref": "#/components/schemas/CuisinePolicy",
+            "default": "MIXED"
+          },
+          "cuisines": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 25,
+            "title": "Cuisines"
+          },
+          "excludedIngredients": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 50,
+            "title": "Excludedingredients"
+          },
+          "allergies": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 50,
+            "title": "Allergies"
+          },
+          "allergiesConfirmed": {
+            "type": "boolean",
+            "title": "Allergiesconfirmed",
+            "default": false
+          },
+          "conditions": {
+            "items": {
+              "$ref": "#/components/schemas/HealthCondition"
+            },
+            "type": "array",
+            "maxItems": 10,
+            "title": "Conditions"
+          }
+        },
+        "type": "object",
+        "required": [
+          "ageYears",
+          "sex",
+          "heightCm",
+          "weightKg",
+          "activity",
+          "goal"
+        ],
+        "title": "ProfileUpsertRequest"
+      },
+      "Reason": {
+        "properties": {
+          "kind": {
+            "$ref": "#/components/schemas/ReasonKind"
+          },
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "references": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "References",
+            "default": []
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "kind",
+          "code",
+          "message"
+        ],
+        "title": "Reason"
+      },
+      "ReasonKind": {
+        "type": "string",
+        "enum": [
+          "COMPOSITION",
+          "PORTION",
+          "NUTRITION",
+          "RANKING",
+          "RULES",
+          "PLANNING",
+          "LIMITATION"
+        ],
+        "title": "ReasonKind"
+      },
+      "RecipeExplanation": {
+        "properties": {
+          "explanationVersion": {
+            "type": "string",
+            "const": "explanation-v1",
+            "title": "Explanationversion",
+            "default": "explanation-v1"
+          },
+          "recipeId": {
+            "type": "string",
+            "title": "Recipeid"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "standardPortion": {
+            "type": "string",
+            "title": "Standardportion"
+          },
+          "standardNutrients": {
+            "$ref": "#/components/schemas/NutrientVector"
+          },
+          "reasons": {
+            "items": {
+              "$ref": "#/components/schemas/Reason"
+            },
+            "type": "array",
+            "title": "Reasons"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "recipeId",
+          "name",
+          "standardPortion",
+          "standardNutrients",
+          "reasons"
+        ],
+        "title": "RecipeExplanation"
+      },
+      "RegisterRequest": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "title": "Email"
+          },
+          "password": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 8,
+            "title": "Password"
+          },
+          "displayName": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Displayname"
+          }
+        },
+        "type": "object",
+        "required": [
+          "email",
+          "password",
+          "displayName"
+        ],
+        "title": "RegisterRequest"
+      },
+      "SafetyVerification": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "const": "STAND_IN_UNVERIFIED",
+            "title": "Status",
+            "default": "STAND_IN_UNVERIFIED"
+          },
+          "kbEnvironment": {
+            "type": "string",
+            "const": "SYNTHETIC",
+            "title": "Kbenvironment",
+            "default": "SYNTHETIC"
+          },
+          "allergensCheckedBy": {
+            "type": "string",
+            "enum": [
+              "INGREDIENT_NAME_MATCH",
+              "NOT_APPLICABLE"
+            ],
+            "title": "Allergenscheckedby"
+          },
+          "dietCheckedBy": {
+            "type": "string",
+            "enum": [
+              "FOODCOM_TAG",
+              "NOT_APPLICABLE"
+            ],
+            "title": "Dietcheckedby"
+          },
+          "conditionsNotEnforced": {
+            "items": {
+              "$ref": "#/components/schemas/HealthCondition"
+            },
+            "type": "array",
+            "title": "Conditionsnotenforced"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "allergensCheckedBy",
+          "dietCheckedBy",
+          "conditionsNotEnforced",
+          "message"
+        ],
+        "title": "SafetyVerification",
+        "description": "Attached to every pipeline result while the stand-in KB is in use."
+      },
+      "SearchSummary": {
+        "properties": {
+          "outcome": {
+            "$ref": "#/components/schemas/DailyOutcome"
+          },
+          "nodes": {
+            "type": "integer",
+            "title": "Nodes"
+          },
+          "exhaustive": {
+            "type": "boolean",
+            "title": "Exhaustive"
+          },
+          "diagnostics": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Diagnostics"
+          },
+          "seconds": {
+            "type": "number",
+            "title": "Seconds"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "outcome",
+          "nodes",
+          "exhaustive",
+          "diagnostics",
+          "seconds"
+        ],
+        "title": "SearchSummary"
+      },
+      "SeedPicksRequest": {
+        "properties": {
+          "recipeIds": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 10,
+            "minItems": 1,
+            "title": "Recipeids"
+          }
+        },
+        "type": "object",
+        "required": [
+          "recipeIds"
+        ],
+        "title": "SeedPicksRequest"
+      },
+      "SeedPicksResponse": {
+        "properties": {
+          "seedRecipeIds": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Seedrecipeids"
+          }
+        },
+        "type": "object",
+        "required": [
+          "seedRecipeIds"
+        ],
+        "title": "SeedPicksResponse"
+      },
+      "SeedSuggestion": {
+        "properties": {
+          "recipeId": {
+            "type": "string",
+            "title": "Recipeid"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "cuisines": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Cuisines"
+          },
+          "rank": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Rank"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "recipeId",
+          "name",
+          "cuisines",
+          "rank"
+        ],
+        "title": "SeedSuggestion"
+      },
+      "SeedSuggestions": {
+        "properties": {
+          "suggestions": {
+            "items": {
+              "$ref": "#/components/schemas/SeedSuggestion"
+            },
+            "type": "array",
+            "title": "Suggestions"
+          },
+          "method": {
+            "type": "string",
+            "title": "Method",
+            "default": "popularity-cuisine-interleave-v1"
+          },
+          "minPicks": {
+            "type": "integer",
+            "title": "Minpicks",
+            "default": 3
+          },
+          "maxPicks": {
+            "type": "integer",
+            "title": "Maxpicks",
+            "default": 5
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "suggestions"
+        ],
+        "title": "SeedSuggestions"
+      },
+      "Sex": {
+        "type": "string",
+        "enum": [
+          "MALE",
+          "FEMALE"
+        ],
+        "title": "Sex",
+        "description": "Only the values needed by the resting-energy estimator."
+      },
+      "SubstitutionDetailDto": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "status": {
+            "$ref": "#/components/schemas/MealPlanJobStatus"
+          },
+          "message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Message"
+          },
+          "fromPlanId": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Fromplanid"
+          },
+          "toPlanId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Toplanid"
+          },
+          "slotId": {
+            "type": "string",
+            "title": "Slotid"
+          },
+          "beforeSnapshot": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PlannedMeal"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "afterSnapshot": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PlannedMeal"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "status",
+          "message",
+          "fromPlanId",
+          "slotId"
+        ],
+        "title": "SubstitutionDetailDto"
+      },
+      "UserDto": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "title": "Email"
+          },
+          "displayName": {
+            "type": "string",
+            "title": "Displayname"
+          },
+          "isActive": {
+            "type": "boolean",
+            "title": "Isactive"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "email",
+          "displayName",
+          "isActive"
+        ],
+        "title": "UserDto"
+      },
+      "UserProfileDto": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "userId": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Userid"
+          },
+          "version": {
+            "type": "integer",
+            "title": "Version"
+          },
+          "ageYears": {
+            "type": "integer",
+            "title": "Ageyears"
+          },
+          "sex": {
+            "$ref": "#/components/schemas/Sex"
+          },
+          "heightCm": {
+            "type": "number",
+            "title": "Heightcm"
+          },
+          "weightKg": {
+            "type": "number",
+            "title": "Weightkg"
+          },
+          "activity": {
+            "$ref": "#/components/schemas/ActivityLevel"
+          },
+          "goal": {
+            "$ref": "#/components/schemas/Goal"
+          },
+          "diet": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DietPattern"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "cuisinePolicy": {
+            "$ref": "#/components/schemas/CuisinePolicy"
+          },
+          "cuisines": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Cuisines"
+          },
+          "excludedIngredients": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Excludedingredients"
+          },
+          "allergies": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Allergies"
+          },
+          "allergiesConfirmedAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Allergiesconfirmedat"
+          },
+          "conditions": {
+            "items": {
+              "$ref": "#/components/schemas/HealthCondition"
+            },
+            "type": "array",
+            "title": "Conditions"
+          },
+          "seedRecipeIds": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Seedrecipeids"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "userId",
+          "version",
+          "ageYears",
+          "sex",
+          "heightCm",
+          "weightKg",
+          "activity",
+          "goal",
+          "diet",
+          "cuisinePolicy",
+          "cuisines",
+          "excludedIngredients",
+          "allergies",
+          "allergiesConfirmedAt",
+          "conditions",
+          "seedRecipeIds"
+        ],
+        "title": "UserProfileDto"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    }
+  }
+}
