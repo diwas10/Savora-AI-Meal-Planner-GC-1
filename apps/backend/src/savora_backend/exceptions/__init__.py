@@ -114,9 +114,7 @@ def register_exception_handlers(app: FastAPI) -> None:
         field_errors: dict[str, list[str]] = {}
         for err in exc.errors():
             loc = [
-                str(part)
-                for part in err.get("loc", ())
-                if part not in ("body", "query", "path")
+                str(part) for part in err.get("loc", ()) if part not in ("body", "query", "path")
             ]
             field_name = to_camel(loc[-1]) if loc else "nonFieldErrors"
             msg = str(err.get("msg", "Invalid value"))

@@ -125,9 +125,7 @@ async def test_expired_and_invalid_tokens_return_401(db_client: httpx.AsyncClien
     assert res_bad.status_code == 401
 
 
-def test_alembic_upgrade_and_downgrade(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_alembic_upgrade_and_downgrade(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     db_path = tmp_path / "alembic_test.db"
     alembic_ini = Path(__file__).resolve().parents[1] / "alembic.ini"
     cfg = Config(str(alembic_ini))

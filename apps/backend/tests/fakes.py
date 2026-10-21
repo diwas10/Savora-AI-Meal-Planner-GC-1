@@ -18,14 +18,16 @@ from savora_ai.core.pipelines import (
     PlannedMeal,
     PlanningProfile,
     PlanStatus,
+    ReplacementOptions,
     WeekPlan,
     confirm_seeds,
     revalidate_seeds,
+    suggest_replacements,
     suggest_seeds,
 )
 from savora_ai.core.pipelines.craving import CravingCounts, CravingItem
 from savora_ai.core.pipelines.planning import DayTotals, SearchSummary
-from savora_ai.core.pipelines.profile import safety_verification
+from savora_ai.core.pipelines.profile import combination_allowed, safety_verification
 from savora_ai.core.recommendation.ranking import FallbackReason
 from savora_ai.core.recommendation.seeds import DEFAULT_SUGGESTIONS, SeedSuggestions
 from savora_ai.schemas.craving import CravingRequest
@@ -49,6 +51,7 @@ class FakeAiGateway:
         self.fail_plan = fail_plan
         self.plan_status = plan_status
         self.swap_status = swap_status
+        self.last_swap: dict[str, object] = {}
 
     @property
     def bundle(self) -> CatalogueBundle:
@@ -71,9 +74,7 @@ class FakeAiGateway:
                 fallback_reason=None,
                 unknown_cuisine_ids=(),
                 unmatched_flavor_tags=(),
-                counts=CravingCounts(
-                    retrieved=0, screened_out=0, rule_checked=0, rule_excluded=0
-                ),
+                counts=CravingCounts(retrieved=0, screened_out=0, rule_checked=0, rule_excluded=0),
                 kb_id="gc1-stand-in-kb",
                 kb_version="stand-in-0.1",
                 safety=safety,
@@ -120,18 +121,20 @@ class FakeAiGateway:
         self,
         start_date: date,
         *,
+        profile: PlanningProfile | None = None,
         override_slot: str | None = None,
         exclude_combos: set[str] | None = None,
+        replacement: str | None = None,
     ) -> tuple[tuple[PlannedMeal, ...], tuple[DayTotals, ...]]:
         combos = [
             c
-            for c in sorted(
-                self._bundle.combinations.values(), key=lambda x: x.combination_id
-            )
+            for c in sorted(self._bundle.combinations.values(), key=lambda x: x.combination_id)
             if any(
                 cfg.preset is PortionPreset.STANDARD and cfg.nutrition is not None
                 for cfg in c.configurations
             )
+            # Like the real planner, only meals the profile allows.
+            and (profile is None or combination_allowed(c, self._bundle.dishes, profile))
         ]
         meals: list[PlannedMeal] = []
         day_totals: list[DayTotals] = []
@@ -144,7 +147,9 @@ class FakeAiGateway:
             ):
                 slot_id = f"D{day_idx}_{meal_type.value}"
                 combo = combos[(day_idx * 3 + m_idx) % len(combos)]
-                if slot_id == override_slot:
+                if slot_id == override_slot and replacement is not None:
+                    combo = self._bundle.combinations[replacement]
+                elif slot_id == override_slot:
                     combo = next(
                         c
                         for c in combos
@@ -229,7 +234,7 @@ class FakeAiGateway:
                 message=f"Simulated {self.plan_status.value}",
                 safety=safety,
             )
-        meals, totals = self._build_meals(start_date)
+        meals, totals = self._build_meals(start_date, profile=profile)
         return WeekPlan(
             status=PlanStatus.FEASIBLE,
             workflow="WEEKLY_PLAN",
@@ -264,8 +269,11 @@ class FakeAiGateway:
         week_id: str,
         start_date: date,
         exclude_combination_ids: Iterable[str] = (),
+        replacement_combination_id: str | None = None,
+        preference: CravingRequest | None = None,
     ) -> WeekPlan:
         del current
+        self.last_swap = {"replacement": replacement_combination_id, "preference": preference}
         safety = safety_verification(profile)
         if self.swap_status is not PlanStatus.FEASIBLE:
             return WeekPlan(
@@ -288,8 +296,10 @@ class FakeAiGateway:
             )
         meals, totals = self._build_meals(
             start_date,
+            profile=profile,
             override_slot=slot,
             exclude_combos=set(exclude_combination_ids),
+            replacement=replacement_combination_id,
         )
         return WeekPlan(
             status=PlanStatus.FEASIBLE,
@@ -314,6 +324,27 @@ class FakeAiGateway:
             ),
             message="Replacement meal verified by the weekly CSP.",
             safety=safety,
+        )
+
+    async def replacements(
+        self,
+        profile: PlanningProfile,
+        *,
+        current: Mapping[str, str],
+        slot: str,
+        preference: CravingRequest | None = None,
+        exclude_combination_ids: Iterable[str] = (),
+        limit: int = 6,
+    ) -> ReplacementOptions:
+        # The real (fast) ranking step; the slow CSP is what the fake replaces.
+        return suggest_replacements(
+            profile,
+            self._bundle,
+            current=current,
+            slot=slot,
+            preference=preference,
+            exclude_combination_ids=exclude_combination_ids,
+            limit=limit,
         )
 
     async def seeds(

@@ -15,6 +15,7 @@ from savora_backend.core.meal_plans import (
     mark_stale_generating_jobs_failed,
     wait_for_background_tasks,
 )
+from savora_backend.core.meal_plans.jobs import PLAN_FAILED_MESSAGE, RESTARTED_MESSAGE
 from tests.fakes import FakeAiGateway
 
 
@@ -135,7 +136,9 @@ async def test_meal_plan_failed_job_and_non_feasible_status(
     get1 = await db_client.get(f"/api/meal-plans/{plan1_id}", headers=headers)
     assert get1.status_code == 200
     assert get1.json()["data"]["status"] == "FAILED"
-    assert "Simulated solver crash" in get1.json()["data"]["message"]
+    # The user sees a fixed message; the exception stays in the logs.
+    assert get1.json()["data"]["message"] == PLAN_FAILED_MESSAGE
+    assert "Simulated" not in get1.json()["data"]["message"]
     assert get1.json()["data"]["slots"] == []
 
     app.dependency_overrides[get_ai_gateway] = lambda: FakeAiGateway(
@@ -196,7 +199,7 @@ async def test_meal_plan_ownership_and_concurrency_and_startup_cleanup(
 
     after_cleanup = await db_client.get(f"/api/meal-plans/{plan_id}", headers=headers1)
     assert after_cleanup.json()["data"]["status"] == "FAILED"
-    assert after_cleanup.json()["data"]["message"] == "server restarted"
+    assert after_cleanup.json()["data"]["message"] == RESTARTED_MESSAGE
 
 
 @pytest.mark.slow
@@ -213,7 +216,7 @@ async def test_meal_plan_real_pipeline_insufficient_data(
         },
     )
     headers = {"Authorization": f"Bearer {reg.json()['data']['accessToken']}"}
-    # Strict Nepali-only profile has < 4 distinct breakfasts, triggering INSUFFICIENT_DATA
+    # Strict vegan Nepali has 2 vegan breakfasts (alu paratha, puri); a week needs 4.
     prof = await db_client.put(
         "/api/profile",
         headers=headers,
@@ -224,7 +227,7 @@ async def test_meal_plan_real_pipeline_insufficient_data(
             "weightKg": 70.0,
             "activity": "MODERATE",
             "goal": "MAINTAIN",
-            "diet": None,
+            "diet": "VEGAN",
             "cuisines": ["Nepali"],
             "cuisinePolicy": "STRICT",
             "excludedIngredients": [],

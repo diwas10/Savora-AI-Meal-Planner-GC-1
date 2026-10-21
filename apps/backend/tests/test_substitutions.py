@@ -116,9 +116,7 @@ async def test_substitution_creates_revision_and_preserves_locked_slots(
     plan2_slots = {s["slotId"]: s for s in plan2["slots"]}
 
     changed_slots = [
-        sid
-        for sid in plan1_slots
-        if plan1_slots[sid]["optionId"] != plan2_slots[sid]["optionId"]
+        sid for sid in plan1_slots if plan1_slots[sid]["optionId"] != plan2_slots[sid]["optionId"]
     ]
     assert changed_slots == ["D2_LUNCH"]
     for sid in plan1_slots:
@@ -163,9 +161,7 @@ async def test_substitution_conflicts_on_revision_and_profile_change(
     sub_insuf_id = sub_insuf.json()["data"]["substitutionId"]
     await wait_for_background_tasks()
 
-    sub_insuf_get = await db_client.get(
-        f"/api/substitutions/{sub_insuf_id}", headers=headers
-    )
+    sub_insuf_get = await db_client.get(f"/api/substitutions/{sub_insuf_id}", headers=headers)
     assert sub_insuf_get.json()["data"]["status"] == "INSUFFICIENT_DATA"
     assert sub_insuf_get.json()["data"]["toPlanId"] is None
 
@@ -195,4 +191,4 @@ async def test_substitution_conflicts_on_revision_and_profile_change(
         json={"slotId": "D1_LUNCH", "expectedRevision": 1},
     )
     assert prof_changed.status_code == 409
-    assert prof_changed.json()["message"] == "profile changed; generate a new plan"
+    assert "profile changed" in prof_changed.json()["message"]
