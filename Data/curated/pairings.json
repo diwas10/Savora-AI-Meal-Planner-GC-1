@@ -1,0 +1,68 @@
+{
+  "schemaVersion": "pairings.v1",
+  "note": "Which verified staples a main that REQUIRES_ACCOMPANIMENT may be served with, per cuisine (ADR 0002 D1). Vegetable sides pair by cuisine (same cuisine or cuisine-neutral), so they need no list. curatedBy 'ai-review:claude' = AI judgement at the project lead's request, not yet confirmed by a person.",
+  "curatedBy": "ai-review:claude",
+  "cuisines": [
+    {
+      "cuisine": "Indian",
+      "staples": [
+        "USDA_169757",
+        "USDA_169704",
+        "USDA_2707713",
+        "USDA_2707613"
+      ],
+      "rationale": "dal, curries and sabzi are eaten with rice, roti or naan"
+    },
+    {
+      "cuisine": "Nepali",
+      "staples": [
+        "USDA_169757",
+        "USDA_2707713"
+      ],
+      "rationale": "dal bhat tarkari: lentils and curry with rice; roti is the common alternative"
+    },
+    {
+      "cuisine": "Chinese",
+      "staples": [
+        "USDA_169757",
+        "USDA_169704",
+        "USDA_168914"
+      ],
+      "rationale": "stir-fries and braises are served over rice or noodles"
+    },
+    {
+      "cuisine": "Thai",
+      "staples": [
+        "USDA_169757",
+        "USDA_168914"
+      ],
+      "rationale": "Thai curries go with rice; stir-fries also with rice noodles"
+    },
+    {
+      "cuisine": "Italian",
+      "staples": [
+        "USDA_169737",
+        "USDA_2707598"
+      ],
+      "rationale": "secondi and sauces with pasta or bread"
+    },
+    {
+      "cuisine": "Mexican",
+      "staples": [
+        "USDA_2707824",
+        "USDA_2707823",
+        "USDA_169757"
+      ],
+      "rationale": "fillings, stews and beans with tortillas or rice"
+    },
+    {
+      "cuisine": "American",
+      "staples": [
+        "USDA_2707598",
+        "USDA_2707709",
+        "USDA_170440"
+      ],
+      "rationale": "meat and stew mains with bread or potatoes"
+    }
+  ]
+}

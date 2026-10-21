@@ -1,0 +1,103 @@
+{
+  "protocol": {
+    "ranking": "full ranking over every Food.com recipe; history items excluded",
+    "tieBreak": "baselines: popularity then ID; Transformer: a tied target ranks best",
+    "k": 10,
+    "beyondAccuracyCases": 2000,
+    "universe": 231637,
+    "trainEnd": "2012-01-01",
+    "validEnd": "2013-01-01",
+    "trainUsers": 125871,
+    "trainInteractions": 906736,
+    "medianTrainHistory": 1,
+    "validationCases": 6883,
+    "testCases": 9200,
+    "testTargetsUnseenInTrain": 1284
+  },
+  "results": {
+    "validation": {
+      "popularity": {
+        "cases": 6883,
+        "hr@10": 0.02193810838297254,
+        "ndcg@10": 0.010446489872703846,
+        "mrr": 0.009816685926515495,
+        "catalogueCoverage@10": 6.907359359687788e-05,
+        "intraListDiversity@10": 0.7155832634034374
+      },
+      "markov": {
+        "cases": 6883,
+        "hr@10": 0.013366264710155456,
+        "ndcg@10": 0.005688472964829395,
+        "mrr": 0.005805176677058097,
+        "catalogueCoverage@10": 0.024762883304480718,
+        "intraListDiversity@10": 0.7480134057651626
+      },
+      "item_knn": {
+        "cases": 6883,
+        "hr@10": 0.0018887113177393578,
+        "ndcg@10": 0.0008066507086663064,
+        "mrr": 0.0013727006400513033,
+        "catalogueCoverage@10": 0.0653738392398451,
+        "intraListDiversity@10": 0.7732279525370663
+      },
+      "sasrec_content": {
+        "cases": 6883,
+        "hr@10": 0.021211680953072787,
+        "ndcg@10": 0.010341459359664984,
+        "mrr": 0.009867182716610107,
+        "catalogueCoverage@10": 0.00036263636638360884,
+        "intraListDiversity@10": 0.6933542730856019
+      },
+      "sasrec_content+popularity": {
+        "cases": 6883,
+        "hr@10": 0.02179282289699259,
+        "ndcg@10": 0.010545068427646659,
+        "mrr": 0.010040062990390876,
+        "catalogueCoverage@10": 6.907359359687788e-05,
+        "intraListDiversity@10": 0.7095645230177452
+      }
+    },
+    "test": {
+      "popularity": {
+        "cases": 9200,
+        "hr@10": 0.019130434782608695,
+        "ndcg@10": 0.00907715838366209,
+        "mrr": 0.00853304381909101,
+        "catalogueCoverage@10": 6.043939439726814e-05,
+        "intraListDiversity@10": 0.7156209864828397
+      },
+      "markov": {
+        "cases": 9200,
+        "hr@10": 0.009021739130434782,
+        "ndcg@10": 0.004156405777993657,
+        "mrr": 0.0050066509812638485,
+        "catalogueCoverage@10": 0.0241282696633094,
+        "intraListDiversity@10": 0.7486533376805524
+      },
+      "item_knn": {
+        "cases": 9200,
+        "hr@10": 0.0015217391304347826,
+        "ndcg@10": 0.0008513757968135384,
+        "mrr": 0.0015627257321482965,
+        "catalogueCoverage@10": 0.0646615178058773,
+        "intraListDiversity@10": 0.7731559081221179
+      },
+      "sasrec_content": {
+        "cases": 9200,
+        "hr@10": 0.019130434782608695,
+        "ndcg@10": 0.009318768197458954,
+        "mrr": 0.008901730552436718,
+        "catalogueCoverage@10": 0.0003324166691849748,
+        "intraListDiversity@10": 0.6942355174201842
+      },
+      "sasrec_content+popularity": {
+        "cases": 9200,
+        "hr@10": 0.01934782608695652,
+        "ndcg@10": 0.009005485300791415,
+        "mrr": 0.008410655165712199,
+        "catalogueCoverage@10": 6.043939439726814e-05,
+        "intraListDiversity@10": 0.709995758797554
+      }
+    }
+  }
+}

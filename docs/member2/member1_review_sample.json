@@ -1,0 +1,4119 @@
+{
+  "sampleVersion": "member1-review-sample.v1",
+  "environment": "REVIEW_SAMPLE (real catalogue data; not production- or clinically-approved)",
+  "catalogueVersion": "20261019T012206Z",
+  "fieldStatus": {
+    "combinationId, templateId, components, roles": "EXISTING",
+    "portionConfigurationId (preset), configurationVersion": "EXISTING",
+    "optionId <combinationId>:<PRESET>": "EXISTING (Member 2 opaque-ID pattern)",
+    "component quantity + unit + grams/null": "EXISTING",
+    "per-nutrient absolute totals with contributions": "EXISTING",
+    "per-nutrient known flag (null = unknown, never zero)": "EXISTING",
+    "original Food.com row, file SHA-256, DV table": "EXISTING",
+    "original USDA record, fdc_id, portion row": "EXISTING",
+    "meal-type suitability with classification evidence": "EXISTING",
+    "seven-nutrient vector in Member 2 FixedMealMeasurement": "ADAPTER_REQUIRED",
+    "canonical ingredient mapping, subingredients, allergen status": "PROPOSED (not mapped: UNKNOWN)",
+    "rule-specific source admission policy": "PROPOSED (Member 2)",
+    "sugar from Food.com %DV (25 g reference, verified)": "PROPOSED (kept null until approved)"
+  },
+  "nutrientKeys": {
+    "energyKcal": {
+      "pythonKey": "energy_kcal",
+      "unit": "kcal"
+    },
+    "fatG": {
+      "pythonKey": "fat_g",
+      "unit": "g"
+    },
+    "saturatedFatG": {
+      "pythonKey": "saturated_fat_g",
+      "unit": "g"
+    },
+    "carbohydrateG": {
+      "pythonKey": "carbohydrate_g",
+      "unit": "g"
+    },
+    "proteinG": {
+      "pythonKey": "protein_g",
+      "unit": "g"
+    },
+    "sodiumMg": {
+      "pythonKey": "sodium_mg",
+      "unit": "mg"
+    },
+    "sugarsG": {
+      "pythonKey": "sugars_g",
+      "unit": "g"
+    }
+  },
+  "missingValueRule": "null = unknown, never zero; known=false; a meal total is null if any component is null",
+  "meals": [
+    {
+      "combinationId": "C_MAIN_STAPLE_VEGETABLE__FC_105886__USDA_169757__FC_82641",
+      "combinationVersion": "20261019T012206Z",
+      "combinationContentSha256": "3e42cc0777983982c03340872e99f5b66087c0996edbc3309f38b782f454cd5f",
+      "templateId": "MAIN_STAPLE_VEGETABLE",
+      "mealTypes": [
+        "LUNCH",
+        "DINNER"
+      ],
+      "cuisines": [
+        "Indian",
+        "Nepali"
+      ],
+      "compositionEvidence": [
+        "template MAIN_STAPLE_VEGETABLE: dal bhat tarkari: main, staple and a vegetable side",
+        "pairing: Indian/Nepali main with steamed white rice",
+        "vegetable side: mattar paneer   indian peas with paneer cheese (same cuisine)"
+      ],
+      "components": [
+        {
+          "slot": "MAIN",
+          "role": "MAIN_DISH",
+          "dishId": "FC_105886",
+          "name": "aloo dum",
+          "cuisines": [
+            "Indian",
+            "Nepali"
+          ],
+          "dishClass": "REQUIRES_ACCOMPANIMENT",
+          "mealTypes": [
+            "LUNCH",
+            "DINNER"
+          ],
+          "classificationStatus": "CURATED",
+          "classificationEvidence": [
+            "no usable course evidence",
+            "curated by ai-review:claude: aloo dum: spiced potato curry common to Nepal and North India; eaten with roti or beaten rice"
+          ],
+          "ingredients": [
+            "potatoes",
+            "khoya",
+            "fresh curds",
+            "garam masala",
+            "ground nutmeg",
+            "water",
+            "jeera seeds",
+            "coriander powder",
+            "jeera powder",
+            "sugar",
+            "salt",
+            "butter",
+            "onions",
+            "ginger paste",
+            "turmeric powder",
+            "red chilies"
+          ],
+          "ingredientMapping": {
+            "status": "UNRESOLVED",
+            "canonicalIngredients": null,
+            "subingredientsKnown": false,
+            "allergenStatus": "UNKNOWN",
+            "note": "raw names only; no canonical mapping exists yet, so allergen rules cannot PASS (fail closed)"
+          },
+          "dietTags": {
+            "values": [
+              "vegetarian"
+            ],
+            "status": "UNVERIFIED_METADATA"
+          },
+          "nutritionRecord": {
+            "source": "FOODCOM_DERIVED",
+            "basis": "PER_SERVING",
+            "valuesPerBasis": {
+              "energyKcal": 407.6,
+              "fatG": 0.65,
+              "saturatedFatG": 0.4,
+              "carbohydrateG": 90.0,
+              "proteinG": 10.5,
+              "sodiumMg": 792.0,
+              "sugarsG": null
+            },
+            "sourceReference": "FDA_1993_LABEL_2000KCAL",
+            "qualityFlags": []
+          },
+          "portionOptions": [
+            {
+              "portionId": "FC_105886:0.5xSERVING",
+              "quantity": 0.5,
+              "unit": "SERVING",
+              "grams": null,
+              "label": "0.5 servings",
+              "isStandard": false,
+              "nutrients": {
+                "energyKcal": 203.8,
+                "fatG": 0.325,
+                "saturatedFatG": 0.2,
+                "carbohydrateG": 45.0,
+                "proteinG": 5.25,
+                "sodiumMg": 396.0,
+                "sugarsG": null
+              }
+            },
+            {
+              "portionId": "FC_105886:0.75xSERVING",
+              "quantity": 0.75,
+              "unit": "SERVING",
+              "grams": null,
+              "label": "0.75 servings",
+              "isStandard": false,
+              "nutrients": {
+                "energyKcal": 305.7,
+                "fatG": 0.488,
+                "saturatedFatG": 0.3,
+                "carbohydrateG": 67.5,
+                "proteinG": 7.875,
+                "sodiumMg": 594.0,
+                "sugarsG": null
+              }
+            },
+            {
+              "portionId": "FC_105886:1xSERVING",
+              "quantity": 1.0,
+              "unit": "SERVING",
+              "grams": null,
+              "label": "1 serving",
+              "isStandard": true,
+              "nutrients": {
+                "energyKcal": 407.6,
+                "fatG": 0.65,
+                "saturatedFatG": 0.4,
+                "carbohydrateG": 90.0,
+                "proteinG": 10.5,
+                "sodiumMg": 792.0,
+                "sugarsG": null
+              }
+            },
+            {
+              "portionId": "FC_105886:1.25xSERVING",
+              "quantity": 1.25,
+              "unit": "SERVING",
+              "grams": null,
+              "label": "1.25 servings",
+              "isStandard": false,
+              "nutrients": {
+                "energyKcal": 509.5,
+                "fatG": 0.812,
+                "saturatedFatG": 0.5,
+                "carbohydrateG": 112.5,
+                "proteinG": 13.125,
+                "sodiumMg": 990.0,
+                "sugarsG": null
+              }
+            },
+            {
+              "portionId": "FC_105886:1.5xSERVING",
+              "quantity": 1.5,
+              "unit": "SERVING",
+              "grams": null,
+              "label": "1.5 servings",
+              "isStandard": false,
+              "nutrients": {
+                "energyKcal": 611.4,
+                "fatG": 0.975,
+                "saturatedFatG": 0.6,
+                "carbohydrateG": 135.0,
+                "proteinG": 15.75,
+                "sodiumMg": 1188.0,
+                "sugarsG": null
+              }
+            }
+          ],
+          "servingMassG": null,
+          "originalSourceRecord": {
+            "dataset": "Food.com Recipes and Interactions (Majumder et al., EMNLP 2019)",
+            "file": "RAW_recipes.csv",
+            "fileSha256": "6a8136d1da9e03396a9f52d72200b3fddb8fe103f11e1496effca30ac4e0539f",
+            "row": {
+              "id": 105886,
+              "name": "aloo dum",
+              "nutrition": [
+                407.6,
+                1.0,
+                38.0,
+                33.0,
+                21.0,
+                2.0,
+                30.0
+              ],
+              "nutritionFields": [
+                "calories (kcal)",
+                "total fat (%DV)",
+                "sugar (%DV)",
+                "sodium (%DV)",
+                "protein (%DV)",
+                "saturated fat (%DV)",
+                "carbohydrates (%DV)"
+              ],
+              "ingredients": [
+                "potatoes",
+                "khoya",
+                "fresh curds",
+                "garam masala",
+                "ground nutmeg",
+                "water",
+                "jeera seeds",
+                "coriander powder",
+                "jeera powder",
+                "sugar",
+                "salt",
+                "butter",
+                "onions",
+                "ginger paste",
+                "turmeric powder",
+                "red chilies"
+              ],
+              "tags": [
+                "60-minutes-or-less",
+                "time-to-make",
+                "cuisine",
+                "preparation",
+                "occasion",
+                "asian",
+                "indian",
+                "holiday-event",
+                "vegetarian",
+                "winter",
+                "crock-pot-slow-cooker",
+                "dietary",
+                "spicy",
+                "seasonal",
+                "stir-fry",
+                "wedding",
+                "taste-mood",
+                "savory",
+                "equipment",
+                "presentation",
+                "served-hot",
+                "technique"
+              ]
+            },
+            "conversion": {
+              "table": "FDA_1993_LABEL_2000KCAL",
+              "gramsAt100PercentDv": {
+                "fat_g": 65.0,
+                "saturated_fat_g": 20.0,
+                "carbohydrate_g": 300.0,
+                "protein_g": 50.0,
+                "sodium_mg": 2400.0
+              },
+              "rule": "grams = %DV / 100 x reference; kcal as stated; sugar left null",
+              "verification": "docs/eval/dv_verification.json"
+            }
+          }
+        },
+        {
+          "slot": "STAPLE",
+          "role": "STAPLE",
+          "dishId": "USDA_169757",
+          "name": "steamed white rice",
+          "cuisines": [
+            "Indian",
+            "Nepali",
+            "Chinese",
+            "Thai",
+            "Mexican"
+          ],
+          "dishClass": "COMPONENT",
+          "mealTypes": [
+            "LUNCH",
+            "DINNER"
+          ],
+          "classificationStatus": "CURATED",
+          "classificationEvidence": [
+            "curated by ai-review:claude: plain boiled rice is the same food as the FNDDS record; staple for curries, dal and stir-fries"
+          ],
+          "ingredients": [
+            "white rice",
+            "water"
+          ],
+          "ingredientMapping": {
+            "status": "UNRESOLVED",
+            "canonicalIngredients": null,
+            "subingredientsKnown": false,
+            "allergenStatus": "UNKNOWN",
+            "note": "raw names only; no canonical mapping exists yet, so allergen rules cannot PASS (fail closed)"
+          },
+          "dietTags": {
+            "values": [
+              "vegan",
+              "vegetarian"
+            ],
+            "status": "UNVERIFIED_METADATA"
+          },
+          "nutritionRecord": {
+            "source": "USDA_SR_LEGACY",
+            "basis": "PER_100_G",
+            "valuesPerBasis": {
+              "energyKcal": 130.0,
+              "fatG": 0.28,
+              "saturatedFatG": 0.077,
+              "carbohydrateG": 28.17,
+              "proteinG": 2.69,
+              "sodiumMg": 1.0,
+              "sugarsG": 0.05
+            },
+            "sourceReference": "fdc:169757 Rice, white, long-grain, regular, unenriched, cooked without salt (2019-04-01)",
+            "qualityFlags": []
+          },
+          "portionOptions": [
+            {
+              "portionId": "USDA_169757:0.5xCUP",
+              "quantity": 0.5,
+              "unit": "CUP",
+              "grams": 79.0,
+              "label": "0.5 cups (79 g)",
+              "isStandard": false,
+              "nutrients": {
+                "energyKcal": 102.7,
+                "fatG": 0.221,
+                "saturatedFatG": 0.061,
+                "carbohydrateG": 22.254,
+                "proteinG": 2.125,
+                "sodiumMg": 0.79,
+                "sugarsG": 0.04
+              }
+            },
+            {
+              "portionId": "USDA_169757:0.75xCUP",
+              "quantity": 0.75,
+              "unit": "CUP",
+              "grams": 118.5,
+              "label": "0.75 cups (118.5 g)",
+              "isStandard": false,
+              "nutrients": {
+                "energyKcal": 154.05,
+                "fatG": 0.332,
+                "saturatedFatG": 0.091,
+                "carbohydrateG": 33.381,
+                "proteinG": 3.188,
+                "sodiumMg": 1.185,
+                "sugarsG": 0.059
+              }
+            },
+            {
+              "portionId": "USDA_169757:1xCUP",
+              "quantity": 1.0,
+              "unit": "CUP",
+              "grams": 158.0,
+              "label": "1 cup (158 g)",
+              "isStandard": true,
+              "nutrients": {
+                "energyKcal": 205.4,
+                "fatG": 0.442,
+                "saturatedFatG": 0.122,
+                "carbohydrateG": 44.509,
+                "proteinG": 4.25,
+                "sodiumMg": 1.58,
+                "sugarsG": 0.079
+              }
+            },
+            {
+              "portionId": "USDA_169757:1.5xCUP",
+              "quantity": 1.5,
+              "unit": "CUP",
+              "grams": 237.0,
+              "label": "1.5 cups (237 g)",
+              "isStandard": false,
+              "nutrients": {
+                "energyKcal": 308.1,
+                "fatG": 0.664,
+                "saturatedFatG": 0.182,
+                "carbohydrateG": 66.763,
+                "proteinG": 6.375,
+                "sodiumMg": 2.37,
+                "sugarsG": 0.119
+              }
+            }
+          ],
+          "servingMassG": null,
+          "originalSourceRecord": {
+            "dataset": "USDA FoodData Central",
+            "extractSha256": "2117fa712d4404a7c081f760828b73797ae632a55b1700e1aafdf79b4285ec77",
+            "fdcId": 169757,
+            "dataType": "sr_legacy_food",
+            "description": "Rice, white, long-grain, regular, unenriched, cooked without salt",
+            "publicationDate": "2019-04-01",
+            "per100G": {
+              "energyKcal": 130.0,
+              "fatG": 0.28,
+              "saturatedFatG": 0.077,
+              "carbohydrateG": 28.17,
+              "proteinG": 2.69,
+              "sodiumMg": 1.0,
+              "sugarsG": 0.05
+            },
+            "portion": {
+              "portionId": 85462,
+              "label": "1 cup",
+              "amount": 1.0,
+              "gramWeight": 158.0,
+              "gramsPerUnit": 158.0
+            },
+            "qualityFlags": []
+          }
+        },
+        {
+          "slot": "VEGETABLE",
+          "role": "VEGETABLE",
+          "dishId": "FC_82641",
+          "name": "mattar paneer   indian peas with paneer cheese",
+          "cuisines": [
+            "Indian"
+          ],
+          "dishClass": "COMPONENT",
+          "mealTypes": [
+            "LUNCH",
+            "DINNER"
+          ],
+          "classificationStatus": "AUTO",
+          "classificationEvidence": [
+            "side-dishes + vegetables -> VEGETABLE",
+            "dish class COMPONENT"
+          ],
+          "ingredients": [
+            "paneer cheese",
+            "vegetable oil",
+            "onion",
+            "fresh ginger",
+            "garlic",
+            "ground coriander",
+            "ground cumin",
+            "salt",
+            "ground turmeric",
+            "ground cayenne pepper",
+            "diced tomato",
+            "water",
+            "frozen green peas",
+            "cilantro"
+          ],
+          "ingredientMapping": {
+            "status": "UNRESOLVED",
+            "canonicalIngredients": null,
+            "subingredientsKnown": false,
+            "allergenStatus": "UNKNOWN",
+            "note": "raw names only; no canonical mapping exists yet, so allergen rules cannot PASS (fail closed)"
+          },
+          "dietTags": {
+            "values": [
+              "vegetarian"
+            ],
+            "status": "UNVERIFIED_METADATA"
+          },
+          "nutritionRecord": {
+            "source": "FOODCOM_DERIVED",
+            "basis": "PER_SERVING",
+            "valuesPerBasis": {
+              "energyKcal": 262.5,
+              "fatG": 17.55,
+              "saturatedFatG": 2.2,
+              "carbohydrateG": 21.000000000000004,
+              "proteinG": 6.5,
+              "sodiumMg": 696.0,
+              "sugarsG": null
+            },
+            "sourceReference": "FDA_1993_LABEL_2000KCAL",
+            "qualityFlags": []
+          },
+          "portionOptions": [
+            {
+              "portionId": "FC_82641:0.5xSERVING",
+              "quantity": 0.5,
+              "unit": "SERVING",
+              "grams": null,
+              "label": "0.5 servings",
+              "isStandard": false,
+              "nutrients": {
+                "energyKcal": 131.25,
+                "fatG": 8.775,
+                "saturatedFatG": 1.1,
+                "carbohydrateG": 10.5,
+                "proteinG": 3.25,
+                "sodiumMg": 348.0,
+                "sugarsG": null
+              }
+            },
+            {
+              "portionId": "FC_82641:0.75xSERVING",
+              "quantity": 0.75,
+              "unit": "SERVING",
+              "grams": null,
+              "label": "0.75 servings",
+              "isStandard": false,
+              "nutrients": {
+                "energyKcal": 196.875,
+                "fatG": 13.163,
+                "saturatedFatG": 1.65,
+                "carbohydrateG": 15.75,
+                "proteinG": 4.875,
+                "sodiumMg": 522.0,
+                "sugarsG": null
+              }
+            },
+            {
+              "portionId": "FC_82641:1xSERVING",
+              "quantity": 1.0,
+              "unit": "SERVING",
+              "grams": null,
+              "label": "1 serving",
+              "isStandard": true,
+              "nutrients": {
+                "energyKcal": 262.5,
+                "fatG": 17.55,
+                "saturatedFatG": 2.2,
+                "carbohydrateG": 21.0,
+                "proteinG": 6.5,
+                "sodiumMg": 696.0,
+                "sugarsG": null
+              }
+            },
+            {
+              "portionId": "FC_82641:1.25xSERVING",
+              "quantity": 1.25,
+              "unit": "SERVING",
+              "grams": null,
+              "label": "1.25 servings",
+              "isStandard": false,
+              "nutrients": {
+                "energyKcal": 328.125,
+                "fatG": 21.938,
+                "saturatedFatG": 2.75,
+                "carbohydrateG": 26.25,
+                "proteinG": 8.125,
+                "sodiumMg": 870.0,
+                "sugarsG": null
+              }
+            },
+            {
+              "portionId": "FC_82641:1.5xSERVING",
+              "quantity": 1.5,
+              "unit": "SERVING",
+              "grams": null,
+              "label": "1.5 servings",
+              "isStandard": false,
+              "nutrients": {
+                "energyKcal": 393.75,
+                "fatG": 26.325,
+                "saturatedFatG": 3.3,
+                "carbohydrateG": 31.5,
+                "proteinG": 9.75,
+                "sodiumMg": 1044.0,
+                "sugarsG": null
+              }
+            }
+          ],
+          "servingMassG": null,
+          "originalSourceRecord": {
+            "dataset": "Food.com Recipes and Interactions (Majumder et al., EMNLP 2019)",
+            "file": "RAW_recipes.csv",
+            "fileSha256": "6a8136d1da9e03396a9f52d72200b3fddb8fe103f11e1496effca30ac4e0539f",
+            "row": {
+              "id": 82641,
+              "name": "mattar paneer   indian peas with paneer cheese",
+              "nutrition": [
+                262.5,
+                27.0,
+                32.0,
+                29.0,
+                13.0,
+                11.0,
+                7.0
+              ],
+              "nutritionFields": [
+                "calories (kcal)",
+                "total fat (%DV)",
+                "sugar (%DV)",
+                "sodium (%DV)",
+                "protein (%DV)",
+                "saturated fat (%DV)",
+                "carbohydrates (%DV)"
+              ],
+              "ingredients": [
+                "paneer cheese",
+                "vegetable oil",
+                "onion",
+                "fresh ginger",
+                "garlic",
+                "ground coriander",
+                "ground cumin",
+                "salt",
+                "ground turmeric",
+                "ground cayenne pepper",
+                "diced tomato",
+                "water",
+                "frozen green peas",
+                "cilantro"
+              ],
+              "tags": [
+                "60-minutes-or-less",
+                "time-to-make",
+                "course",
+                "main-ingredient",
+                "cuisine",
+                "preparation",
+                "occasion",
+                "side-dishes",
+                "eggs-dairy",
+                "vegetables",
+                "asian",
+                "indian",
+                "vegetarian",
+                "cheese",
+                "stove-top",
+                "dietary",
+                "spicy",
+                "taste-mood",
+                "equipment"
+              ]
+            },
+            "conversion": {
+              "table": "FDA_1993_LABEL_2000KCAL",
+              "gramsAt100PercentDv": {
+                "fat_g": 65.0,
+                "saturated_fat_g": 20.0,
+                "carbohydrate_g": 300.0,
+                "protein_g": 50.0,
+                "sodium_mg": 2400.0
+              },
+              "rule": "grams = %DV / 100 x reference; kcal as stated; sugar left null",
+              "verification": "docs/eval/dv_verification.json"
+            }
+          }
+        }
+      ],
+      "configurations": [
+        {
+          "optionId": "C_MAIN_STAPLE_VEGETABLE__FC_105886__USDA_169757__FC_82641:STANDARD",
+          "portionConfigurationId": "STANDARD",
+          "configurationVersion": "20261019T012206Z",
+          "portionState": "FIXED",
+          "componentQuantities": [
+            {
+              "dishId": "FC_105886",
+              "portionId": "FC_105886:1xSERVING",
+              "quantity": 1.0,
+              "unit": "SERVING",
+              "grams": null,
+              "massKnown": false,
+              "member2QuantityUnit": "serving"
+            },
+            {
+              "dishId": "USDA_169757",
+              "portionId": "USDA_169757:1xCUP",
+              "quantity": 1.0,
+              "unit": "CUP",
+              "grams": 158.0,
+              "massKnown": true,
+              "member2QuantityUnit": "g"
+            },
+            {
+              "dishId": "FC_82641",
+              "portionId": "FC_82641:1xSERVING",
+              "quantity": 1.0,
+              "unit": "SERVING",
+              "grams": null,
+              "massKnown": false,
+              "member2QuantityUnit": "serving"
+            }
+          ],
+          "nutrients": {
+            "energyKcal": {
+              "value": 875.5,
+              "unit": "kcal",
+              "known": true,
+              "contributions": [
+                {
+                  "dishId": "FC_105886",
+                  "portionId": "FC_105886:1xSERVING",
+                  "value": 407.6,
+                  "known": true,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": 407.6,
+                  "factor": 1.0,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                },
+                {
+                  "dishId": "USDA_169757",
+                  "portionId": "USDA_169757:1xCUP",
+                  "value": 205.4,
+                  "known": true,
+                  "source": "USDA_SR_LEGACY",
+                  "basis": "PER_100_G",
+                  "valuePerBasis": 130.0,
+                  "factor": 1.58,
+                  "sourceReference": "fdc:169757 Rice, white, long-grain, regular, unenriched, cooked without salt (2019-04-01)"
+                },
+                {
+                  "dishId": "FC_82641",
+                  "portionId": "FC_82641:1xSERVING",
+                  "value": 262.5,
+                  "known": true,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": 262.5,
+                  "factor": 1.0,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                }
+              ]
+            },
+            "fatG": {
+              "value": 18.642,
+              "unit": "g",
+              "known": true,
+              "contributions": [
+                {
+                  "dishId": "FC_105886",
+                  "portionId": "FC_105886:1xSERVING",
+                  "value": 0.65,
+                  "known": true,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": 0.65,
+                  "factor": 1.0,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                },
+                {
+                  "dishId": "USDA_169757",
+                  "portionId": "USDA_169757:1xCUP",
+                  "value": 0.442,
+                  "known": true,
+                  "source": "USDA_SR_LEGACY",
+                  "basis": "PER_100_G",
+                  "valuePerBasis": 0.28,
+                  "factor": 1.58,
+                  "sourceReference": "fdc:169757 Rice, white, long-grain, regular, unenriched, cooked without salt (2019-04-01)"
+                },
+                {
+                  "dishId": "FC_82641",
+                  "portionId": "FC_82641:1xSERVING",
+                  "value": 17.55,
+                  "known": true,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": 17.55,
+                  "factor": 1.0,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                }
+              ]
+            },
+            "saturatedFatG": {
+              "value": 2.722,
+              "unit": "g",
+              "known": true,
+              "contributions": [
+                {
+                  "dishId": "FC_105886",
+                  "portionId": "FC_105886:1xSERVING",
+                  "value": 0.4,
+                  "known": true,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": 0.4,
+                  "factor": 1.0,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                },
+                {
+                  "dishId": "USDA_169757",
+                  "portionId": "USDA_169757:1xCUP",
+                  "value": 0.122,
+                  "known": true,
+                  "source": "USDA_SR_LEGACY",
+                  "basis": "PER_100_G",
+                  "valuePerBasis": 0.077,
+                  "factor": 1.58,
+                  "sourceReference": "fdc:169757 Rice, white, long-grain, regular, unenriched, cooked without salt (2019-04-01)"
+                },
+                {
+                  "dishId": "FC_82641",
+                  "portionId": "FC_82641:1xSERVING",
+                  "value": 2.2,
+                  "known": true,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": 2.2,
+                  "factor": 1.0,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                }
+              ]
+            },
+            "carbohydrateG": {
+              "value": 155.509,
+              "unit": "g",
+              "known": true,
+              "contributions": [
+                {
+                  "dishId": "FC_105886",
+                  "portionId": "FC_105886:1xSERVING",
+                  "value": 90.0,
+                  "known": true,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": 90.0,
+                  "factor": 1.0,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                },
+                {
+                  "dishId": "USDA_169757",
+                  "portionId": "USDA_169757:1xCUP",
+                  "value": 44.509,
+                  "known": true,
+                  "source": "USDA_SR_LEGACY",
+                  "basis": "PER_100_G",
+                  "valuePerBasis": 28.17,
+                  "factor": 1.58,
+                  "sourceReference": "fdc:169757 Rice, white, long-grain, regular, unenriched, cooked without salt (2019-04-01)"
+                },
+                {
+                  "dishId": "FC_82641",
+                  "portionId": "FC_82641:1xSERVING",
+                  "value": 21.0,
+                  "known": true,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": 21.000000000000004,
+                  "factor": 1.0,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                }
+              ]
+            },
+            "proteinG": {
+              "value": 21.25,
+              "unit": "g",
+              "known": true,
+              "contributions": [
+                {
+                  "dishId": "FC_105886",
+                  "portionId": "FC_105886:1xSERVING",
+                  "value": 10.5,
+                  "known": true,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": 10.5,
+                  "factor": 1.0,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                },
+                {
+                  "dishId": "USDA_169757",
+                  "portionId": "USDA_169757:1xCUP",
+                  "value": 4.25,
+                  "known": true,
+                  "source": "USDA_SR_LEGACY",
+                  "basis": "PER_100_G",
+                  "valuePerBasis": 2.69,
+                  "factor": 1.58,
+                  "sourceReference": "fdc:169757 Rice, white, long-grain, regular, unenriched, cooked without salt (2019-04-01)"
+                },
+                {
+                  "dishId": "FC_82641",
+                  "portionId": "FC_82641:1xSERVING",
+                  "value": 6.5,
+                  "known": true,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": 6.5,
+                  "factor": 1.0,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                }
+              ]
+            },
+            "sodiumMg": {
+              "value": 1489.58,
+              "unit": "mg",
+              "known": true,
+              "contributions": [
+                {
+                  "dishId": "FC_105886",
+                  "portionId": "FC_105886:1xSERVING",
+                  "value": 792.0,
+                  "known": true,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": 792.0,
+                  "factor": 1.0,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                },
+                {
+                  "dishId": "USDA_169757",
+                  "portionId": "USDA_169757:1xCUP",
+                  "value": 1.58,
+                  "known": true,
+                  "source": "USDA_SR_LEGACY",
+                  "basis": "PER_100_G",
+                  "valuePerBasis": 1.0,
+                  "factor": 1.58,
+                  "sourceReference": "fdc:169757 Rice, white, long-grain, regular, unenriched, cooked without salt (2019-04-01)"
+                },
+                {
+                  "dishId": "FC_82641",
+                  "portionId": "FC_82641:1xSERVING",
+                  "value": 696.0,
+                  "known": true,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": 696.0,
+                  "factor": 1.0,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                }
+              ]
+            },
+            "sugarsG": {
+              "value": null,
+              "unit": "g",
+              "known": false,
+              "contributions": [
+                {
+                  "dishId": "FC_105886",
+                  "portionId": "FC_105886:1xSERVING",
+                  "value": null,
+                  "known": false,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": null,
+                  "factor": 1.0,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                },
+                {
+                  "dishId": "USDA_169757",
+                  "portionId": "USDA_169757:1xCUP",
+                  "value": 0.079,
+                  "known": true,
+                  "source": "USDA_SR_LEGACY",
+                  "basis": "PER_100_G",
+                  "valuePerBasis": 0.05,
+                  "factor": 1.58,
+                  "sourceReference": "fdc:169757 Rice, white, long-grain, regular, unenriched, cooked without salt (2019-04-01)"
+                },
+                {
+                  "dishId": "FC_82641",
+                  "portionId": "FC_82641:1xSERVING",
+                  "value": null,
+                  "known": false,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": null,
+                  "factor": 1.0,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                }
+              ],
+              "reason": "unknown for ['FC_105886', 'FC_82641']; one unknown component makes the total unknown"
+            }
+          },
+          "sourceTier": "FOODCOM_DERIVED",
+          "fullyKnownForRequiredNutrients": true
+        },
+        {
+          "optionId": "C_MAIN_STAPLE_VEGETABLE__FC_105886__USDA_169757__FC_82641:HIGHER_PROTEIN",
+          "portionConfigurationId": "HIGHER_PROTEIN",
+          "configurationVersion": "20261019T012206Z",
+          "portionState": "FIXED",
+          "componentQuantities": [
+            {
+              "dishId": "FC_105886",
+              "portionId": "FC_105886:1.5xSERVING",
+              "quantity": 1.5,
+              "unit": "SERVING",
+              "grams": null,
+              "massKnown": false,
+              "member2QuantityUnit": "serving"
+            },
+            {
+              "dishId": "USDA_169757",
+              "portionId": "USDA_169757:0.75xCUP",
+              "quantity": 0.75,
+              "unit": "CUP",
+              "grams": 118.5,
+              "massKnown": true,
+              "member2QuantityUnit": "g"
+            },
+            {
+              "dishId": "FC_82641",
+              "portionId": "FC_82641:1xSERVING",
+              "quantity": 1.0,
+              "unit": "SERVING",
+              "grams": null,
+              "massKnown": false,
+              "member2QuantityUnit": "serving"
+            }
+          ],
+          "nutrients": {
+            "energyKcal": {
+              "value": 1027.95,
+              "unit": "kcal",
+              "known": true,
+              "contributions": [
+                {
+                  "dishId": "FC_105886",
+                  "portionId": "FC_105886:1.5xSERVING",
+                  "value": 611.4,
+                  "known": true,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": 407.6,
+                  "factor": 1.5,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                },
+                {
+                  "dishId": "USDA_169757",
+                  "portionId": "USDA_169757:0.75xCUP",
+                  "value": 154.05,
+                  "known": true,
+                  "source": "USDA_SR_LEGACY",
+                  "basis": "PER_100_G",
+                  "valuePerBasis": 130.0,
+                  "factor": 1.185,
+                  "sourceReference": "fdc:169757 Rice, white, long-grain, regular, unenriched, cooked without salt (2019-04-01)"
+                },
+                {
+                  "dishId": "FC_82641",
+                  "portionId": "FC_82641:1xSERVING",
+                  "value": 262.5,
+                  "known": true,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": 262.5,
+                  "factor": 1.0,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                }
+              ]
+            },
+            "fatG": {
+              "value": 18.857,
+              "unit": "g",
+              "known": true,
+              "contributions": [
+                {
+                  "dishId": "FC_105886",
+                  "portionId": "FC_105886:1.5xSERVING",
+                  "value": 0.975,
+                  "known": true,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": 0.65,
+                  "factor": 1.5,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                },
+                {
+                  "dishId": "USDA_169757",
+                  "portionId": "USDA_169757:0.75xCUP",
+                  "value": 0.332,
+                  "known": true,
+                  "source": "USDA_SR_LEGACY",
+                  "basis": "PER_100_G",
+                  "valuePerBasis": 0.28,
+                  "factor": 1.185,
+                  "sourceReference": "fdc:169757 Rice, white, long-grain, regular, unenriched, cooked without salt (2019-04-01)"
+                },
+                {
+                  "dishId": "FC_82641",
+                  "portionId": "FC_82641:1xSERVING",
+                  "value": 17.55,
+                  "known": true,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": 17.55,
+                  "factor": 1.0,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                }
+              ]
+            },
+            "saturatedFatG": {
+              "value": 2.891,
+              "unit": "g",
+              "known": true,
+              "contributions": [
+                {
+                  "dishId": "FC_105886",
+                  "portionId": "FC_105886:1.5xSERVING",
+                  "value": 0.6,
+                  "known": true,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": 0.4,
+                  "factor": 1.5,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                },
+                {
+                  "dishId": "USDA_169757",
+                  "portionId": "USDA_169757:0.75xCUP",
+                  "value": 0.091,
+                  "known": true,
+                  "source": "USDA_SR_LEGACY",
+                  "basis": "PER_100_G",
+                  "valuePerBasis": 0.077,
+                  "factor": 1.185,
+                  "sourceReference": "fdc:169757 Rice, white, long-grain, regular, unenriched, cooked without salt (2019-04-01)"
+                },
+                {
+                  "dishId": "FC_82641",
+                  "portionId": "FC_82641:1xSERVING",
+                  "value": 2.2,
+                  "known": true,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": 2.2,
+                  "factor": 1.0,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                }
+              ]
+            },
+            "carbohydrateG": {
+              "value": 189.381,
+              "unit": "g",
+              "known": true,
+              "contributions": [
+                {
+                  "dishId": "FC_105886",
+                  "portionId": "FC_105886:1.5xSERVING",
+                  "value": 135.0,
+                  "known": true,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": 90.0,
+                  "factor": 1.5,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                },
+                {
+                  "dishId": "USDA_169757",
+                  "portionId": "USDA_169757:0.75xCUP",
+                  "value": 33.381,
+                  "known": true,
+                  "source": "USDA_SR_LEGACY",
+                  "basis": "PER_100_G",
+                  "valuePerBasis": 28.17,
+                  "factor": 1.185,
+                  "sourceReference": "fdc:169757 Rice, white, long-grain, regular, unenriched, cooked without salt (2019-04-01)"
+                },
+                {
+                  "dishId": "FC_82641",
+                  "portionId": "FC_82641:1xSERVING",
+                  "value": 21.0,
+                  "known": true,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": 21.000000000000004,
+                  "factor": 1.0,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                }
+              ]
+            },
+            "proteinG": {
+              "value": 25.438,
+              "unit": "g",
+              "known": true,
+              "contributions": [
+                {
+                  "dishId": "FC_105886",
+                  "portionId": "FC_105886:1.5xSERVING",
+                  "value": 15.75,
+                  "known": true,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": 10.5,
+                  "factor": 1.5,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                },
+                {
+                  "dishId": "USDA_169757",
+                  "portionId": "USDA_169757:0.75xCUP",
+                  "value": 3.188,
+                  "known": true,
+                  "source": "USDA_SR_LEGACY",
+                  "basis": "PER_100_G",
+                  "valuePerBasis": 2.69,
+                  "factor": 1.185,
+                  "sourceReference": "fdc:169757 Rice, white, long-grain, regular, unenriched, cooked without salt (2019-04-01)"
+                },
+                {
+                  "dishId": "FC_82641",
+                  "portionId": "FC_82641:1xSERVING",
+                  "value": 6.5,
+                  "known": true,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": 6.5,
+                  "factor": 1.0,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                }
+              ]
+            },
+            "sodiumMg": {
+              "value": 1885.185,
+              "unit": "mg",
+              "known": true,
+              "contributions": [
+                {
+                  "dishId": "FC_105886",
+                  "portionId": "FC_105886:1.5xSERVING",
+                  "value": 1188.0,
+                  "known": true,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": 792.0,
+                  "factor": 1.5,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                },
+                {
+                  "dishId": "USDA_169757",
+                  "portionId": "USDA_169757:0.75xCUP",
+                  "value": 1.185,
+                  "known": true,
+                  "source": "USDA_SR_LEGACY",
+                  "basis": "PER_100_G",
+                  "valuePerBasis": 1.0,
+                  "factor": 1.185,
+                  "sourceReference": "fdc:169757 Rice, white, long-grain, regular, unenriched, cooked without salt (2019-04-01)"
+                },
+                {
+                  "dishId": "FC_82641",
+                  "portionId": "FC_82641:1xSERVING",
+                  "value": 696.0,
+                  "known": true,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": 696.0,
+                  "factor": 1.0,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                }
+              ]
+            },
+            "sugarsG": {
+              "value": null,
+              "unit": "g",
+              "known": false,
+              "contributions": [
+                {
+                  "dishId": "FC_105886",
+                  "portionId": "FC_105886:1.5xSERVING",
+                  "value": null,
+                  "known": false,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": null,
+                  "factor": 1.5,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                },
+                {
+                  "dishId": "USDA_169757",
+                  "portionId": "USDA_169757:0.75xCUP",
+                  "value": 0.059,
+                  "known": true,
+                  "source": "USDA_SR_LEGACY",
+                  "basis": "PER_100_G",
+                  "valuePerBasis": 0.05,
+                  "factor": 1.185,
+                  "sourceReference": "fdc:169757 Rice, white, long-grain, regular, unenriched, cooked without salt (2019-04-01)"
+                },
+                {
+                  "dishId": "FC_82641",
+                  "portionId": "FC_82641:1xSERVING",
+                  "value": null,
+                  "known": false,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": null,
+                  "factor": 1.0,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                }
+              ],
+              "reason": "unknown for ['FC_105886', 'FC_82641']; one unknown component makes the total unknown"
+            }
+          },
+          "sourceTier": "FOODCOM_DERIVED",
+          "fullyKnownForRequiredNutrients": true
+        },
+        {
+          "optionId": "C_MAIN_STAPLE_VEGETABLE__FC_105886__USDA_169757__FC_82641:HIGHER_ENERGY",
+          "portionConfigurationId": "HIGHER_ENERGY",
+          "configurationVersion": "20261019T012206Z",
+          "portionState": "FIXED",
+          "componentQuantities": [
+            {
+              "dishId": "FC_105886",
+              "portionId": "FC_105886:1.25xSERVING",
+              "quantity": 1.25,
+              "unit": "SERVING",
+              "grams": null,
+              "massKnown": false,
+              "member2QuantityUnit": "serving"
+            },
+            {
+              "dishId": "USDA_169757",
+              "portionId": "USDA_169757:1.5xCUP",
+              "quantity": 1.5,
+              "unit": "CUP",
+              "grams": 237.0,
+              "massKnown": true,
+              "member2QuantityUnit": "g"
+            },
+            {
+              "dishId": "FC_82641",
+              "portionId": "FC_82641:1xSERVING",
+              "quantity": 1.0,
+              "unit": "SERVING",
+              "grams": null,
+              "massKnown": false,
+              "member2QuantityUnit": "serving"
+            }
+          ],
+          "nutrients": {
+            "energyKcal": {
+              "value": 1080.1,
+              "unit": "kcal",
+              "known": true,
+              "contributions": [
+                {
+                  "dishId": "FC_105886",
+                  "portionId": "FC_105886:1.25xSERVING",
+                  "value": 509.5,
+                  "known": true,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": 407.6,
+                  "factor": 1.25,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                },
+                {
+                  "dishId": "USDA_169757",
+                  "portionId": "USDA_169757:1.5xCUP",
+                  "value": 308.1,
+                  "known": true,
+                  "source": "USDA_SR_LEGACY",
+                  "basis": "PER_100_G",
+                  "valuePerBasis": 130.0,
+                  "factor": 2.37,
+                  "sourceReference": "fdc:169757 Rice, white, long-grain, regular, unenriched, cooked without salt (2019-04-01)"
+                },
+                {
+                  "dishId": "FC_82641",
+                  "portionId": "FC_82641:1xSERVING",
+                  "value": 262.5,
+                  "known": true,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": 262.5,
+                  "factor": 1.0,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                }
+              ]
+            },
+            "fatG": {
+              "value": 19.026,
+              "unit": "g",
+              "known": true,
+              "contributions": [
+                {
+                  "dishId": "FC_105886",
+                  "portionId": "FC_105886:1.25xSERVING",
+                  "value": 0.812,
+                  "known": true,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": 0.65,
+                  "factor": 1.25,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                },
+                {
+                  "dishId": "USDA_169757",
+                  "portionId": "USDA_169757:1.5xCUP",
+                  "value": 0.664,
+                  "known": true,
+                  "source": "USDA_SR_LEGACY",
+                  "basis": "PER_100_G",
+                  "valuePerBasis": 0.28,
+                  "factor": 2.37,
+                  "sourceReference": "fdc:169757 Rice, white, long-grain, regular, unenriched, cooked without salt (2019-04-01)"
+                },
+                {
+                  "dishId": "FC_82641",
+                  "portionId": "FC_82641:1xSERVING",
+                  "value": 17.55,
+                  "known": true,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": 17.55,
+                  "factor": 1.0,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                }
+              ]
+            },
+            "saturatedFatG": {
+              "value": 2.882,
+              "unit": "g",
+              "known": true,
+              "contributions": [
+                {
+                  "dishId": "FC_105886",
+                  "portionId": "FC_105886:1.25xSERVING",
+                  "value": 0.5,
+                  "known": true,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": 0.4,
+                  "factor": 1.25,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                },
+                {
+                  "dishId": "USDA_169757",
+                  "portionId": "USDA_169757:1.5xCUP",
+                  "value": 0.182,
+                  "known": true,
+                  "source": "USDA_SR_LEGACY",
+                  "basis": "PER_100_G",
+                  "valuePerBasis": 0.077,
+                  "factor": 2.37,
+                  "sourceReference": "fdc:169757 Rice, white, long-grain, regular, unenriched, cooked without salt (2019-04-01)"
+                },
+                {
+                  "dishId": "FC_82641",
+                  "portionId": "FC_82641:1xSERVING",
+                  "value": 2.2,
+                  "known": true,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": 2.2,
+                  "factor": 1.0,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                }
+              ]
+            },
+            "carbohydrateG": {
+              "value": 200.263,
+              "unit": "g",
+              "known": true,
+              "contributions": [
+                {
+                  "dishId": "FC_105886",
+                  "portionId": "FC_105886:1.25xSERVING",
+                  "value": 112.5,
+                  "known": true,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": 90.0,
+                  "factor": 1.25,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                },
+                {
+                  "dishId": "USDA_169757",
+                  "portionId": "USDA_169757:1.5xCUP",
+                  "value": 66.763,
+                  "known": true,
+                  "source": "USDA_SR_LEGACY",
+                  "basis": "PER_100_G",
+                  "valuePerBasis": 28.17,
+                  "factor": 2.37,
+                  "sourceReference": "fdc:169757 Rice, white, long-grain, regular, unenriched, cooked without salt (2019-04-01)"
+                },
+                {
+                  "dishId": "FC_82641",
+                  "portionId": "FC_82641:1xSERVING",
+                  "value": 21.0,
+                  "known": true,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": 21.000000000000004,
+                  "factor": 1.0,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                }
+              ]
+            },
+            "proteinG": {
+              "value": 26.0,
+              "unit": "g",
+              "known": true,
+              "contributions": [
+                {
+                  "dishId": "FC_105886",
+                  "portionId": "FC_105886:1.25xSERVING",
+                  "value": 13.125,
+                  "known": true,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": 10.5,
+                  "factor": 1.25,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                },
+                {
+                  "dishId": "USDA_169757",
+                  "portionId": "USDA_169757:1.5xCUP",
+                  "value": 6.375,
+                  "known": true,
+                  "source": "USDA_SR_LEGACY",
+                  "basis": "PER_100_G",
+                  "valuePerBasis": 2.69,
+                  "factor": 2.37,
+                  "sourceReference": "fdc:169757 Rice, white, long-grain, regular, unenriched, cooked without salt (2019-04-01)"
+                },
+                {
+                  "dishId": "FC_82641",
+                  "portionId": "FC_82641:1xSERVING",
+                  "value": 6.5,
+                  "known": true,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": 6.5,
+                  "factor": 1.0,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                }
+              ]
+            },
+            "sodiumMg": {
+              "value": 1688.37,
+              "unit": "mg",
+              "known": true,
+              "contributions": [
+                {
+                  "dishId": "FC_105886",
+                  "portionId": "FC_105886:1.25xSERVING",
+                  "value": 990.0,
+                  "known": true,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": 792.0,
+                  "factor": 1.25,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                },
+                {
+                  "dishId": "USDA_169757",
+                  "portionId": "USDA_169757:1.5xCUP",
+                  "value": 2.37,
+                  "known": true,
+                  "source": "USDA_SR_LEGACY",
+                  "basis": "PER_100_G",
+                  "valuePerBasis": 1.0,
+                  "factor": 2.37,
+                  "sourceReference": "fdc:169757 Rice, white, long-grain, regular, unenriched, cooked without salt (2019-04-01)"
+                },
+                {
+                  "dishId": "FC_82641",
+                  "portionId": "FC_82641:1xSERVING",
+                  "value": 696.0,
+                  "known": true,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": 696.0,
+                  "factor": 1.0,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                }
+              ]
+            },
+            "sugarsG": {
+              "value": null,
+              "unit": "g",
+              "known": false,
+              "contributions": [
+                {
+                  "dishId": "FC_105886",
+                  "portionId": "FC_105886:1.25xSERVING",
+                  "value": null,
+                  "known": false,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": null,
+                  "factor": 1.25,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                },
+                {
+                  "dishId": "USDA_169757",
+                  "portionId": "USDA_169757:1.5xCUP",
+                  "value": 0.119,
+                  "known": true,
+                  "source": "USDA_SR_LEGACY",
+                  "basis": "PER_100_G",
+                  "valuePerBasis": 0.05,
+                  "factor": 2.37,
+                  "sourceReference": "fdc:169757 Rice, white, long-grain, regular, unenriched, cooked without salt (2019-04-01)"
+                },
+                {
+                  "dishId": "FC_82641",
+                  "portionId": "FC_82641:1xSERVING",
+                  "value": null,
+                  "known": false,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": null,
+                  "factor": 1.0,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                }
+              ],
+              "reason": "unknown for ['FC_105886', 'FC_82641']; one unknown component makes the total unknown"
+            }
+          },
+          "sourceTier": "FOODCOM_DERIVED",
+          "fullyKnownForRequiredNutrients": true
+        },
+        {
+          "optionId": "C_MAIN_STAPLE_VEGETABLE__FC_105886__USDA_169757__FC_82641:LOWER_ENERGY",
+          "portionConfigurationId": "LOWER_ENERGY",
+          "configurationVersion": "20261019T012206Z",
+          "portionState": "FIXED",
+          "componentQuantities": [
+            {
+              "dishId": "FC_105886",
+              "portionId": "FC_105886:0.75xSERVING",
+              "quantity": 0.75,
+              "unit": "SERVING",
+              "grams": null,
+              "massKnown": false,
+              "member2QuantityUnit": "serving"
+            },
+            {
+              "dishId": "USDA_169757",
+              "portionId": "USDA_169757:0.75xCUP",
+              "quantity": 0.75,
+              "unit": "CUP",
+              "grams": 118.5,
+              "massKnown": true,
+              "member2QuantityUnit": "g"
+            },
+            {
+              "dishId": "FC_82641",
+              "portionId": "FC_82641:1.25xSERVING",
+              "quantity": 1.25,
+              "unit": "SERVING",
+              "grams": null,
+              "massKnown": false,
+              "member2QuantityUnit": "serving"
+            }
+          ],
+          "nutrients": {
+            "energyKcal": {
+              "value": 787.875,
+              "unit": "kcal",
+              "known": true,
+              "contributions": [
+                {
+                  "dishId": "FC_105886",
+                  "portionId": "FC_105886:0.75xSERVING",
+                  "value": 305.7,
+                  "known": true,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": 407.6,
+                  "factor": 0.75,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                },
+                {
+                  "dishId": "USDA_169757",
+                  "portionId": "USDA_169757:0.75xCUP",
+                  "value": 154.05,
+                  "known": true,
+                  "source": "USDA_SR_LEGACY",
+                  "basis": "PER_100_G",
+                  "valuePerBasis": 130.0,
+                  "factor": 1.185,
+                  "sourceReference": "fdc:169757 Rice, white, long-grain, regular, unenriched, cooked without salt (2019-04-01)"
+                },
+                {
+                  "dishId": "FC_82641",
+                  "portionId": "FC_82641:1.25xSERVING",
+                  "value": 328.125,
+                  "known": true,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": 262.5,
+                  "factor": 1.25,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                }
+              ]
+            },
+            "fatG": {
+              "value": 22.758,
+              "unit": "g",
+              "known": true,
+              "contributions": [
+                {
+                  "dishId": "FC_105886",
+                  "portionId": "FC_105886:0.75xSERVING",
+                  "value": 0.488,
+                  "known": true,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": 0.65,
+                  "factor": 0.75,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                },
+                {
+                  "dishId": "USDA_169757",
+                  "portionId": "USDA_169757:0.75xCUP",
+                  "value": 0.332,
+                  "known": true,
+                  "source": "USDA_SR_LEGACY",
+                  "basis": "PER_100_G",
+                  "valuePerBasis": 0.28,
+                  "factor": 1.185,
+                  "sourceReference": "fdc:169757 Rice, white, long-grain, regular, unenriched, cooked without salt (2019-04-01)"
+                },
+                {
+                  "dishId": "FC_82641",
+                  "portionId": "FC_82641:1.25xSERVING",
+                  "value": 21.938,
+                  "known": true,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": 17.55,
+                  "factor": 1.25,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                }
+              ]
+            },
+            "saturatedFatG": {
+              "value": 3.141,
+              "unit": "g",
+              "known": true,
+              "contributions": [
+                {
+                  "dishId": "FC_105886",
+                  "portionId": "FC_105886:0.75xSERVING",
+                  "value": 0.3,
+                  "known": true,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": 0.4,
+                  "factor": 0.75,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                },
+                {
+                  "dishId": "USDA_169757",
+                  "portionId": "USDA_169757:0.75xCUP",
+                  "value": 0.091,
+                  "known": true,
+                  "source": "USDA_SR_LEGACY",
+                  "basis": "PER_100_G",
+                  "valuePerBasis": 0.077,
+                  "factor": 1.185,
+                  "sourceReference": "fdc:169757 Rice, white, long-grain, regular, unenriched, cooked without salt (2019-04-01)"
+                },
+                {
+                  "dishId": "FC_82641",
+                  "portionId": "FC_82641:1.25xSERVING",
+                  "value": 2.75,
+                  "known": true,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": 2.2,
+                  "factor": 1.25,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                }
+              ]
+            },
+            "carbohydrateG": {
+              "value": 127.131,
+              "unit": "g",
+              "known": true,
+              "contributions": [
+                {
+                  "dishId": "FC_105886",
+                  "portionId": "FC_105886:0.75xSERVING",
+                  "value": 67.5,
+                  "known": true,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": 90.0,
+                  "factor": 0.75,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                },
+                {
+                  "dishId": "USDA_169757",
+                  "portionId": "USDA_169757:0.75xCUP",
+                  "value": 33.381,
+                  "known": true,
+                  "source": "USDA_SR_LEGACY",
+                  "basis": "PER_100_G",
+                  "valuePerBasis": 28.17,
+                  "factor": 1.185,
+                  "sourceReference": "fdc:169757 Rice, white, long-grain, regular, unenriched, cooked without salt (2019-04-01)"
+                },
+                {
+                  "dishId": "FC_82641",
+                  "portionId": "FC_82641:1.25xSERVING",
+                  "value": 26.25,
+                  "known": true,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": 21.000000000000004,
+                  "factor": 1.25,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                }
+              ]
+            },
+            "proteinG": {
+              "value": 19.188,
+              "unit": "g",
+              "known": true,
+              "contributions": [
+                {
+                  "dishId": "FC_105886",
+                  "portionId": "FC_105886:0.75xSERVING",
+                  "value": 7.875,
+                  "known": true,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": 10.5,
+                  "factor": 0.75,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                },
+                {
+                  "dishId": "USDA_169757",
+                  "portionId": "USDA_169757:0.75xCUP",
+                  "value": 3.188,
+                  "known": true,
+                  "source": "USDA_SR_LEGACY",
+                  "basis": "PER_100_G",
+                  "valuePerBasis": 2.69,
+                  "factor": 1.185,
+                  "sourceReference": "fdc:169757 Rice, white, long-grain, regular, unenriched, cooked without salt (2019-04-01)"
+                },
+                {
+                  "dishId": "FC_82641",
+                  "portionId": "FC_82641:1.25xSERVING",
+                  "value": 8.125,
+                  "known": true,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": 6.5,
+                  "factor": 1.25,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                }
+              ]
+            },
+            "sodiumMg": {
+              "value": 1465.185,
+              "unit": "mg",
+              "known": true,
+              "contributions": [
+                {
+                  "dishId": "FC_105886",
+                  "portionId": "FC_105886:0.75xSERVING",
+                  "value": 594.0,
+                  "known": true,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": 792.0,
+                  "factor": 0.75,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                },
+                {
+                  "dishId": "USDA_169757",
+                  "portionId": "USDA_169757:0.75xCUP",
+                  "value": 1.185,
+                  "known": true,
+                  "source": "USDA_SR_LEGACY",
+                  "basis": "PER_100_G",
+                  "valuePerBasis": 1.0,
+                  "factor": 1.185,
+                  "sourceReference": "fdc:169757 Rice, white, long-grain, regular, unenriched, cooked without salt (2019-04-01)"
+                },
+                {
+                  "dishId": "FC_82641",
+                  "portionId": "FC_82641:1.25xSERVING",
+                  "value": 870.0,
+                  "known": true,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": 696.0,
+                  "factor": 1.25,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                }
+              ]
+            },
+            "sugarsG": {
+              "value": null,
+              "unit": "g",
+              "known": false,
+              "contributions": [
+                {
+                  "dishId": "FC_105886",
+                  "portionId": "FC_105886:0.75xSERVING",
+                  "value": null,
+                  "known": false,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": null,
+                  "factor": 0.75,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                },
+                {
+                  "dishId": "USDA_169757",
+                  "portionId": "USDA_169757:0.75xCUP",
+                  "value": 0.059,
+                  "known": true,
+                  "source": "USDA_SR_LEGACY",
+                  "basis": "PER_100_G",
+                  "valuePerBasis": 0.05,
+                  "factor": 1.185,
+                  "sourceReference": "fdc:169757 Rice, white, long-grain, regular, unenriched, cooked without salt (2019-04-01)"
+                },
+                {
+                  "dishId": "FC_82641",
+                  "portionId": "FC_82641:1.25xSERVING",
+                  "value": null,
+                  "known": false,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": null,
+                  "factor": 1.25,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                }
+              ],
+              "reason": "unknown for ['FC_105886', 'FC_82641']; one unknown component makes the total unknown"
+            }
+          },
+          "sourceTier": "FOODCOM_DERIVED",
+          "fullyKnownForRequiredNutrients": true
+        }
+      ]
+    },
+    {
+      "combinationId": "C_ONE_DISH__FC_238992",
+      "combinationVersion": "20261019T012206Z",
+      "combinationContentSha256": "5c62051bcc4f32e9cd02d34e9d6406df14cdf4c2664e0ec9ef83769da914f7de",
+      "templateId": "ONE_DISH",
+      "mealTypes": [
+        "LUNCH",
+        "DINNER"
+      ],
+      "cuisines": [
+        "Chinese",
+        "Nepali"
+      ],
+      "compositionEvidence": [
+        "template ONE_DISH: a complete dish such as biryani, momo or pad thai stands alone"
+      ],
+      "components": [
+        {
+          "slot": "COMPLETE",
+          "role": "MAIN_DISH",
+          "dishId": "FC_238992",
+          "name": "tibetan momo  a dim sum dumpling from tibet",
+          "cuisines": [
+            "Chinese",
+            "Nepali"
+          ],
+          "dishClass": "COMPLETE_MEAL",
+          "mealTypes": [
+            "LUNCH",
+            "DINNER"
+          ],
+          "classificationStatus": "CURATED",
+          "classificationEvidence": [
+            "course main-dish/one-dish-meal -> MAIN_DISH",
+            "non-meal course: appetizers",
+            "dish class COMPLETE_MEAL",
+            "conflict: meal course and non-meal course",
+            "curated by ai-review:claude: tibetan momo: Himalayan dumpling, kept the existing Chinese tag and added Nepali"
+          ],
+          "ingredients": [
+            "onions",
+            "yak meat",
+            "minced ginger",
+            "soy sauce",
+            "minced garlic cloves",
+            "salt",
+            "flour",
+            "oil"
+          ],
+          "ingredientMapping": {
+            "status": "UNRESOLVED",
+            "canonicalIngredients": null,
+            "subingredientsKnown": false,
+            "allergenStatus": "UNKNOWN",
+            "note": "raw names only; no canonical mapping exists yet, so allergen rules cannot PASS (fail closed)"
+          },
+          "dietTags": {
+            "values": [],
+            "status": "UNVERIFIED_METADATA"
+          },
+          "nutritionRecord": {
+            "source": "FOODCOM_DERIVED",
+            "basis": "PER_SERVING",
+            "valuesPerBasis": {
+              "energyKcal": 485.8,
+              "fatG": 1.3,
+              "saturatedFatG": 0.2,
+              "carbohydrateG": 99.0,
+              "proteinG": 14.499999999999998,
+              "sodiumMg": 504.0,
+              "sugarsG": null
+            },
+            "sourceReference": "FDA_1993_LABEL_2000KCAL",
+            "qualityFlags": []
+          },
+          "portionOptions": [
+            {
+              "portionId": "FC_238992:0.5xSERVING",
+              "quantity": 0.5,
+              "unit": "SERVING",
+              "grams": null,
+              "label": "0.5 servings",
+              "isStandard": false,
+              "nutrients": {
+                "energyKcal": 242.9,
+                "fatG": 0.65,
+                "saturatedFatG": 0.1,
+                "carbohydrateG": 49.5,
+                "proteinG": 7.25,
+                "sodiumMg": 252.0,
+                "sugarsG": null
+              }
+            },
+            {
+              "portionId": "FC_238992:0.75xSERVING",
+              "quantity": 0.75,
+              "unit": "SERVING",
+              "grams": null,
+              "label": "0.75 servings",
+              "isStandard": false,
+              "nutrients": {
+                "energyKcal": 364.35,
+                "fatG": 0.975,
+                "saturatedFatG": 0.15,
+                "carbohydrateG": 74.25,
+                "proteinG": 10.875,
+                "sodiumMg": 378.0,
+                "sugarsG": null
+              }
+            },
+            {
+              "portionId": "FC_238992:1xSERVING",
+              "quantity": 1.0,
+              "unit": "SERVING",
+              "grams": null,
+              "label": "1 serving",
+              "isStandard": true,
+              "nutrients": {
+                "energyKcal": 485.8,
+                "fatG": 1.3,
+                "saturatedFatG": 0.2,
+                "carbohydrateG": 99.0,
+                "proteinG": 14.5,
+                "sodiumMg": 504.0,
+                "sugarsG": null
+              }
+            },
+            {
+              "portionId": "FC_238992:1.25xSERVING",
+              "quantity": 1.25,
+              "unit": "SERVING",
+              "grams": null,
+              "label": "1.25 servings",
+              "isStandard": false,
+              "nutrients": {
+                "energyKcal": 607.25,
+                "fatG": 1.625,
+                "saturatedFatG": 0.25,
+                "carbohydrateG": 123.75,
+                "proteinG": 18.125,
+                "sodiumMg": 630.0,
+                "sugarsG": null
+              }
+            },
+            {
+              "portionId": "FC_238992:1.5xSERVING",
+              "quantity": 1.5,
+              "unit": "SERVING",
+              "grams": null,
+              "label": "1.5 servings",
+              "isStandard": false,
+              "nutrients": {
+                "energyKcal": 728.7,
+                "fatG": 1.95,
+                "saturatedFatG": 0.3,
+                "carbohydrateG": 148.5,
+                "proteinG": 21.75,
+                "sodiumMg": 756.0,
+                "sugarsG": null
+              }
+            }
+          ],
+          "servingMassG": null,
+          "originalSourceRecord": {
+            "dataset": "Food.com Recipes and Interactions (Majumder et al., EMNLP 2019)",
+            "file": "RAW_recipes.csv",
+            "fileSha256": "6a8136d1da9e03396a9f52d72200b3fddb8fe103f11e1496effca30ac4e0539f",
+            "row": {
+              "id": 238992,
+              "name": "tibetan momo  a dim sum dumpling from tibet",
+              "nutrition": [
+                485.8,
+                2.0,
+                11.0,
+                21.0,
+                29.0,
+                1.0,
+                33.0
+              ],
+              "nutritionFields": [
+                "calories (kcal)",
+                "total fat (%DV)",
+                "sugar (%DV)",
+                "sodium (%DV)",
+                "protein (%DV)",
+                "saturated fat (%DV)",
+                "carbohydrates (%DV)"
+              ],
+              "ingredients": [
+                "onions",
+                "yak meat",
+                "minced ginger",
+                "soy sauce",
+                "minced garlic cloves",
+                "salt",
+                "flour",
+                "oil"
+              ],
+              "tags": [
+                "60-minutes-or-less",
+                "time-to-make",
+                "course",
+                "main-ingredient",
+                "cuisine",
+                "preparation",
+                "appetizers",
+                "main-dish",
+                "nepalese",
+                "asian",
+                "chinese",
+                "oamc-freezer-make-ahead",
+                "meat",
+                "number-of-servings"
+              ]
+            },
+            "conversion": {
+              "table": "FDA_1993_LABEL_2000KCAL",
+              "gramsAt100PercentDv": {
+                "fat_g": 65.0,
+                "saturated_fat_g": 20.0,
+                "carbohydrate_g": 300.0,
+                "protein_g": 50.0,
+                "sodium_mg": 2400.0
+              },
+              "rule": "grams = %DV / 100 x reference; kcal as stated; sugar left null",
+              "verification": "docs/eval/dv_verification.json"
+            }
+          }
+        }
+      ],
+      "configurations": [
+        {
+          "optionId": "C_ONE_DISH__FC_238992:STANDARD",
+          "portionConfigurationId": "STANDARD",
+          "configurationVersion": "20261019T012206Z",
+          "portionState": "FIXED",
+          "componentQuantities": [
+            {
+              "dishId": "FC_238992",
+              "portionId": "FC_238992:1xSERVING",
+              "quantity": 1.0,
+              "unit": "SERVING",
+              "grams": null,
+              "massKnown": false,
+              "member2QuantityUnit": "serving"
+            }
+          ],
+          "nutrients": {
+            "energyKcal": {
+              "value": 485.8,
+              "unit": "kcal",
+              "known": true,
+              "contributions": [
+                {
+                  "dishId": "FC_238992",
+                  "portionId": "FC_238992:1xSERVING",
+                  "value": 485.8,
+                  "known": true,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": 485.8,
+                  "factor": 1.0,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                }
+              ]
+            },
+            "fatG": {
+              "value": 1.3,
+              "unit": "g",
+              "known": true,
+              "contributions": [
+                {
+                  "dishId": "FC_238992",
+                  "portionId": "FC_238992:1xSERVING",
+                  "value": 1.3,
+                  "known": true,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": 1.3,
+                  "factor": 1.0,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                }
+              ]
+            },
+            "saturatedFatG": {
+              "value": 0.2,
+              "unit": "g",
+              "known": true,
+              "contributions": [
+                {
+                  "dishId": "FC_238992",
+                  "portionId": "FC_238992:1xSERVING",
+                  "value": 0.2,
+                  "known": true,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": 0.2,
+                  "factor": 1.0,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                }
+              ]
+            },
+            "carbohydrateG": {
+              "value": 99.0,
+              "unit": "g",
+              "known": true,
+              "contributions": [
+                {
+                  "dishId": "FC_238992",
+                  "portionId": "FC_238992:1xSERVING",
+                  "value": 99.0,
+                  "known": true,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": 99.0,
+                  "factor": 1.0,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                }
+              ]
+            },
+            "proteinG": {
+              "value": 14.5,
+              "unit": "g",
+              "known": true,
+              "contributions": [
+                {
+                  "dishId": "FC_238992",
+                  "portionId": "FC_238992:1xSERVING",
+                  "value": 14.5,
+                  "known": true,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": 14.499999999999998,
+                  "factor": 1.0,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                }
+              ]
+            },
+            "sodiumMg": {
+              "value": 504.0,
+              "unit": "mg",
+              "known": true,
+              "contributions": [
+                {
+                  "dishId": "FC_238992",
+                  "portionId": "FC_238992:1xSERVING",
+                  "value": 504.0,
+                  "known": true,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": 504.0,
+                  "factor": 1.0,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                }
+              ]
+            },
+            "sugarsG": {
+              "value": null,
+              "unit": "g",
+              "known": false,
+              "contributions": [
+                {
+                  "dishId": "FC_238992",
+                  "portionId": "FC_238992:1xSERVING",
+                  "value": null,
+                  "known": false,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": null,
+                  "factor": 1.0,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                }
+              ],
+              "reason": "unknown for ['FC_238992']; one unknown component makes the total unknown"
+            }
+          },
+          "sourceTier": "FOODCOM_DERIVED",
+          "fullyKnownForRequiredNutrients": true
+        },
+        {
+          "optionId": "C_ONE_DISH__FC_238992:HIGHER_PROTEIN",
+          "portionConfigurationId": "HIGHER_PROTEIN",
+          "configurationVersion": "20261019T012206Z",
+          "portionState": "FIXED",
+          "componentQuantities": [
+            {
+              "dishId": "FC_238992",
+              "portionId": "FC_238992:1.25xSERVING",
+              "quantity": 1.25,
+              "unit": "SERVING",
+              "grams": null,
+              "massKnown": false,
+              "member2QuantityUnit": "serving"
+            }
+          ],
+          "nutrients": {
+            "energyKcal": {
+              "value": 607.25,
+              "unit": "kcal",
+              "known": true,
+              "contributions": [
+                {
+                  "dishId": "FC_238992",
+                  "portionId": "FC_238992:1.25xSERVING",
+                  "value": 607.25,
+                  "known": true,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": 485.8,
+                  "factor": 1.25,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                }
+              ]
+            },
+            "fatG": {
+              "value": 1.625,
+              "unit": "g",
+              "known": true,
+              "contributions": [
+                {
+                  "dishId": "FC_238992",
+                  "portionId": "FC_238992:1.25xSERVING",
+                  "value": 1.625,
+                  "known": true,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": 1.3,
+                  "factor": 1.25,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                }
+              ]
+            },
+            "saturatedFatG": {
+              "value": 0.25,
+              "unit": "g",
+              "known": true,
+              "contributions": [
+                {
+                  "dishId": "FC_238992",
+                  "portionId": "FC_238992:1.25xSERVING",
+                  "value": 0.25,
+                  "known": true,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": 0.2,
+                  "factor": 1.25,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                }
+              ]
+            },
+            "carbohydrateG": {
+              "value": 123.75,
+              "unit": "g",
+              "known": true,
+              "contributions": [
+                {
+                  "dishId": "FC_238992",
+                  "portionId": "FC_238992:1.25xSERVING",
+                  "value": 123.75,
+                  "known": true,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": 99.0,
+                  "factor": 1.25,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                }
+              ]
+            },
+            "proteinG": {
+              "value": 18.125,
+              "unit": "g",
+              "known": true,
+              "contributions": [
+                {
+                  "dishId": "FC_238992",
+                  "portionId": "FC_238992:1.25xSERVING",
+                  "value": 18.125,
+                  "known": true,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": 14.499999999999998,
+                  "factor": 1.25,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                }
+              ]
+            },
+            "sodiumMg": {
+              "value": 630.0,
+              "unit": "mg",
+              "known": true,
+              "contributions": [
+                {
+                  "dishId": "FC_238992",
+                  "portionId": "FC_238992:1.25xSERVING",
+                  "value": 630.0,
+                  "known": true,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": 504.0,
+                  "factor": 1.25,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                }
+              ]
+            },
+            "sugarsG": {
+              "value": null,
+              "unit": "g",
+              "known": false,
+              "contributions": [
+                {
+                  "dishId": "FC_238992",
+                  "portionId": "FC_238992:1.25xSERVING",
+                  "value": null,
+                  "known": false,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": null,
+                  "factor": 1.25,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                }
+              ],
+              "reason": "unknown for ['FC_238992']; one unknown component makes the total unknown"
+            }
+          },
+          "sourceTier": "FOODCOM_DERIVED",
+          "fullyKnownForRequiredNutrients": true
+        },
+        {
+          "optionId": "C_ONE_DISH__FC_238992:LOWER_CARB",
+          "portionConfigurationId": "LOWER_CARB",
+          "configurationVersion": "20261019T012206Z",
+          "portionState": "FIXED",
+          "componentQuantities": [
+            {
+              "dishId": "FC_238992",
+              "portionId": "FC_238992:0.75xSERVING",
+              "quantity": 0.75,
+              "unit": "SERVING",
+              "grams": null,
+              "massKnown": false,
+              "member2QuantityUnit": "serving"
+            }
+          ],
+          "nutrients": {
+            "energyKcal": {
+              "value": 364.35,
+              "unit": "kcal",
+              "known": true,
+              "contributions": [
+                {
+                  "dishId": "FC_238992",
+                  "portionId": "FC_238992:0.75xSERVING",
+                  "value": 364.35,
+                  "known": true,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": 485.8,
+                  "factor": 0.75,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                }
+              ]
+            },
+            "fatG": {
+              "value": 0.975,
+              "unit": "g",
+              "known": true,
+              "contributions": [
+                {
+                  "dishId": "FC_238992",
+                  "portionId": "FC_238992:0.75xSERVING",
+                  "value": 0.975,
+                  "known": true,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": 1.3,
+                  "factor": 0.75,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                }
+              ]
+            },
+            "saturatedFatG": {
+              "value": 0.15,
+              "unit": "g",
+              "known": true,
+              "contributions": [
+                {
+                  "dishId": "FC_238992",
+                  "portionId": "FC_238992:0.75xSERVING",
+                  "value": 0.15,
+                  "known": true,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": 0.2,
+                  "factor": 0.75,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                }
+              ]
+            },
+            "carbohydrateG": {
+              "value": 74.25,
+              "unit": "g",
+              "known": true,
+              "contributions": [
+                {
+                  "dishId": "FC_238992",
+                  "portionId": "FC_238992:0.75xSERVING",
+                  "value": 74.25,
+                  "known": true,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": 99.0,
+                  "factor": 0.75,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                }
+              ]
+            },
+            "proteinG": {
+              "value": 10.875,
+              "unit": "g",
+              "known": true,
+              "contributions": [
+                {
+                  "dishId": "FC_238992",
+                  "portionId": "FC_238992:0.75xSERVING",
+                  "value": 10.875,
+                  "known": true,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": 14.499999999999998,
+                  "factor": 0.75,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                }
+              ]
+            },
+            "sodiumMg": {
+              "value": 378.0,
+              "unit": "mg",
+              "known": true,
+              "contributions": [
+                {
+                  "dishId": "FC_238992",
+                  "portionId": "FC_238992:0.75xSERVING",
+                  "value": 378.0,
+                  "known": true,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": 504.0,
+                  "factor": 0.75,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                }
+              ]
+            },
+            "sugarsG": {
+              "value": null,
+              "unit": "g",
+              "known": false,
+              "contributions": [
+                {
+                  "dishId": "FC_238992",
+                  "portionId": "FC_238992:0.75xSERVING",
+                  "value": null,
+                  "known": false,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": null,
+                  "factor": 0.75,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                }
+              ],
+              "reason": "unknown for ['FC_238992']; one unknown component makes the total unknown"
+            }
+          },
+          "sourceTier": "FOODCOM_DERIVED",
+          "fullyKnownForRequiredNutrients": true
+        },
+        {
+          "optionId": "C_ONE_DISH__FC_238992:HIGHER_ENERGY",
+          "portionConfigurationId": "HIGHER_ENERGY",
+          "configurationVersion": "20261019T012206Z",
+          "portionState": "FIXED",
+          "componentQuantities": [
+            {
+              "dishId": "FC_238992",
+              "portionId": "FC_238992:1.5xSERVING",
+              "quantity": 1.5,
+              "unit": "SERVING",
+              "grams": null,
+              "massKnown": false,
+              "member2QuantityUnit": "serving"
+            }
+          ],
+          "nutrients": {
+            "energyKcal": {
+              "value": 728.7,
+              "unit": "kcal",
+              "known": true,
+              "contributions": [
+                {
+                  "dishId": "FC_238992",
+                  "portionId": "FC_238992:1.5xSERVING",
+                  "value": 728.7,
+                  "known": true,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": 485.8,
+                  "factor": 1.5,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                }
+              ]
+            },
+            "fatG": {
+              "value": 1.95,
+              "unit": "g",
+              "known": true,
+              "contributions": [
+                {
+                  "dishId": "FC_238992",
+                  "portionId": "FC_238992:1.5xSERVING",
+                  "value": 1.95,
+                  "known": true,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": 1.3,
+                  "factor": 1.5,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                }
+              ]
+            },
+            "saturatedFatG": {
+              "value": 0.3,
+              "unit": "g",
+              "known": true,
+              "contributions": [
+                {
+                  "dishId": "FC_238992",
+                  "portionId": "FC_238992:1.5xSERVING",
+                  "value": 0.3,
+                  "known": true,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": 0.2,
+                  "factor": 1.5,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                }
+              ]
+            },
+            "carbohydrateG": {
+              "value": 148.5,
+              "unit": "g",
+              "known": true,
+              "contributions": [
+                {
+                  "dishId": "FC_238992",
+                  "portionId": "FC_238992:1.5xSERVING",
+                  "value": 148.5,
+                  "known": true,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": 99.0,
+                  "factor": 1.5,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                }
+              ]
+            },
+            "proteinG": {
+              "value": 21.75,
+              "unit": "g",
+              "known": true,
+              "contributions": [
+                {
+                  "dishId": "FC_238992",
+                  "portionId": "FC_238992:1.5xSERVING",
+                  "value": 21.75,
+                  "known": true,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": 14.499999999999998,
+                  "factor": 1.5,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                }
+              ]
+            },
+            "sodiumMg": {
+              "value": 756.0,
+              "unit": "mg",
+              "known": true,
+              "contributions": [
+                {
+                  "dishId": "FC_238992",
+                  "portionId": "FC_238992:1.5xSERVING",
+                  "value": 756.0,
+                  "known": true,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": 504.0,
+                  "factor": 1.5,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                }
+              ]
+            },
+            "sugarsG": {
+              "value": null,
+              "unit": "g",
+              "known": false,
+              "contributions": [
+                {
+                  "dishId": "FC_238992",
+                  "portionId": "FC_238992:1.5xSERVING",
+                  "value": null,
+                  "known": false,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": null,
+                  "factor": 1.5,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                }
+              ],
+              "reason": "unknown for ['FC_238992']; one unknown component makes the total unknown"
+            }
+          },
+          "sourceTier": "FOODCOM_DERIVED",
+          "fullyKnownForRequiredNutrients": true
+        }
+      ]
+    },
+    {
+      "combinationId": "C_BREAKFAST_FRUIT__FC_128959__USDA_2709171",
+      "combinationVersion": "20261019T012206Z",
+      "combinationContentSha256": "3b981c66541beceffbe22be0f364063ad007441a80e57a62f8b30bf1fd101216",
+      "templateId": "BREAKFAST_FRUIT",
+      "mealTypes": [
+        "BREAKFAST"
+      ],
+      "cuisines": [
+        "Indian",
+        "American"
+      ],
+      "compositionEvidence": [
+        "template BREAKFAST_FRUIT: breakfast base with optional fruit",
+        "add-on: orange"
+      ],
+      "components": [
+        {
+          "slot": "BASE",
+          "role": "BREAKFAST_BASE",
+          "dishId": "FC_128959",
+          "name": "chai oatmeal",
+          "cuisines": [
+            "Indian",
+            "American"
+          ],
+          "dishClass": "COMPLETE_MEAL",
+          "mealTypes": [
+            "BREAKFAST"
+          ],
+          "classificationStatus": "AUTO",
+          "classificationEvidence": [
+            "course breakfast/brunch -> BREAKFAST_BASE",
+            "dish class COMPLETE_MEAL"
+          ],
+          "ingredients": [
+            "oatmeal",
+            "turmeric",
+            "salt",
+            "ground coriander",
+            "ground cardamom",
+            "ground cinnamon",
+            "ground allspice",
+            "nutmeg",
+            "honey",
+            "milk",
+            "dried fruit"
+          ],
+          "ingredientMapping": {
+            "status": "UNRESOLVED",
+            "canonicalIngredients": null,
+            "subingredientsKnown": false,
+            "allergenStatus": "UNKNOWN",
+            "note": "raw names only; no canonical mapping exists yet, so allergen rules cannot PASS (fail closed)"
+          },
+          "dietTags": {
+            "values": [
+              "vegetarian"
+            ],
+            "status": "UNVERIFIED_METADATA"
+          },
+          "nutritionRecord": {
+            "source": "FOODCOM_DERIVED",
+            "basis": "PER_SERVING",
+            "valuesPerBasis": {
+              "energyKcal": 247.9,
+              "fatG": 8.450000000000001,
+              "saturatedFatG": 4.4,
+              "carbohydrateG": 30.0,
+              "proteinG": 10.5,
+              "sodiumMg": 216.0,
+              "sugarsG": null
+            },
+            "sourceReference": "FDA_1993_LABEL_2000KCAL",
+            "qualityFlags": []
+          },
+          "portionOptions": [
+            {
+              "portionId": "FC_128959:0.5xSERVING",
+              "quantity": 0.5,
+              "unit": "SERVING",
+              "grams": null,
+              "label": "0.5 servings",
+              "isStandard": false,
+              "nutrients": {
+                "energyKcal": 123.95,
+                "fatG": 4.225,
+                "saturatedFatG": 2.2,
+                "carbohydrateG": 15.0,
+                "proteinG": 5.25,
+                "sodiumMg": 108.0,
+                "sugarsG": null
+              }
+            },
+            {
+              "portionId": "FC_128959:0.75xSERVING",
+              "quantity": 0.75,
+              "unit": "SERVING",
+              "grams": null,
+              "label": "0.75 servings",
+              "isStandard": false,
+              "nutrients": {
+                "energyKcal": 185.925,
+                "fatG": 6.338,
+                "saturatedFatG": 3.3,
+                "carbohydrateG": 22.5,
+                "proteinG": 7.875,
+                "sodiumMg": 162.0,
+                "sugarsG": null
+              }
+            },
+            {
+              "portionId": "FC_128959:1xSERVING",
+              "quantity": 1.0,
+              "unit": "SERVING",
+              "grams": null,
+              "label": "1 serving",
+              "isStandard": true,
+              "nutrients": {
+                "energyKcal": 247.9,
+                "fatG": 8.45,
+                "saturatedFatG": 4.4,
+                "carbohydrateG": 30.0,
+                "proteinG": 10.5,
+                "sodiumMg": 216.0,
+                "sugarsG": null
+              }
+            },
+            {
+              "portionId": "FC_128959:1.25xSERVING",
+              "quantity": 1.25,
+              "unit": "SERVING",
+              "grams": null,
+              "label": "1.25 servings",
+              "isStandard": false,
+              "nutrients": {
+                "energyKcal": 309.875,
+                "fatG": 10.563,
+                "saturatedFatG": 5.5,
+                "carbohydrateG": 37.5,
+                "proteinG": 13.125,
+                "sodiumMg": 270.0,
+                "sugarsG": null
+              }
+            },
+            {
+              "portionId": "FC_128959:1.5xSERVING",
+              "quantity": 1.5,
+              "unit": "SERVING",
+              "grams": null,
+              "label": "1.5 servings",
+              "isStandard": false,
+              "nutrients": {
+                "energyKcal": 371.85,
+                "fatG": 12.675,
+                "saturatedFatG": 6.6,
+                "carbohydrateG": 45.0,
+                "proteinG": 15.75,
+                "sodiumMg": 324.0,
+                "sugarsG": null
+              }
+            }
+          ],
+          "servingMassG": null,
+          "originalSourceRecord": {
+            "dataset": "Food.com Recipes and Interactions (Majumder et al., EMNLP 2019)",
+            "file": "RAW_recipes.csv",
+            "fileSha256": "6a8136d1da9e03396a9f52d72200b3fddb8fe103f11e1496effca30ac4e0539f",
+            "row": {
+              "id": 128959,
+              "name": "chai oatmeal",
+              "nutrition": [
+                247.9,
+                13.0,
+                13.0,
+                9.0,
+                21.0,
+                22.0,
+                10.0
+              ],
+              "nutritionFields": [
+                "calories (kcal)",
+                "total fat (%DV)",
+                "sugar (%DV)",
+                "sodium (%DV)",
+                "protein (%DV)",
+                "saturated fat (%DV)",
+                "carbohydrates (%DV)"
+              ],
+              "ingredients": [
+                "oatmeal",
+                "turmeric",
+                "salt",
+                "ground coriander",
+                "ground cardamom",
+                "ground cinnamon",
+                "ground allspice",
+                "nutmeg",
+                "honey",
+                "milk",
+                "dried fruit"
+              ],
+              "tags": [
+                "15-minutes-or-less",
+                "time-to-make",
+                "course",
+                "main-ingredient",
+                "cuisine",
+                "preparation",
+                "north-american",
+                "for-1-or-2",
+                "granola-and-porridge",
+                "breakfast",
+                "american",
+                "asian",
+                "canadian",
+                "indian",
+                "easy",
+                "beginner-cook",
+                "vegetarian",
+                "dietary",
+                "low-sodium",
+                "low-cholesterol",
+                "low-calorie",
+                "low-carb",
+                "inexpensive",
+                "low-in-something",
+                "pasta-rice-and-grains",
+                "number-of-servings"
+              ]
+            },
+            "conversion": {
+              "table": "FDA_1993_LABEL_2000KCAL",
+              "gramsAt100PercentDv": {
+                "fat_g": 65.0,
+                "saturated_fat_g": 20.0,
+                "carbohydrate_g": 300.0,
+                "protein_g": 50.0,
+                "sodium_mg": 2400.0
+              },
+              "rule": "grams = %DV / 100 x reference; kcal as stated; sugar left null",
+              "verification": "docs/eval/dv_verification.json"
+            }
+          }
+        },
+        {
+          "slot": "FRUIT",
+          "role": "FRUIT",
+          "dishId": "USDA_2709171",
+          "name": "orange",
+          "cuisines": [],
+          "dishClass": "COMPONENT",
+          "mealTypes": [
+            "BREAKFAST"
+          ],
+          "classificationStatus": "CURATED",
+          "classificationEvidence": [
+            "curated by ai-review:claude: whole raw fruit, exact FNDDS identity; optional breakfast fruit"
+          ],
+          "ingredients": [
+            "orange"
+          ],
+          "ingredientMapping": {
+            "status": "UNRESOLVED",
+            "canonicalIngredients": null,
+            "subingredientsKnown": false,
+            "allergenStatus": "UNKNOWN",
+            "note": "raw names only; no canonical mapping exists yet, so allergen rules cannot PASS (fail closed)"
+          },
+          "dietTags": {
+            "values": [
+              "vegan",
+              "vegetarian"
+            ],
+            "status": "UNVERIFIED_METADATA"
+          },
+          "nutritionRecord": {
+            "source": "USDA_FNDDS",
+            "basis": "PER_100_G",
+            "valuesPerBasis": {
+              "energyKcal": 50.0,
+              "fatG": 0.14,
+              "saturatedFatG": 0.015,
+              "carbohydrateG": 11.78,
+              "proteinG": 0.92,
+              "sodiumMg": 4.0,
+              "sugarsG": 8.96
+            },
+            "sourceReference": "fdc:2709171 Orange, raw (2024-10-31)",
+            "qualityFlags": []
+          },
+          "portionOptions": [
+            {
+              "portionId": "USDA_2709171:1xPIECE",
+              "quantity": 1.0,
+              "unit": "PIECE",
+              "grams": 154.0,
+              "label": "1 piece (154 g)",
+              "isStandard": true,
+              "nutrients": {
+                "energyKcal": 77.0,
+                "fatG": 0.216,
+                "saturatedFatG": 0.023,
+                "carbohydrateG": 18.141,
+                "proteinG": 1.417,
+                "sodiumMg": 6.16,
+                "sugarsG": 13.798
+              }
+            },
+            {
+              "portionId": "USDA_2709171:2xPIECE",
+              "quantity": 2.0,
+              "unit": "PIECE",
+              "grams": 308.0,
+              "label": "2 pieces (308 g)",
+              "isStandard": false,
+              "nutrients": {
+                "energyKcal": 154.0,
+                "fatG": 0.431,
+                "saturatedFatG": 0.046,
+                "carbohydrateG": 36.282,
+                "proteinG": 2.834,
+                "sodiumMg": 12.32,
+                "sugarsG": 27.597
+              }
+            }
+          ],
+          "servingMassG": null,
+          "originalSourceRecord": {
+            "dataset": "USDA FoodData Central",
+            "extractSha256": "2117fa712d4404a7c081f760828b73797ae632a55b1700e1aafdf79b4285ec77",
+            "fdcId": 2709171,
+            "dataType": "survey_fndds_food",
+            "description": "Orange, raw",
+            "publicationDate": "2024-10-31",
+            "per100G": {
+              "energyKcal": 50.0,
+              "fatG": 0.14,
+              "saturatedFatG": 0.015,
+              "carbohydrateG": 11.78,
+              "proteinG": 0.92,
+              "sodiumMg": 4.0,
+              "sugarsG": 8.96
+            },
+            "portion": {
+              "portionId": 305872,
+              "label": "1 fruit",
+              "amount": 1.0,
+              "gramWeight": 154.0,
+              "gramsPerUnit": 154.0
+            },
+            "qualityFlags": []
+          }
+        }
+      ],
+      "configurations": [
+        {
+          "optionId": "C_BREAKFAST_FRUIT__FC_128959__USDA_2709171:STANDARD",
+          "portionConfigurationId": "STANDARD",
+          "configurationVersion": "20261019T012206Z",
+          "portionState": "FIXED",
+          "componentQuantities": [
+            {
+              "dishId": "FC_128959",
+              "portionId": "FC_128959:1xSERVING",
+              "quantity": 1.0,
+              "unit": "SERVING",
+              "grams": null,
+              "massKnown": false,
+              "member2QuantityUnit": "serving"
+            },
+            {
+              "dishId": "USDA_2709171",
+              "portionId": "USDA_2709171:1xPIECE",
+              "quantity": 1.0,
+              "unit": "PIECE",
+              "grams": 154.0,
+              "massKnown": true,
+              "member2QuantityUnit": "g"
+            }
+          ],
+          "nutrients": {
+            "energyKcal": {
+              "value": 324.9,
+              "unit": "kcal",
+              "known": true,
+              "contributions": [
+                {
+                  "dishId": "FC_128959",
+                  "portionId": "FC_128959:1xSERVING",
+                  "value": 247.9,
+                  "known": true,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": 247.9,
+                  "factor": 1.0,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                },
+                {
+                  "dishId": "USDA_2709171",
+                  "portionId": "USDA_2709171:1xPIECE",
+                  "value": 77.0,
+                  "known": true,
+                  "source": "USDA_FNDDS",
+                  "basis": "PER_100_G",
+                  "valuePerBasis": 50.0,
+                  "factor": 1.54,
+                  "sourceReference": "fdc:2709171 Orange, raw (2024-10-31)"
+                }
+              ]
+            },
+            "fatG": {
+              "value": 8.666,
+              "unit": "g",
+              "known": true,
+              "contributions": [
+                {
+                  "dishId": "FC_128959",
+                  "portionId": "FC_128959:1xSERVING",
+                  "value": 8.45,
+                  "known": true,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": 8.450000000000001,
+                  "factor": 1.0,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                },
+                {
+                  "dishId": "USDA_2709171",
+                  "portionId": "USDA_2709171:1xPIECE",
+                  "value": 0.216,
+                  "known": true,
+                  "source": "USDA_FNDDS",
+                  "basis": "PER_100_G",
+                  "valuePerBasis": 0.14,
+                  "factor": 1.54,
+                  "sourceReference": "fdc:2709171 Orange, raw (2024-10-31)"
+                }
+              ]
+            },
+            "saturatedFatG": {
+              "value": 4.423,
+              "unit": "g",
+              "known": true,
+              "contributions": [
+                {
+                  "dishId": "FC_128959",
+                  "portionId": "FC_128959:1xSERVING",
+                  "value": 4.4,
+                  "known": true,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": 4.4,
+                  "factor": 1.0,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                },
+                {
+                  "dishId": "USDA_2709171",
+                  "portionId": "USDA_2709171:1xPIECE",
+                  "value": 0.023,
+                  "known": true,
+                  "source": "USDA_FNDDS",
+                  "basis": "PER_100_G",
+                  "valuePerBasis": 0.015,
+                  "factor": 1.54,
+                  "sourceReference": "fdc:2709171 Orange, raw (2024-10-31)"
+                }
+              ]
+            },
+            "carbohydrateG": {
+              "value": 48.141,
+              "unit": "g",
+              "known": true,
+              "contributions": [
+                {
+                  "dishId": "FC_128959",
+                  "portionId": "FC_128959:1xSERVING",
+                  "value": 30.0,
+                  "known": true,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": 30.0,
+                  "factor": 1.0,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                },
+                {
+                  "dishId": "USDA_2709171",
+                  "portionId": "USDA_2709171:1xPIECE",
+                  "value": 18.141,
+                  "known": true,
+                  "source": "USDA_FNDDS",
+                  "basis": "PER_100_G",
+                  "valuePerBasis": 11.78,
+                  "factor": 1.54,
+                  "sourceReference": "fdc:2709171 Orange, raw (2024-10-31)"
+                }
+              ]
+            },
+            "proteinG": {
+              "value": 11.917,
+              "unit": "g",
+              "known": true,
+              "contributions": [
+                {
+                  "dishId": "FC_128959",
+                  "portionId": "FC_128959:1xSERVING",
+                  "value": 10.5,
+                  "known": true,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": 10.5,
+                  "factor": 1.0,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                },
+                {
+                  "dishId": "USDA_2709171",
+                  "portionId": "USDA_2709171:1xPIECE",
+                  "value": 1.417,
+                  "known": true,
+                  "source": "USDA_FNDDS",
+                  "basis": "PER_100_G",
+                  "valuePerBasis": 0.92,
+                  "factor": 1.54,
+                  "sourceReference": "fdc:2709171 Orange, raw (2024-10-31)"
+                }
+              ]
+            },
+            "sodiumMg": {
+              "value": 222.16,
+              "unit": "mg",
+              "known": true,
+              "contributions": [
+                {
+                  "dishId": "FC_128959",
+                  "portionId": "FC_128959:1xSERVING",
+                  "value": 216.0,
+                  "known": true,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": 216.0,
+                  "factor": 1.0,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                },
+                {
+                  "dishId": "USDA_2709171",
+                  "portionId": "USDA_2709171:1xPIECE",
+                  "value": 6.16,
+                  "known": true,
+                  "source": "USDA_FNDDS",
+                  "basis": "PER_100_G",
+                  "valuePerBasis": 4.0,
+                  "factor": 1.54,
+                  "sourceReference": "fdc:2709171 Orange, raw (2024-10-31)"
+                }
+              ]
+            },
+            "sugarsG": {
+              "value": null,
+              "unit": "g",
+              "known": false,
+              "contributions": [
+                {
+                  "dishId": "FC_128959",
+                  "portionId": "FC_128959:1xSERVING",
+                  "value": null,
+                  "known": false,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": null,
+                  "factor": 1.0,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                },
+                {
+                  "dishId": "USDA_2709171",
+                  "portionId": "USDA_2709171:1xPIECE",
+                  "value": 13.798,
+                  "known": true,
+                  "source": "USDA_FNDDS",
+                  "basis": "PER_100_G",
+                  "valuePerBasis": 8.96,
+                  "factor": 1.54,
+                  "sourceReference": "fdc:2709171 Orange, raw (2024-10-31)"
+                }
+              ],
+              "reason": "unknown for ['FC_128959']; one unknown component makes the total unknown"
+            }
+          },
+          "sourceTier": "FOODCOM_DERIVED",
+          "fullyKnownForRequiredNutrients": true
+        },
+        {
+          "optionId": "C_BREAKFAST_FRUIT__FC_128959__USDA_2709171:HIGHER_PROTEIN",
+          "portionConfigurationId": "HIGHER_PROTEIN",
+          "configurationVersion": "20261019T012206Z",
+          "portionState": "FIXED",
+          "componentQuantities": [
+            {
+              "dishId": "FC_128959",
+              "portionId": "FC_128959:1.25xSERVING",
+              "quantity": 1.25,
+              "unit": "SERVING",
+              "grams": null,
+              "massKnown": false,
+              "member2QuantityUnit": "serving"
+            },
+            {
+              "dishId": "USDA_2709171",
+              "portionId": "USDA_2709171:1xPIECE",
+              "quantity": 1.0,
+              "unit": "PIECE",
+              "grams": 154.0,
+              "massKnown": true,
+              "member2QuantityUnit": "g"
+            }
+          ],
+          "nutrients": {
+            "energyKcal": {
+              "value": 386.875,
+              "unit": "kcal",
+              "known": true,
+              "contributions": [
+                {
+                  "dishId": "FC_128959",
+                  "portionId": "FC_128959:1.25xSERVING",
+                  "value": 309.875,
+                  "known": true,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": 247.9,
+                  "factor": 1.25,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                },
+                {
+                  "dishId": "USDA_2709171",
+                  "portionId": "USDA_2709171:1xPIECE",
+                  "value": 77.0,
+                  "known": true,
+                  "source": "USDA_FNDDS",
+                  "basis": "PER_100_G",
+                  "valuePerBasis": 50.0,
+                  "factor": 1.54,
+                  "sourceReference": "fdc:2709171 Orange, raw (2024-10-31)"
+                }
+              ]
+            },
+            "fatG": {
+              "value": 10.779,
+              "unit": "g",
+              "known": true,
+              "contributions": [
+                {
+                  "dishId": "FC_128959",
+                  "portionId": "FC_128959:1.25xSERVING",
+                  "value": 10.563,
+                  "known": true,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": 8.450000000000001,
+                  "factor": 1.25,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                },
+                {
+                  "dishId": "USDA_2709171",
+                  "portionId": "USDA_2709171:1xPIECE",
+                  "value": 0.216,
+                  "known": true,
+                  "source": "USDA_FNDDS",
+                  "basis": "PER_100_G",
+                  "valuePerBasis": 0.14,
+                  "factor": 1.54,
+                  "sourceReference": "fdc:2709171 Orange, raw (2024-10-31)"
+                }
+              ]
+            },
+            "saturatedFatG": {
+              "value": 5.523,
+              "unit": "g",
+              "known": true,
+              "contributions": [
+                {
+                  "dishId": "FC_128959",
+                  "portionId": "FC_128959:1.25xSERVING",
+                  "value": 5.5,
+                  "known": true,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": 4.4,
+                  "factor": 1.25,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                },
+                {
+                  "dishId": "USDA_2709171",
+                  "portionId": "USDA_2709171:1xPIECE",
+                  "value": 0.023,
+                  "known": true,
+                  "source": "USDA_FNDDS",
+                  "basis": "PER_100_G",
+                  "valuePerBasis": 0.015,
+                  "factor": 1.54,
+                  "sourceReference": "fdc:2709171 Orange, raw (2024-10-31)"
+                }
+              ]
+            },
+            "carbohydrateG": {
+              "value": 55.641,
+              "unit": "g",
+              "known": true,
+              "contributions": [
+                {
+                  "dishId": "FC_128959",
+                  "portionId": "FC_128959:1.25xSERVING",
+                  "value": 37.5,
+                  "known": true,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": 30.0,
+                  "factor": 1.25,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                },
+                {
+                  "dishId": "USDA_2709171",
+                  "portionId": "USDA_2709171:1xPIECE",
+                  "value": 18.141,
+                  "known": true,
+                  "source": "USDA_FNDDS",
+                  "basis": "PER_100_G",
+                  "valuePerBasis": 11.78,
+                  "factor": 1.54,
+                  "sourceReference": "fdc:2709171 Orange, raw (2024-10-31)"
+                }
+              ]
+            },
+            "proteinG": {
+              "value": 14.542,
+              "unit": "g",
+              "known": true,
+              "contributions": [
+                {
+                  "dishId": "FC_128959",
+                  "portionId": "FC_128959:1.25xSERVING",
+                  "value": 13.125,
+                  "known": true,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": 10.5,
+                  "factor": 1.25,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                },
+                {
+                  "dishId": "USDA_2709171",
+                  "portionId": "USDA_2709171:1xPIECE",
+                  "value": 1.417,
+                  "known": true,
+                  "source": "USDA_FNDDS",
+                  "basis": "PER_100_G",
+                  "valuePerBasis": 0.92,
+                  "factor": 1.54,
+                  "sourceReference": "fdc:2709171 Orange, raw (2024-10-31)"
+                }
+              ]
+            },
+            "sodiumMg": {
+              "value": 276.16,
+              "unit": "mg",
+              "known": true,
+              "contributions": [
+                {
+                  "dishId": "FC_128959",
+                  "portionId": "FC_128959:1.25xSERVING",
+                  "value": 270.0,
+                  "known": true,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": 216.0,
+                  "factor": 1.25,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                },
+                {
+                  "dishId": "USDA_2709171",
+                  "portionId": "USDA_2709171:1xPIECE",
+                  "value": 6.16,
+                  "known": true,
+                  "source": "USDA_FNDDS",
+                  "basis": "PER_100_G",
+                  "valuePerBasis": 4.0,
+                  "factor": 1.54,
+                  "sourceReference": "fdc:2709171 Orange, raw (2024-10-31)"
+                }
+              ]
+            },
+            "sugarsG": {
+              "value": null,
+              "unit": "g",
+              "known": false,
+              "contributions": [
+                {
+                  "dishId": "FC_128959",
+                  "portionId": "FC_128959:1.25xSERVING",
+                  "value": null,
+                  "known": false,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": null,
+                  "factor": 1.25,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                },
+                {
+                  "dishId": "USDA_2709171",
+                  "portionId": "USDA_2709171:1xPIECE",
+                  "value": 13.798,
+                  "known": true,
+                  "source": "USDA_FNDDS",
+                  "basis": "PER_100_G",
+                  "valuePerBasis": 8.96,
+                  "factor": 1.54,
+                  "sourceReference": "fdc:2709171 Orange, raw (2024-10-31)"
+                }
+              ],
+              "reason": "unknown for ['FC_128959']; one unknown component makes the total unknown"
+            }
+          },
+          "sourceTier": "FOODCOM_DERIVED",
+          "fullyKnownForRequiredNutrients": true
+        },
+        {
+          "optionId": "C_BREAKFAST_FRUIT__FC_128959__USDA_2709171:LOWER_CARB",
+          "portionConfigurationId": "LOWER_CARB",
+          "configurationVersion": "20261019T012206Z",
+          "portionState": "FIXED",
+          "componentQuantities": [
+            {
+              "dishId": "FC_128959",
+              "portionId": "FC_128959:0.75xSERVING",
+              "quantity": 0.75,
+              "unit": "SERVING",
+              "grams": null,
+              "massKnown": false,
+              "member2QuantityUnit": "serving"
+            },
+            {
+              "dishId": "USDA_2709171",
+              "portionId": "USDA_2709171:1xPIECE",
+              "quantity": 1.0,
+              "unit": "PIECE",
+              "grams": 154.0,
+              "massKnown": true,
+              "member2QuantityUnit": "g"
+            }
+          ],
+          "nutrients": {
+            "energyKcal": {
+              "value": 262.925,
+              "unit": "kcal",
+              "known": true,
+              "contributions": [
+                {
+                  "dishId": "FC_128959",
+                  "portionId": "FC_128959:0.75xSERVING",
+                  "value": 185.925,
+                  "known": true,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": 247.9,
+                  "factor": 0.75,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                },
+                {
+                  "dishId": "USDA_2709171",
+                  "portionId": "USDA_2709171:1xPIECE",
+                  "value": 77.0,
+                  "known": true,
+                  "source": "USDA_FNDDS",
+                  "basis": "PER_100_G",
+                  "valuePerBasis": 50.0,
+                  "factor": 1.54,
+                  "sourceReference": "fdc:2709171 Orange, raw (2024-10-31)"
+                }
+              ]
+            },
+            "fatG": {
+              "value": 6.554,
+              "unit": "g",
+              "known": true,
+              "contributions": [
+                {
+                  "dishId": "FC_128959",
+                  "portionId": "FC_128959:0.75xSERVING",
+                  "value": 6.338,
+                  "known": true,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": 8.450000000000001,
+                  "factor": 0.75,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                },
+                {
+                  "dishId": "USDA_2709171",
+                  "portionId": "USDA_2709171:1xPIECE",
+                  "value": 0.216,
+                  "known": true,
+                  "source": "USDA_FNDDS",
+                  "basis": "PER_100_G",
+                  "valuePerBasis": 0.14,
+                  "factor": 1.54,
+                  "sourceReference": "fdc:2709171 Orange, raw (2024-10-31)"
+                }
+              ]
+            },
+            "saturatedFatG": {
+              "value": 3.323,
+              "unit": "g",
+              "known": true,
+              "contributions": [
+                {
+                  "dishId": "FC_128959",
+                  "portionId": "FC_128959:0.75xSERVING",
+                  "value": 3.3,
+                  "known": true,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": 4.4,
+                  "factor": 0.75,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                },
+                {
+                  "dishId": "USDA_2709171",
+                  "portionId": "USDA_2709171:1xPIECE",
+                  "value": 0.023,
+                  "known": true,
+                  "source": "USDA_FNDDS",
+                  "basis": "PER_100_G",
+                  "valuePerBasis": 0.015,
+                  "factor": 1.54,
+                  "sourceReference": "fdc:2709171 Orange, raw (2024-10-31)"
+                }
+              ]
+            },
+            "carbohydrateG": {
+              "value": 40.641,
+              "unit": "g",
+              "known": true,
+              "contributions": [
+                {
+                  "dishId": "FC_128959",
+                  "portionId": "FC_128959:0.75xSERVING",
+                  "value": 22.5,
+                  "known": true,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": 30.0,
+                  "factor": 0.75,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                },
+                {
+                  "dishId": "USDA_2709171",
+                  "portionId": "USDA_2709171:1xPIECE",
+                  "value": 18.141,
+                  "known": true,
+                  "source": "USDA_FNDDS",
+                  "basis": "PER_100_G",
+                  "valuePerBasis": 11.78,
+                  "factor": 1.54,
+                  "sourceReference": "fdc:2709171 Orange, raw (2024-10-31)"
+                }
+              ]
+            },
+            "proteinG": {
+              "value": 9.292,
+              "unit": "g",
+              "known": true,
+              "contributions": [
+                {
+                  "dishId": "FC_128959",
+                  "portionId": "FC_128959:0.75xSERVING",
+                  "value": 7.875,
+                  "known": true,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": 10.5,
+                  "factor": 0.75,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                },
+                {
+                  "dishId": "USDA_2709171",
+                  "portionId": "USDA_2709171:1xPIECE",
+                  "value": 1.417,
+                  "known": true,
+                  "source": "USDA_FNDDS",
+                  "basis": "PER_100_G",
+                  "valuePerBasis": 0.92,
+                  "factor": 1.54,
+                  "sourceReference": "fdc:2709171 Orange, raw (2024-10-31)"
+                }
+              ]
+            },
+            "sodiumMg": {
+              "value": 168.16,
+              "unit": "mg",
+              "known": true,
+              "contributions": [
+                {
+                  "dishId": "FC_128959",
+                  "portionId": "FC_128959:0.75xSERVING",
+                  "value": 162.0,
+                  "known": true,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": 216.0,
+                  "factor": 0.75,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                },
+                {
+                  "dishId": "USDA_2709171",
+                  "portionId": "USDA_2709171:1xPIECE",
+                  "value": 6.16,
+                  "known": true,
+                  "source": "USDA_FNDDS",
+                  "basis": "PER_100_G",
+                  "valuePerBasis": 4.0,
+                  "factor": 1.54,
+                  "sourceReference": "fdc:2709171 Orange, raw (2024-10-31)"
+                }
+              ]
+            },
+            "sugarsG": {
+              "value": null,
+              "unit": "g",
+              "known": false,
+              "contributions": [
+                {
+                  "dishId": "FC_128959",
+                  "portionId": "FC_128959:0.75xSERVING",
+                  "value": null,
+                  "known": false,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": null,
+                  "factor": 0.75,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                },
+                {
+                  "dishId": "USDA_2709171",
+                  "portionId": "USDA_2709171:1xPIECE",
+                  "value": 13.798,
+                  "known": true,
+                  "source": "USDA_FNDDS",
+                  "basis": "PER_100_G",
+                  "valuePerBasis": 8.96,
+                  "factor": 1.54,
+                  "sourceReference": "fdc:2709171 Orange, raw (2024-10-31)"
+                }
+              ],
+              "reason": "unknown for ['FC_128959']; one unknown component makes the total unknown"
+            }
+          },
+          "sourceTier": "FOODCOM_DERIVED",
+          "fullyKnownForRequiredNutrients": true
+        },
+        {
+          "optionId": "C_BREAKFAST_FRUIT__FC_128959__USDA_2709171:HIGHER_ENERGY",
+          "portionConfigurationId": "HIGHER_ENERGY",
+          "configurationVersion": "20261019T012206Z",
+          "portionState": "FIXED",
+          "componentQuantities": [
+            {
+              "dishId": "FC_128959",
+              "portionId": "FC_128959:1.5xSERVING",
+              "quantity": 1.5,
+              "unit": "SERVING",
+              "grams": null,
+              "massKnown": false,
+              "member2QuantityUnit": "serving"
+            },
+            {
+              "dishId": "USDA_2709171",
+              "portionId": "USDA_2709171:2xPIECE",
+              "quantity": 2.0,
+              "unit": "PIECE",
+              "grams": 308.0,
+              "massKnown": true,
+              "member2QuantityUnit": "g"
+            }
+          ],
+          "nutrients": {
+            "energyKcal": {
+              "value": 525.85,
+              "unit": "kcal",
+              "known": true,
+              "contributions": [
+                {
+                  "dishId": "FC_128959",
+                  "portionId": "FC_128959:1.5xSERVING",
+                  "value": 371.85,
+                  "known": true,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": 247.9,
+                  "factor": 1.5,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                },
+                {
+                  "dishId": "USDA_2709171",
+                  "portionId": "USDA_2709171:2xPIECE",
+                  "value": 154.0,
+                  "known": true,
+                  "source": "USDA_FNDDS",
+                  "basis": "PER_100_G",
+                  "valuePerBasis": 50.0,
+                  "factor": 3.08,
+                  "sourceReference": "fdc:2709171 Orange, raw (2024-10-31)"
+                }
+              ]
+            },
+            "fatG": {
+              "value": 13.106,
+              "unit": "g",
+              "known": true,
+              "contributions": [
+                {
+                  "dishId": "FC_128959",
+                  "portionId": "FC_128959:1.5xSERVING",
+                  "value": 12.675,
+                  "known": true,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": 8.450000000000001,
+                  "factor": 1.5,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                },
+                {
+                  "dishId": "USDA_2709171",
+                  "portionId": "USDA_2709171:2xPIECE",
+                  "value": 0.431,
+                  "known": true,
+                  "source": "USDA_FNDDS",
+                  "basis": "PER_100_G",
+                  "valuePerBasis": 0.14,
+                  "factor": 3.08,
+                  "sourceReference": "fdc:2709171 Orange, raw (2024-10-31)"
+                }
+              ]
+            },
+            "saturatedFatG": {
+              "value": 6.646,
+              "unit": "g",
+              "known": true,
+              "contributions": [
+                {
+                  "dishId": "FC_128959",
+                  "portionId": "FC_128959:1.5xSERVING",
+                  "value": 6.6,
+                  "known": true,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": 4.4,
+                  "factor": 1.5,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                },
+                {
+                  "dishId": "USDA_2709171",
+                  "portionId": "USDA_2709171:2xPIECE",
+                  "value": 0.046,
+                  "known": true,
+                  "source": "USDA_FNDDS",
+                  "basis": "PER_100_G",
+                  "valuePerBasis": 0.015,
+                  "factor": 3.08,
+                  "sourceReference": "fdc:2709171 Orange, raw (2024-10-31)"
+                }
+              ]
+            },
+            "carbohydrateG": {
+              "value": 81.282,
+              "unit": "g",
+              "known": true,
+              "contributions": [
+                {
+                  "dishId": "FC_128959",
+                  "portionId": "FC_128959:1.5xSERVING",
+                  "value": 45.0,
+                  "known": true,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": 30.0,
+                  "factor": 1.5,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                },
+                {
+                  "dishId": "USDA_2709171",
+                  "portionId": "USDA_2709171:2xPIECE",
+                  "value": 36.282,
+                  "known": true,
+                  "source": "USDA_FNDDS",
+                  "basis": "PER_100_G",
+                  "valuePerBasis": 11.78,
+                  "factor": 3.08,
+                  "sourceReference": "fdc:2709171 Orange, raw (2024-10-31)"
+                }
+              ]
+            },
+            "proteinG": {
+              "value": 18.584,
+              "unit": "g",
+              "known": true,
+              "contributions": [
+                {
+                  "dishId": "FC_128959",
+                  "portionId": "FC_128959:1.5xSERVING",
+                  "value": 15.75,
+                  "known": true,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": 10.5,
+                  "factor": 1.5,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                },
+                {
+                  "dishId": "USDA_2709171",
+                  "portionId": "USDA_2709171:2xPIECE",
+                  "value": 2.834,
+                  "known": true,
+                  "source": "USDA_FNDDS",
+                  "basis": "PER_100_G",
+                  "valuePerBasis": 0.92,
+                  "factor": 3.08,
+                  "sourceReference": "fdc:2709171 Orange, raw (2024-10-31)"
+                }
+              ]
+            },
+            "sodiumMg": {
+              "value": 336.32,
+              "unit": "mg",
+              "known": true,
+              "contributions": [
+                {
+                  "dishId": "FC_128959",
+                  "portionId": "FC_128959:1.5xSERVING",
+                  "value": 324.0,
+                  "known": true,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": 216.0,
+                  "factor": 1.5,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                },
+                {
+                  "dishId": "USDA_2709171",
+                  "portionId": "USDA_2709171:2xPIECE",
+                  "value": 12.32,
+                  "known": true,
+                  "source": "USDA_FNDDS",
+                  "basis": "PER_100_G",
+                  "valuePerBasis": 4.0,
+                  "factor": 3.08,
+                  "sourceReference": "fdc:2709171 Orange, raw (2024-10-31)"
+                }
+              ]
+            },
+            "sugarsG": {
+              "value": null,
+              "unit": "g",
+              "known": false,
+              "contributions": [
+                {
+                  "dishId": "FC_128959",
+                  "portionId": "FC_128959:1.5xSERVING",
+                  "value": null,
+                  "known": false,
+                  "source": "FOODCOM_DERIVED",
+                  "basis": "PER_SERVING",
+                  "valuePerBasis": null,
+                  "factor": 1.5,
+                  "sourceReference": "FDA_1993_LABEL_2000KCAL"
+                },
+                {
+                  "dishId": "USDA_2709171",
+                  "portionId": "USDA_2709171:2xPIECE",
+                  "value": 27.597,
+                  "known": true,
+                  "source": "USDA_FNDDS",
+                  "basis": "PER_100_G",
+                  "valuePerBasis": 8.96,
+                  "factor": 3.08,
+                  "sourceReference": "fdc:2709171 Orange, raw (2024-10-31)"
+                }
+              ],
+              "reason": "unknown for ['FC_128959']; one unknown component makes the total unknown"
+            }
+          },
+          "sourceTier": "FOODCOM_DERIVED",
+          "fullyKnownForRequiredNutrients": true
+        }
+      ]
+    }
+  ],
+  "slotShortlists": {
+    "protocol": "popularity ranking (no user history, so fallback MODEL_UNAVAILABLE); top 2 meals x first 4 presets",
+    "BREAKFAST": [
+      "C_BREAKFAST_FRUIT__FC_43509__USDA_2709215:STANDARD",
+      "C_BREAKFAST_FRUIT__FC_43509__USDA_2709215:HIGHER_PROTEIN",
+      "C_BREAKFAST_FRUIT__FC_43509__USDA_2709215:LOWER_CARB",
+      "C_BREAKFAST_FRUIT__FC_43509__USDA_2709215:HIGHER_ENERGY",
+      "C_BREAKFAST_FRUIT__FC_43509__USDA_2709246:STANDARD",
+      "C_BREAKFAST_FRUIT__FC_43509__USDA_2709246:HIGHER_PROTEIN",
+      "C_BREAKFAST_FRUIT__FC_43509__USDA_2709246:LOWER_CARB",
+      "C_BREAKFAST_FRUIT__FC_43509__USDA_2709246:HIGHER_ENERGY"
+    ],
+    "LUNCH": [
+      "C_ONE_DISH__FC_27208:STANDARD",
+      "C_ONE_DISH__FC_27208:HIGHER_PROTEIN",
+      "C_ONE_DISH__FC_27208:HIGHER_ENERGY",
+      "C_ONE_DISH__FC_39087:STANDARD",
+      "C_ONE_DISH__FC_39087:HIGHER_PROTEIN",
+      "C_ONE_DISH__FC_39087:LOWER_CARB",
+      "C_ONE_DISH__FC_39087:HIGHER_ENERGY"
+    ],
+    "DINNER": [
+      "C_ONE_DISH__FC_27208:STANDARD",
+      "C_ONE_DISH__FC_27208:HIGHER_PROTEIN",
+      "C_ONE_DISH__FC_27208:HIGHER_ENERGY",
+      "C_ONE_DISH__FC_39087:STANDARD",
+      "C_ONE_DISH__FC_39087:HIGHER_PROTEIN",
+      "C_ONE_DISH__FC_39087:LOWER_CARB",
+      "C_ONE_DISH__FC_39087:HIGHER_ENERGY"
+    ]
+  }
+}

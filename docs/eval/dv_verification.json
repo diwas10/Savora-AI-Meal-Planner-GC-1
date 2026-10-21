@@ -1,0 +1,663 @@
+{
+  "method": "nutrient per 100 kcal, Food.com single-ingredient recipes vs USDA SR Legacy raw food; median over recipes; %DV below 5 skipped (rounding)",
+  "tables": {
+    "FDA_1993": {
+      "name": "FDA_1993_LABEL_2000KCAL",
+      "fat_g": 65.0,
+      "saturated_fat_g": 20.0,
+      "carbohydrate_g": 300.0,
+      "protein_g": 50.0,
+      "sodium_mg": 2400.0
+    },
+    "FDA_2016": {
+      "name": "FDA_2016_LABEL_2000KCAL",
+      "fat_g": 78.0,
+      "saturated_fat_g": 20.0,
+      "carbohydrate_g": 275.0,
+      "protein_g": 50.0,
+      "sodium_mg": 2300.0
+    },
+    "sugarCandidatesG": [
+      25.0,
+      50.0
+    ]
+  },
+  "foods": {
+    "bacon": {
+      "fdcId": 168277,
+      "usdaDescription": "Pork, cured, bacon, unprepared",
+      "recipeIds": [
+        "FC_367843",
+        "FC_510849",
+        "FC_355130"
+      ],
+      "recipes": 3,
+      "usdaPer100Kcal": {
+        "saturated_fat_g": 3.2099236641221376,
+        "sugars_g": 0.08905852417302798,
+        "carbohydrate_g": 0.0,
+        "sodium_mg": 191.09414758269722,
+        "protein_g": 3.4758269720101778,
+        "fat_g": 9.447837150127226
+      },
+      "foodcomToUsdaRatio": {
+        "fat_g": {
+          "FDA_1993": {
+            "medianRatio": 1.04,
+            "n": 3
+          },
+          "FDA_2016": {
+            "medianRatio": 1.248,
+            "n": 3
+          }
+        },
+        "sodium_mg": {
+          "FDA_1993": {
+            "medianRatio": 0.943,
+            "n": 3
+          },
+          "FDA_2016": {
+            "medianRatio": 0.904,
+            "n": 3
+          }
+        },
+        "protein_g": {
+          "FDA_1993": {
+            "medianRatio": 0.72,
+            "n": 3
+          },
+          "FDA_2016": {
+            "medianRatio": 0.72,
+            "n": 3
+          }
+        },
+        "saturated_fat_g": {
+          "FDA_1993": {
+            "medianRatio": 1.02,
+            "n": 3
+          },
+          "FDA_2016": {
+            "medianRatio": 1.02,
+            "n": 3
+          }
+        }
+      }
+    },
+    "sweetened condensed milk": {
+      "fdcId": 171275,
+      "usdaDescription": "Milk, canned, condensed, sweetened",
+      "recipeIds": [
+        "FC_466342",
+        "FC_420669",
+        "FC_408553",
+        "FC_13928",
+        "FC_17568",
+        "FC_413493"
+      ],
+      "recipes": 6,
+      "usdaPer100Kcal": {
+        "protein_g": 2.4641744548286604,
+        "carbohydrate_g": 16.947040498442366,
+        "fat_g": 2.710280373831776,
+        "sodium_mg": 39.56386292834891,
+        "sugars_g": 16.947040498442366,
+        "saturated_fat_g": 1.7090342679127724
+      },
+      "foodcomToUsdaRatio": {
+        "fat_g": {
+          "FDA_1993": {
+            "medianRatio": 0.988,
+            "n": 4
+          },
+          "FDA_2016": {
+            "medianRatio": 1.185,
+            "n": 4
+          }
+        },
+        "sugars_g": {
+          "sugar_dv_25g": {
+            "medianRatio": 0.994,
+            "n": 6
+          },
+          "sugar_dv_50g": {
+            "medianRatio": 1.987,
+            "n": 6
+          }
+        },
+        "sodium_mg": {
+          "FDA_1993": {
+            "medianRatio": 1.0,
+            "n": 2
+          },
+          "FDA_2016": {
+            "medianRatio": 0.958,
+            "n": 2
+          }
+        },
+        "protein_g": {
+          "FDA_1993": {
+            "medianRatio": 0.955,
+            "n": 5
+          },
+          "FDA_2016": {
+            "medianRatio": 0.955,
+            "n": 5
+          }
+        },
+        "saturated_fat_g": {
+          "FDA_1993": {
+            "medianRatio": 0.973,
+            "n": 6
+          },
+          "FDA_2016": {
+            "medianRatio": 0.973,
+            "n": 6
+          }
+        },
+        "carbohydrate_g": {
+          "FDA_1993": {
+            "medianRatio": 0.95,
+            "n": 6
+          },
+          "FDA_2016": {
+            "medianRatio": 0.871,
+            "n": 6
+          }
+        }
+      }
+    },
+    "heavy cream": {
+      "fdcId": 170859,
+      "usdaDescription": "Cream, fluid, heavy whipping",
+      "recipeIds": [
+        "FC_9043",
+        "FC_310",
+        "FC_89777"
+      ],
+      "recipes": 3,
+      "usdaPer100Kcal": {
+        "saturated_fat_g": 6.774117647058824,
+        "carbohydrate_g": 0.8352941176470587,
+        "protein_g": 0.8352941176470587,
+        "fat_g": 10.611764705882353,
+        "sugars_g": 0.8588235294117647,
+        "sodium_mg": 7.941176470588235
+      },
+      "foodcomToUsdaRatio": {
+        "fat_g": {
+          "FDA_1993": {
+            "medianRatio": 0.999,
+            "n": 3
+          },
+          "FDA_2016": {
+            "medianRatio": 1.199,
+            "n": 3
+          }
+        },
+        "protein_g": {
+          "FDA_1993": {
+            "medianRatio": 0.656,
+            "n": 1
+          },
+          "FDA_2016": {
+            "medianRatio": 0.656,
+            "n": 1
+          }
+        },
+        "saturated_fat_g": {
+          "FDA_1993": {
+            "medianRatio": 0.985,
+            "n": 3
+          },
+          "FDA_2016": {
+            "medianRatio": 0.985,
+            "n": 3
+          }
+        }
+      }
+    },
+    "eggs": {
+      "fdcId": 171287,
+      "usdaDescription": "Egg, whole, raw, fresh",
+      "recipeIds": [
+        "FC_455430",
+        "FC_354371",
+        "FC_531398",
+        "FC_293366",
+        "FC_159270",
+        "FC_64854",
+        "FC_153034",
+        "FC_208328",
+        "FC_24799",
+        "FC_408065",
+        "FC_234435",
+        "FC_293288",
+        "FC_363253",
+        "FC_173837",
+        "FC_68491",
+        "FC_409347",
+        "FC_280471",
+        "FC_228819",
+        "FC_302972"
+      ],
+      "recipes": 19,
+      "usdaPer100Kcal": {
+        "sodium_mg": 99.3006993006993,
+        "fat_g": 6.65034965034965,
+        "protein_g": 8.783216783216783,
+        "sugars_g": 0.2587412587412587,
+        "carbohydrate_g": 0.5034965034965035,
+        "saturated_fat_g": 2.186013986013986
+      },
+      "foodcomToUsdaRatio": {
+        "fat_g": {
+          "FDA_1993": {
+            "medianRatio": 0.957,
+            "n": 18
+          },
+          "FDA_2016": {
+            "medianRatio": 1.148,
+            "n": 18
+          }
+        },
+        "sodium_mg": {
+          "FDA_1993": {
+            "medianRatio": 1.325,
+            "n": 4
+          },
+          "FDA_2016": {
+            "medianRatio": 1.27,
+            "n": 4
+          }
+        },
+        "protein_g": {
+          "FDA_1993": {
+            "medianRatio": 0.955,
+            "n": 18
+          },
+          "FDA_2016": {
+            "medianRatio": 0.955,
+            "n": 18
+          }
+        },
+        "saturated_fat_g": {
+          "FDA_1993": {
+            "medianRatio": 0.896,
+            "n": 18
+          },
+          "FDA_2016": {
+            "medianRatio": 0.896,
+            "n": 18
+          }
+        }
+      }
+    },
+    "almonds": {
+      "fdcId": 170567,
+      "usdaDescription": "Nuts, almonds",
+      "recipeIds": [
+        "FC_398533",
+        "FC_49974",
+        "FC_451094",
+        "FC_369495",
+        "FC_47292",
+        "FC_454539"
+      ],
+      "recipes": 6,
+      "usdaPer100Kcal": {
+        "sugars_g": 0.7512953367875647,
+        "fat_g": 8.623488773747841,
+        "carbohydrate_g": 3.721934369602763,
+        "saturated_fat_g": 0.6566493955094992,
+        "protein_g": 3.652849740932642,
+        "sodium_mg": 0.17271157167530224
+      },
+      "foodcomToUsdaRatio": {
+        "fat_g": {
+          "FDA_1993": {
+            "medianRatio": 1.017,
+            "n": 6
+          },
+          "FDA_2016": {
+            "medianRatio": 1.221,
+            "n": 6
+          }
+        },
+        "sugars_g": {
+          "sugar_dv_25g": {
+            "medianRatio": 1.052,
+            "n": 6
+          },
+          "sugar_dv_50g": {
+            "medianRatio": 2.104,
+            "n": 6
+          }
+        },
+        "protein_g": {
+          "FDA_1993": {
+            "medianRatio": 0.97,
+            "n": 6
+          },
+          "FDA_2016": {
+            "medianRatio": 0.97,
+            "n": 6
+          }
+        },
+        "saturated_fat_g": {
+          "FDA_1993": {
+            "medianRatio": 0.963,
+            "n": 6
+          },
+          "FDA_2016": {
+            "medianRatio": 0.963,
+            "n": 6
+          }
+        },
+        "carbohydrate_g": {
+          "FDA_1993": {
+            "medianRatio": 0.837,
+            "n": 2
+          },
+          "FDA_2016": {
+            "medianRatio": 0.767,
+            "n": 2
+          }
+        }
+      }
+    },
+    "fresh coconut": {
+      "fdcId": 170169,
+      "usdaDescription": "Nuts, coconut meat, raw",
+      "recipeIds": [
+        "FC_457800",
+        "FC_458171"
+      ],
+      "recipes": 2,
+      "usdaPer100Kcal": {
+        "sugars_g": 1.7598870056497178,
+        "fat_g": 9.460451977401132,
+        "carbohydrate_g": 4.3022598870056505,
+        "protein_g": 0.940677966101695,
+        "sodium_mg": 5.649717514124294,
+        "saturated_fat_g": 8.389265536723164
+      },
+      "foodcomToUsdaRatio": {
+        "fat_g": {
+          "FDA_1993": {
+            "medianRatio": 0.986,
+            "n": 2
+          },
+          "FDA_2016": {
+            "medianRatio": 1.184,
+            "n": 2
+          }
+        },
+        "sugars_g": {
+          "sugar_dv_25g": {
+            "medianRatio": 0.971,
+            "n": 2
+          },
+          "sugar_dv_50g": {
+            "medianRatio": 1.941,
+            "n": 2
+          }
+        },
+        "protein_g": {
+          "FDA_1993": {
+            "medianRatio": 0.92,
+            "n": 2
+          },
+          "FDA_2016": {
+            "medianRatio": 0.92,
+            "n": 2
+          }
+        },
+        "saturated_fat_g": {
+          "FDA_1993": {
+            "medianRatio": 0.996,
+            "n": 2
+          },
+          "FDA_2016": {
+            "medianRatio": 0.996,
+            "n": 2
+          }
+        },
+        "carbohydrate_g": {
+          "FDA_1993": {
+            "medianRatio": 0.985,
+            "n": 1
+          },
+          "FDA_2016": {
+            "medianRatio": 0.903,
+            "n": 1
+          }
+        }
+      }
+    },
+    "quinoa": {
+      "fdcId": 168874,
+      "usdaDescription": "Quinoa, uncooked",
+      "recipeIds": [
+        "FC_235534",
+        "FC_421986",
+        "FC_415970",
+        "FC_16399"
+      ],
+      "recipes": 4,
+      "usdaPer100Kcal": {
+        "fat_g": 1.6494565217391306,
+        "saturated_fat_g": 0.1918478260869565,
+        "sodium_mg": 1.358695652173913,
+        "protein_g": 3.83695652173913,
+        "carbohydrate_g": 17.434782608695652
+      },
+      "foodcomToUsdaRatio": {
+        "fat_g": {
+          "FDA_1993": {
+            "medianRatio": 0.945,
+            "n": 1
+          },
+          "FDA_2016": {
+            "medianRatio": 1.134,
+            "n": 1
+          }
+        },
+        "protein_g": {
+          "FDA_1993": {
+            "medianRatio": 1.0,
+            "n": 4
+          },
+          "FDA_2016": {
+            "medianRatio": 1.0,
+            "n": 4
+          }
+        },
+        "saturated_fat_g": {
+          "FDA_1993": {
+            "medianRatio": 1.0,
+            "n": 1
+          },
+          "FDA_2016": {
+            "medianRatio": 1.0,
+            "n": 1
+          }
+        },
+        "carbohydrate_g": {
+          "FDA_1993": {
+            "medianRatio": 0.99,
+            "n": 4
+          },
+          "FDA_2016": {
+            "medianRatio": 0.908,
+            "n": 4
+          }
+        }
+      }
+    },
+    "white sugar": {
+      "fdcId": 169655,
+      "usdaDescription": "Sugars, granulated",
+      "recipeIds": [
+        "FC_420979",
+        "FC_307031",
+        "FC_179600",
+        "FC_126123",
+        "FC_342748",
+        "FC_254206",
+        "FC_238429",
+        "FC_312876",
+        "FC_298040",
+        "FC_442917",
+        "FC_1069",
+        "FC_345260",
+        "FC_153600",
+        "FC_26987",
+        "FC_290448",
+        "FC_505361"
+      ],
+      "recipes": 16,
+      "usdaPer100Kcal": {
+        "sugars_g": 25.788113695090438,
+        "protein_g": 0.0,
+        "saturated_fat_g": 0.0,
+        "carbohydrate_g": 25.834625322997418,
+        "sodium_mg": 0.2583979328165375,
+        "fat_g": 0.0
+      },
+      "foodcomToUsdaRatio": {
+        "sugars_g": {
+          "sugar_dv_25g": {
+            "medianRatio": 0.999,
+            "n": 16
+          },
+          "sugar_dv_50g": {
+            "medianRatio": 1.999,
+            "n": 16
+          }
+        },
+        "carbohydrate_g": {
+          "FDA_1993": {
+            "medianRatio": 0.99,
+            "n": 15
+          },
+          "FDA_2016": {
+            "medianRatio": 0.908,
+            "n": 15
+          }
+        }
+      }
+    },
+    "grapes": {
+      "fdcId": 174683,
+      "usdaDescription": "Grapes, red or green (European type, such as Thompson seedless), raw",
+      "recipeIds": [
+        "FC_67017",
+        "FC_233253",
+        "FC_427955",
+        "FC_232609"
+      ],
+      "recipes": 4,
+      "usdaPer100Kcal": {
+        "carbohydrate_g": 26.231884057971016,
+        "protein_g": 1.0434782608695652,
+        "fat_g": 0.2318840579710145,
+        "saturated_fat_g": 0.0782608695652174,
+        "sugars_g": 22.434782608695652,
+        "sodium_mg": 2.898550724637681
+      },
+      "foodcomToUsdaRatio": {
+        "sugars_g": {
+          "sugar_dv_25g": {
+            "medianRatio": 0.997,
+            "n": 4
+          },
+          "sugar_dv_50g": {
+            "medianRatio": 1.994,
+            "n": 4
+          }
+        },
+        "protein_g": {
+          "FDA_1993": {
+            "medianRatio": 0.972,
+            "n": 1
+          },
+          "FDA_2016": {
+            "medianRatio": 0.972,
+            "n": 1
+          }
+        },
+        "carbohydrate_g": {
+          "FDA_1993": {
+            "medianRatio": 0.988,
+            "n": 3
+          },
+          "FDA_2016": {
+            "medianRatio": 0.905,
+            "n": 3
+          }
+        }
+      }
+    },
+    "apples": {
+      "fdcId": 171688,
+      "usdaDescription": "Apples, raw, with skin (Includes foods for USDA's Food Distribution Program)",
+      "recipeIds": [
+        "FC_517644",
+        "FC_180136",
+        "FC_98859",
+        "FC_87202"
+      ],
+      "recipes": 4,
+      "usdaPer100Kcal": {
+        "sodium_mg": 1.9230769230769231,
+        "protein_g": 0.5,
+        "carbohydrate_g": 26.55769230769231,
+        "saturated_fat_g": 0.05384615384615384,
+        "sugars_g": 19.980769230769234,
+        "fat_g": 0.3269230769230769
+      },
+      "foodcomToUsdaRatio": {
+        "fat_g": {
+          "FDA_1993": {
+            "medianRatio": 0.999,
+            "n": 1
+          },
+          "FDA_2016": {
+            "medianRatio": 1.198,
+            "n": 1
+          }
+        },
+        "sugars_g": {
+          "sugar_dv_25g": {
+            "medianRatio": 0.997,
+            "n": 4
+          },
+          "sugar_dv_50g": {
+            "medianRatio": 1.994,
+            "n": 4
+          }
+        },
+        "protein_g": {
+          "FDA_1993": {
+            "medianRatio": 0.904,
+            "n": 1
+          },
+          "FDA_2016": {
+            "medianRatio": 0.904,
+            "n": 1
+          }
+        },
+        "carbohydrate_g": {
+          "FDA_1993": {
+            "medianRatio": 0.974,
+            "n": 3
+          },
+          "FDA_2016": {
+            "medianRatio": 0.893,
+            "n": 3
+          }
+        }
+      }
+    }
+  }
+}

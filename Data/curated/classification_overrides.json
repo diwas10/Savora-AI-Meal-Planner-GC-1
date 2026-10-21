@@ -1,0 +1,409 @@
+{
+  "schemaVersion": "classification-overrides.v1",
+  "note": "Curated corrections to tag-based classification (ADR 0001 D5). curatedBy 'ai-review:claude' means the entry was chosen by AI judgement on the recipe name, tags and nutrition, at the project lead's request; it has not been confirmed by a person. Nepali entries come from a reviewed name search (momo, thukpa, sekuwa, tarkari, dal bhat, aloo dum); false positives were excluded (bara brith is Welsh, 'momo's crock pot ribs' is a person's name, nimki and spiced tea are not meals).",
+  "overrides": [
+    {
+      "recipeId": "FC_304023",
+      "roles": [
+        "MAIN_DISH"
+      ],
+      "dishClass": "REQUIRES_ACCOMPANIMENT",
+      "mealTypes": [
+        "LUNCH",
+        "DINNER"
+      ],
+      "rationale": "bengali dal: Indian lentil/legume curry eaten with rice or roti: a main that needs an accompaniment; tags were only soups-stews/lunch/none",
+      "curatedBy": "ai-review:claude"
+    },
+    {
+      "recipeId": "FC_140318",
+      "roles": [
+        "MAIN_DISH"
+      ],
+      "dishClass": "REQUIRES_ACCOMPANIMENT",
+      "mealTypes": [
+        "LUNCH",
+        "DINNER"
+      ],
+      "rationale": "chana dal curry kerala style: Indian lentil/legume curry eaten with rice or roti: a main that needs an accompaniment; tags were only soups-stews/lunch/none",
+      "curatedBy": "ai-review:claude"
+    },
+    {
+      "recipeId": "FC_235680",
+      "roles": [
+        "MAIN_DISH"
+      ],
+      "dishClass": "REQUIRES_ACCOMPANIMENT",
+      "mealTypes": [
+        "LUNCH",
+        "DINNER"
+      ],
+      "rationale": "chana masala with spinach: Indian lentil/legume curry eaten with rice or roti: a main that needs an accompaniment; tags were only soups-stews/lunch/none",
+      "curatedBy": "ai-review:claude"
+    },
+    {
+      "recipeId": "FC_516746",
+      "roles": [
+        "MAIN_DISH"
+      ],
+      "dishClass": "REQUIRES_ACCOMPANIMENT",
+      "mealTypes": [
+        "LUNCH",
+        "DINNER"
+      ],
+      "rationale": "chana masala in the slow cooker: Indian lentil/legume curry eaten with rice or roti: a main that needs an accompaniment; tags were only soups-stews/lunch/none",
+      "curatedBy": "ai-review:claude"
+    },
+    {
+      "recipeId": "FC_13288",
+      "roles": [
+        "MAIN_DISH"
+      ],
+      "dishClass": "REQUIRES_ACCOMPANIMENT",
+      "mealTypes": [
+        "LUNCH",
+        "DINNER"
+      ],
+      "rationale": "chole: Indian lentil/legume curry eaten with rice or roti: a main that needs an accompaniment; tags were only soups-stews/lunch/none",
+      "curatedBy": "ai-review:claude"
+    },
+    {
+      "recipeId": "FC_62586",
+      "roles": [
+        "MAIN_DISH"
+      ],
+      "dishClass": "REQUIRES_ACCOMPANIMENT",
+      "mealTypes": [
+        "LUNCH",
+        "DINNER"
+      ],
+      "rationale": "cousin helen's dal: Indian lentil/legume curry eaten with rice or roti: a main that needs an accompaniment; tags were only soups-stews/lunch/none",
+      "curatedBy": "ai-review:claude"
+    },
+    {
+      "recipeId": "FC_36696",
+      "roles": [
+        "MAIN_DISH"
+      ],
+      "dishClass": "REQUIRES_ACCOMPANIMENT",
+      "mealTypes": [
+        "LUNCH",
+        "DINNER"
+      ],
+      "rationale": "dal maharani: Indian lentil/legume curry eaten with rice or roti: a main that needs an accompaniment; tags were only soups-stews/lunch/none",
+      "curatedBy": "ai-review:claude"
+    },
+    {
+      "recipeId": "FC_9779",
+      "roles": [
+        "MAIN_DISH"
+      ],
+      "dishClass": "REQUIRES_ACCOMPANIMENT",
+      "mealTypes": [
+        "LUNCH",
+        "DINNER"
+      ],
+      "rationale": "dal makhani: Indian lentil/legume curry eaten with rice or roti: a main that needs an accompaniment; tags were only soups-stews/lunch/none",
+      "curatedBy": "ai-review:claude"
+    },
+    {
+      "recipeId": "FC_195571",
+      "roles": [
+        "MAIN_DISH"
+      ],
+      "dishClass": "REQUIRES_ACCOMPANIMENT",
+      "mealTypes": [
+        "LUNCH",
+        "DINNER"
+      ],
+      "rationale": "dal makhani spicy black lentils: Indian lentil/legume curry eaten with rice or roti: a main that needs an accompaniment; tags were only soups-stews/lunch/none",
+      "curatedBy": "ai-review:claude"
+    },
+    {
+      "recipeId": "FC_416178",
+      "roles": [
+        "MAIN_DISH"
+      ],
+      "dishClass": "REQUIRES_ACCOMPANIMENT",
+      "mealTypes": [
+        "LUNCH",
+        "DINNER"
+      ],
+      "rationale": "indian dhal: Indian lentil/legume curry eaten with rice or roti: a main that needs an accompaniment; tags were only soups-stews/lunch/none",
+      "curatedBy": "ai-review:claude"
+    },
+    {
+      "recipeId": "FC_327998",
+      "roles": [
+        "MAIN_DISH"
+      ],
+      "dishClass": "REQUIRES_ACCOMPANIMENT",
+      "mealTypes": [
+        "LUNCH",
+        "DINNER"
+      ],
+      "rationale": "jaipur mung dal: Indian lentil/legume curry eaten with rice or roti: a main that needs an accompaniment; tags were only soups-stews/lunch/none",
+      "curatedBy": "ai-review:claude"
+    },
+    {
+      "recipeId": "FC_47552",
+      "roles": [
+        "MAIN_DISH"
+      ],
+      "dishClass": "REQUIRES_ACCOMPANIMENT",
+      "mealTypes": [
+        "LUNCH",
+        "DINNER"
+      ],
+      "rationale": "lentil sambar: Indian lentil/legume curry eaten with rice or roti: a main that needs an accompaniment; tags were only soups-stews/lunch/none",
+      "curatedBy": "ai-review:claude"
+    },
+    {
+      "recipeId": "FC_533120",
+      "roles": [
+        "MAIN_DISH"
+      ],
+      "dishClass": "COMPLETE_MEAL",
+      "mealTypes": [
+        "LUNCH",
+        "DINNER"
+      ],
+      "cuisines": [
+        "Indian",
+        "Nepali"
+      ],
+      "rationale": "dal bhat: lentils with rice, the Nepali everyday meal; rice is part of the recipe, so it stands alone",
+      "curatedBy": "ai-review:claude"
+    },
+    {
+      "recipeId": "FC_86666",
+      "roles": [
+        "MAIN_DISH"
+      ],
+      "dishClass": "COMPLETE_MEAL",
+      "mealTypes": [
+        "LUNCH",
+        "DINNER"
+      ],
+      "cuisines": [
+        "Nepali"
+      ],
+      "rationale": "nepali momo: meat dumplings, eaten as a full meal in Nepal; name says Nepali",
+      "curatedBy": "ai-review:claude"
+    },
+    {
+      "recipeId": "FC_402582",
+      "roles": [
+        "MAIN_DISH"
+      ],
+      "dishClass": "COMPLETE_MEAL",
+      "mealTypes": [
+        "LUNCH",
+        "DINNER"
+      ],
+      "cuisines": [
+        "Nepali"
+      ],
+      "rationale": "momos (Tibetan steamed dumplings): the Himalayan dumpling eaten as a meal across Nepal",
+      "curatedBy": "ai-review:claude"
+    },
+    {
+      "recipeId": "FC_238992",
+      "roles": [
+        "MAIN_DISH"
+      ],
+      "dishClass": "COMPLETE_MEAL",
+      "mealTypes": [
+        "LUNCH",
+        "DINNER"
+      ],
+      "cuisines": [
+        "Chinese",
+        "Nepali"
+      ],
+      "rationale": "tibetan momo: Himalayan dumpling, kept the existing Chinese tag and added Nepali",
+      "curatedBy": "ai-review:claude"
+    },
+    {
+      "recipeId": "FC_89685",
+      "roles": [
+        "MAIN_DISH"
+      ],
+      "dishClass": "COMPLETE_MEAL",
+      "mealTypes": [
+        "LUNCH",
+        "DINNER"
+      ],
+      "cuisines": [
+        "Nepali"
+      ],
+      "rationale": "chicken thukpa: Himalayan noodle soup, noodles included, a full meal",
+      "curatedBy": "ai-review:claude"
+    },
+    {
+      "recipeId": "FC_86984",
+      "roles": [
+        "MAIN_DISH"
+      ],
+      "dishClass": "REQUIRES_ACCOMPANIMENT",
+      "mealTypes": [
+        "LUNCH",
+        "DINNER"
+      ],
+      "cuisines": [
+        "Nepali"
+      ],
+      "rationale": "chicken sekuwa: name says classic Nepali skewers; served with rice or beaten rice",
+      "curatedBy": "ai-review:claude"
+    },
+    {
+      "recipeId": "FC_87329",
+      "roles": [
+        "MAIN_DISH"
+      ],
+      "dishClass": "REQUIRES_ACCOMPANIMENT",
+      "mealTypes": [
+        "LUNCH",
+        "DINNER"
+      ],
+      "cuisines": [
+        "Nepali"
+      ],
+      "rationale": "chicken tarkari: Nepali word for curry, from the same Nepali recipe series as sekuwa; eaten with rice",
+      "curatedBy": "ai-review:claude"
+    },
+    {
+      "recipeId": "FC_418843",
+      "roles": [
+        "MAIN_DISH"
+      ],
+      "dishClass": "REQUIRES_ACCOMPANIMENT",
+      "mealTypes": [
+        "LUNCH",
+        "DINNER"
+      ],
+      "cuisines": [
+        "Nepali"
+      ],
+      "rationale": "chana ko tarkari: Nepali grammar ('ko'), chickpea curry eaten with rice or roti",
+      "curatedBy": "ai-review:claude"
+    },
+    {
+      "recipeId": "FC_87581",
+      "roles": [
+        "MAIN_DISH"
+      ],
+      "dishClass": "COMPLETE_MEAL",
+      "mealTypes": [
+        "LUNCH",
+        "DINNER"
+      ],
+      "cuisines": [
+        "Nepali"
+      ],
+      "rationale": "rice bhuteko: Nepali fried rice with chicken; rice included",
+      "curatedBy": "ai-review:claude"
+    },
+    {
+      "recipeId": "FC_105886",
+      "roles": [
+        "MAIN_DISH"
+      ],
+      "dishClass": "REQUIRES_ACCOMPANIMENT",
+      "mealTypes": [
+        "LUNCH",
+        "DINNER"
+      ],
+      "cuisines": [
+        "Indian",
+        "Nepali"
+      ],
+      "rationale": "aloo dum: spiced potato curry common to Nepal and North India; eaten with roti or beaten rice",
+      "curatedBy": "ai-review:claude"
+    },
+    {
+      "recipeId": "FC_472313",
+      "roles": [
+        "MAIN_DISH"
+      ],
+      "dishClass": "REQUIRES_ACCOMPANIMENT",
+      "mealTypes": [
+        "LUNCH",
+        "DINNER"
+      ],
+      "cuisines": [
+        "Indian",
+        "Nepali"
+      ],
+      "rationale": "dal tarkari: lentil-vegetable curry, the dal of dal bhat; a main, not a staple",
+      "curatedBy": "ai-review:claude"
+    },
+    {
+      "recipeId": "FC_253519",
+      "roles": [
+        "MAIN_DISH"
+      ],
+      "dishClass": "REQUIRES_ACCOMPANIMENT",
+      "mealTypes": [
+        "LUNCH",
+        "DINNER"
+      ],
+      "cuisines": [
+        "Indian",
+        "Nepali"
+      ],
+      "rationale": "aloo channa tarkari: potato-chickpea curry eaten with roti; not a stand-alone breakfast",
+      "curatedBy": "ai-review:claude"
+    },
+    {
+      "recipeId": "FC_248955",
+      "roles": [
+        "STAPLE"
+      ],
+      "dishClass": "COMPONENT",
+      "mealTypes": [
+        "LUNCH",
+        "DINNER"
+      ],
+      "cuisines": [
+        "Indian",
+        "Nepali"
+      ],
+      "rationale": "pulau: spiced basmati rice served with curry; a staple, not a breakfast dish",
+      "curatedBy": "ai-review:claude"
+    },
+    {
+      "recipeId": "FC_153915",
+      "cuisines": [
+        "Nepali"
+      ],
+      "rationale": "name says Nepalese potato, tomato and pea curry",
+      "curatedBy": "ai-review:claude"
+    },
+    {
+      "recipeId": "FC_90615",
+      "cuisines": [
+        "Nepali"
+      ],
+      "rationale": "name says Nepalese vegetable pulao",
+      "curatedBy": "ai-review:claude"
+    },
+    {
+      "recipeId": "FC_87791",
+      "cuisines": [
+        "Nepali"
+      ],
+      "rationale": "name says Nepali whole-wheat flatbread",
+      "curatedBy": "ai-review:claude"
+    },
+    {
+      "recipeId": "FC_350340",
+      "cuisines": [
+        "Indian",
+        "Nepali"
+      ],
+      "rationale": "aloo dum, common to Nepal and North India",
+      "curatedBy": "ai-review:claude"
+    }
+  ]
+}

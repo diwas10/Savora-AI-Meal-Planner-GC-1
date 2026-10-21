@@ -49,3 +49,25 @@ Thumbs.db
 !.vscode/extensions.json
 *.swp
 *~
+
+# Data & Datasets
+Data/raw/
+Data/processed_foodcom/
+Data/**/*.zip
+Data/**/*.tar.gz
+Data/**/*.pkl
+Data/USDA/food.csv
+Data/USDA/food_nutrient.csv
+Data/USDA/food_portion.csv
+Data/USDA/food_component.csv
+Data/USDA/sub_sample_result.csv
+Data/USDA/food_update_log_entry.csv
+Data/Food.com/RAW_*.csv
+Data/Food.com/PP_*.csv
+Data/Food.com/interactions_*.csv
+Data/Food.com/*.pkl
+Data/catalogue/*_quarantine.json
+Data/catalogue/*_review.json
+# Trained models are too large for git; the tracked manifest pins the shipped one.
+Data/models/*
+!Data/models/manifest.json
