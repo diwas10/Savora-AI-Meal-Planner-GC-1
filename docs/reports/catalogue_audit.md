@@ -1,9 +1,12 @@
 # Catalogue audit for planning (21 October 2026)
 
-Catalogue `20261019T012206Z`: 186 dishes (164 Food.com, 22 USDA staples, vegetables and
-fruit) and 465 meal combinations. The audit runs the integration pipelines' own meal
-selection (`core/pipelines/planning.py::_ranked_meals`) over the 8 proxy profiles of the
-coverage report.
+Catalogue `20261020T230903Z`: 697 dishes (675 Food.com, 22 USDA staples, vegetables and
+fruit), 1,673 meal combinations, 19 target cuisines. It replaces `20261019T012206Z`
+(186 dishes, 465 meals, 10 cuisines).
+
+The audit runs the integration pipelines' own meal selection
+(`core/pipelines/planning.py::_ranked_meals`) over the 8 proxy profiles of the coverage
+report.
 
 Method:
 - diet uses the unverified Food.com tags; a missing tag excludes the dish
@@ -13,76 +16,84 @@ Method:
 
 This audit is not the Rule Engine and makes no clinical statement.
 
-## 1. Weekly plan coverage per profile
+## 1. What changed in the rebuild
+
+- **Cuisines:** 19 targets (Malaysian, Indonesian, Filipino, Korean, Vietnamese, Japanese,
+  Moroccan, Spanish, Thai, Caribbean, Chinese, Middle Eastern, French, Greek, Indian,
+  Mexican, Italian, American and Nepali), with selection quotas of 15 breakfasts, 15
+  mains, 15 sides and 5 snacks per cuisine. Malaysian, Indonesian, Filipino, Moroccan
+  and Caribbean are catalogue cuisine tags taken from Food.com; the EDA taxonomy is
+  unchanged.
+- **Breakfast guard:** a Food.com breakfast tag no longer makes a curry, soup, pasta,
+  noodle, burger, stew, biryani, kebab, enchilada (and so on) a breakfast base. Plain
+  rice dishes are also excluded unless they are porridge, congee, pudding or cereal, or
+  the name says breakfast. All 14 anchors flagged in the previous audit are gone.
+- **Thai breakfasts:** 3 curated overrides (rice soups and porridge).
+  `Data/curated/classification_overrides.json` explains why the other candidate was
+  rejected.
+- **Sugar:** the Food.com sugar %DV now converts with a verified 25 g reference (ADR
+  0001 D2, revised). Sugar is known for every dish except 5. For those 5 the converted
+  value exceeded the carbohydrate value, so it stays unknown.
+- **Pairings:** 12 new cuisine pairings (rice and rice noodles for South-East Asian
+  cuisines, bread and potato for European ones, and so on).
+
+## 2. Weekly plan coverage per profile
 
 | Profile | Breakfast anchors (need 4) | Main anchors (need 7) | Week possible |
 |---|---|---|---|
-| mixed, no restriction | 49 | 110 | yes |
-| Indian vegetarian, strict | 7 | 11 | yes |
-| **Nepali, strict** | **0** | 15 | **no**: no Nepali breakfast in the catalogue |
-| Indian or Nepali, explicit beef exclusion | 10 | 28 | yes |
-| Thai, strict, peanut excluded | 6 | 8 | yes (1 main to spare) |
-| Chinese, strict, pork excluded | 9 | 13 | yes |
-| Mexican vegetarian, strict | 5 | 8 | yes (1 to spare in each) |
-| vegan, mixed | 8 | 22 | yes |
+| mixed, no restriction | 179 | 451 | yes |
+| Indian vegetarian, strict | 8 | 19 | yes |
+| **Nepali, strict** | **0** | 15 | **no**: no Nepali breakfast (deferred) |
+| Indian or Nepali, explicit beef exclusion | 15 | 38 | yes |
+| Thai, strict, peanut excluded | 8 | 10 | yes |
+| Chinese, strict, pork excluded | 11 | 22 | yes |
+| Mexican vegetarian, strict | 8 | 12 | yes |
+| vegan, mixed | 18 | 88 | yes |
 
-Breakfast anchors by cuisine: American 11, Chinese 11, Italian 10, Mexican 10, Indian
-10, Thai 10, and 1 each for Spanish, Japanese and Middle Eastern. **Nepali has 0** (it
-has 15 main anchors).
+Previous catalogue, same profiles: Thai 6 / 8, Indian vegetarian 7 / 11, vegan 8 / 22.
+The Thai week would have broken (2 breakfasts) once the bad anchors were removed.
 
-## 2. Breakfast anchors that are lunch or dinner dishes
+### Anchors by cuisine
 
-Breakfast roles come from Food.com tags (`AUTO` classification). These 14 anchors are
-lunch or dinner dishes and should lose `BREAKFAST_BASE` through a classification override:
-
-| Recipe | Name | Roles today |
+| Cuisine | Breakfast | Main |
 |---|---|---|
-| FC_104630 | balsamic tomato basil pasta | STAPLE, MAIN_DISH, BREAKFAST_BASE |
-| FC_119772 | chinese gingered rice | STAPLE, BREAKFAST_BASE |
-| FC_125496 | veggie pasta shells oamc | MAIN_DISH, BREAKFAST_BASE |
-| FC_133760 | hainanese chicken rice | MAIN_DISH, BREAKFAST_BASE |
-| FC_137891 | rice noodles with chicken | MAIN_DISH, BREAKFAST_BASE |
-| FC_181005 | thai curry burger with grilled onions and curry dressing | MAIN_DISH, BREAKFAST_BASE |
-| FC_195593 | chickpeas and rice | STAPLE, MAIN_DISH, BREAKFAST_BASE |
-| FC_208095 | golden basmati rice | STAPLE, BREAKFAST_BASE |
-| FC_225320 | basic oriental fried rice | STAPLE, MAIN_DISH, BREAKFAST_BASE |
-| FC_56864 | chicken curry soup with coconut and lime | BREAKFAST_BASE |
-| FC_81138 | taco bell chalupa copycat | STAPLE, MAIN_DISH, BREAKFAST_BASE |
-| FC_82971 | coconut basmati rice | STAPLE, BREAKFAST_BASE |
-| FC_84231 | singapore rice noodles | MAIN_DISH, BREAKFAST_BASE |
-| FC_88719 | mulligatawny soup with lentils | BREAKFAST_BASE |
+| American | 18 | 34 |
+| Thai, Italian, Middle Eastern, Caribbean, Greek, French, Mexican, Spanish, Indian, Chinese, Moroccan | 15 each | 27–30 |
+| Japanese | 13 | 30 |
+| Malaysian | 8 | 30 |
+| Vietnamese | 6 | 29 |
+| Filipino | 5 | 28 |
+| Korean | **4** (no spare) | 29 |
+| Indonesian | **2** | 29 |
+| Nepali | **0** | 15 |
 
-These are kept as genuine breakfasts: FC_27028 masala dosa and FC_472074 Burmese
-breakfast fried rice.
+A **strict single-cuisine** week is not possible for Indonesian or Nepali, and has no
+spare for Korean, because Food.com has few breakfasts tagged with these cuisines. Mixed
+or preferred-cuisine profiles are unaffected.
 
-Effect of removing them, measured as breakfast anchors before → after (4 needed):
+## 3. Breakfast anchors still worth a look
 
-| Profile | Before | After |
+The guard leaves these breakfast anchors, which need a human decision. Each could be
+kept or removed with an override:
+
+| Recipe | Name | Note |
 |---|---|---|
-| mixed, no restriction | 49 | 35 |
-| Indian vegetarian, strict | 7 | 4 (no spare) |
-| Indian or Nepali, beef excluded | 10 | 7 |
-| **Thai, strict, peanut excluded** | 6 | **2: week no longer possible** |
-| Chinese, strict, pork excluded | 9 | 6 |
-| Mexican vegetarian, strict | 5 | 5 |
-| vegan, mixed | 8 | 4 (no spare) |
+| FC_109823 | drstevers filipino stir fry | likely a main; Food.com tags it breakfast |
+| FC_27743 | easy veggie burrito for one vegan | breakfast burritos are common; keep |
+| FC_335900 | spicy minced pork rice porridge | porridge; keep |
 
-## 3. Nutrition and portion completeness
+## 4. Nutrition and portion completeness
 
-- **Sugars are unknown for all 164 Food.com dishes.** Explanations name sugar as unknown,
-  and any rule that needs sugar would evaluate UNKNOWN (fail closed) until a source is
-  added, for example USDA ingredient-level estimation.
-- **Serving mass is unknown for all 164 Food.com dishes**, so their portions stay in
-  servings and gram-based comparisons cannot run on them.
-- Every combination has a validated STANDARD configuration with a known sodium total, so
-  no meal is lost to the CSP's sodium measurement.
+- Sugar is known for 692 of 697 dishes. The 5 unknown ones fail closed in any sugar
+  rule.
+- **Serving mass is unknown for all 675 Food.com dishes**, so their portions stay in
+  servings and gram-based comparisons cannot run on them (unchanged).
+- Every combination has a validated STANDARD configuration with a known sodium total.
 
-## 4. Fix plan (Member 1; needs dish choices before the export is rebuilt)
+## 5. Remaining work (Member 1)
 
-1. Add at least 4 Nepali breakfast dishes (from Food.com where they exist, otherwise as
-   curated dishes with USDA-based nutrition), each with an override and portions.
-2. Add at least 3 Thai breakfasts without peanut, and 2–3 Indian-vegetarian and vegan
-   breakfasts. Do this **in the same rebuild** as step 3, otherwise Thai plans break.
-3. Apply the 14 overrides in section 2.
-4. Rebuild the export (new catalogue version), re-run this audit and the coverage
-   report, and update tests that pin the catalogue version.
+1. Nepali breakfasts: 4 or more, as curated dishes with USDA-based nutrition, or from
+   Food.com, which has 53 recipes tagged `nepalese`. This item was deferred by the team
+   on 21 October 2026.
+2. Indonesian and Korean breakfasts: 2 or more each, the same way.
+3. Decide FC_109823.

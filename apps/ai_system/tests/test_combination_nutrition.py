@@ -82,7 +82,7 @@ def test_validated_meal_carries_totals_tier_and_completeness() -> None:
     assert standard.nutrition.totals.energy_kcal == pytest.approx(dal_kcal + staple_kcal)
     assert standard.nutrition.source_tier is NutritionSource.FOODCOM_DERIVED  # not "verified"
     assert standard.nutrition.fully_known  # sugar is not a required nutrient
-    assert standard.nutrition.totals.sugars_g is None
+    assert standard.nutrition.totals.sugars_g is not None  # known since ADR 0001 D2 revision
 
 
 def test_implausible_meal_energy_drops_the_configuration_only() -> None:

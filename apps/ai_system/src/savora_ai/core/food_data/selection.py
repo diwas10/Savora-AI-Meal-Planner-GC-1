@@ -1,6 +1,7 @@
 """Stage 7: stratified, reproducible catalogue selection (ADR 0001 D6).
 
-The planning catalogue is small (about 200 dishes), so WHICH dishes it holds decides
+The planning catalogue is curated (about 200 dishes in v0, about 800 after the 21 Oct 2026
+expansion), so WHICH dishes it holds decides
 what plans are possible. Picking by hash alone gave 122 American dishes out of 191 and 3
 Indian ones. Selection therefore fills a quota per stratum = (cuisine, slot kind):
 
@@ -8,7 +9,7 @@ Indian ones. Selection therefore fills a quota per stratum = (cuisine, slot kind
 
 Why these sizes: a dish may repeat at most twice a week, so 7 breakfasts need at least 4
 distinct dishes and 14 lunches + dinners at least 7 distinct mains; rule filtering (diet,
-allergy) then removes some, so each stratum aims for 10, at least half vegetarian.
+allergy) then removes some, so each stratum aims for 15, at least half vegetarian.
 
 Within a stratum the order is: curated first (a reviewer chose it), then training-split
 popularity (Stage 5; never held-out data), then a seeded hash. A stratum that cannot fill
@@ -25,13 +26,27 @@ from savora_ai.core.food_data.classification import is_plannable
 from savora_ai.core.food_data.models import CatalogueRecipe
 from savora_ai.schemas.enums import ClassificationStatus, CulinaryRole, DishClass, MealType
 
-# PROVISIONAL target cuisines (project lead's choice): the Asian focus plus three western
-# cuisines for MIXED-policy variety. Order matters: thinner cuisines pick first, so a
-# dish labelled both Indian and Nepali is credited to Nepali, which has fewer dishes.
+# PROVISIONAL target cuisines (project lead's choice, expanded 21 Oct 2026 from 7 to 19):
+# the Asian focus (incl. Malaysian, Indonesian, Filipino, Korean, Vietnamese, Japanese)
+# plus Middle Eastern, Mediterranean, European and Caribbean variety. Order matters:
+# thinner cuisines (fewer Food.com recipes) pick first, so a dish labelled both Thai and
+# Malaysian is credited to Malaysian, which has fewer dishes.
 TARGET_CUISINES: tuple[str, ...] = (
     "Nepali",
+    "Malaysian",
+    "Filipino",
+    "Indonesian",
+    "Korean",
+    "Vietnamese",
+    "Japanese",
+    "Moroccan",
+    "Spanish",
     "Thai",
+    "Caribbean",
     "Chinese",
+    "Middle Eastern",
+    "French",
+    "Greek",
     "Indian",
     "Mexican",
     "Italian",
@@ -74,14 +89,15 @@ def _vegetable_side(r: CatalogueRecipe) -> bool:
     return CulinaryRole.VEGETABLE in r.roles and r.dish_class is DishClass.COMPONENT
 
 
-# PROVISIONAL quotas per cuisine, tuned with Stage 10 scenario coverage: 8 left three of
-# eight synthetic scenarios short; 10 leaves two, both data limits (no Nepali breakfasts
-# exist; peanut-free Thai breakfasts are 3 at any quota); 12 adds dishes but no coverage.
+# PROVISIONAL quotas per cuisine. v0 used 10/10/10/4 for 7 cuisines (8 left three of eight
+# synthetic scenarios short; 10 left two data limits: no Nepali breakfasts, 3 peanut-free
+# Thai breakfasts). The 21 Oct 2026 expansion raises them to 15/15/15/5 for a larger
+# catalogue; Thai breakfasts are now topped up by curated overrides instead.
 SLOT_KINDS: tuple[SlotKind, ...] = (
-    SlotKind("BREAKFAST_BASE", 10, _breakfast),
-    SlotKind("COMPLETE_MAIN", 10, _main(DishClass.COMPLETE_MEAL)),
-    SlotKind("MAIN_WITH_ACCOMPANIMENT", 10, _main(DishClass.REQUIRES_ACCOMPANIMENT)),
-    SlotKind("VEGETABLE_SIDE", 4, _vegetable_side),
+    SlotKind("BREAKFAST_BASE", 15, _breakfast),
+    SlotKind("COMPLETE_MAIN", 15, _main(DishClass.COMPLETE_MEAL)),
+    SlotKind("MAIN_WITH_ACCOMPANIMENT", 15, _main(DishClass.REQUIRES_ACCOMPANIMENT)),
+    SlotKind("VEGETABLE_SIDE", 5, _vegetable_side),
 )
 
 

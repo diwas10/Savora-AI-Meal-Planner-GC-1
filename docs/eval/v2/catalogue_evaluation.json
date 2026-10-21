@@ -1,0 +1,386 @@
+{
+  "catalogue": {
+    "directory": "../../Data/catalogue",
+    "foodcomDishes": 675,
+    "dishesKnownToModel": 675,
+    "meals": 1673
+  },
+  "protocol": {
+    "split": {
+      "trainEnd": "2012-01-01",
+      "validEnd": "2013-01-01",
+      "trainUsers": 125871,
+      "trainInteractions": 906736,
+      "medianTrainHistory": 1,
+      "validationCases": 6883,
+      "testCases": 9200,
+      "testTargetsUnseenInTrain": 1284
+    },
+    "cases": "223 test cases whose next recipe is a catalogue dish",
+    "ranking": "among the catalogue's Food.com dishes; the user's history excluded",
+    "hybridWeight": 8.0,
+    "modelFile": "sasrec_content.pt",
+    "device": "cpu",
+    "minutes": 0.1
+  },
+  "dishes": {
+    "model": {
+      "cases": 223,
+      "hr@10": 0.4439461883408072,
+      "ndcg@10": 0.25834833554689535,
+      "mrr": 0.21404025242576324
+    },
+    "hybrid": {
+      "cases": 223,
+      "hr@10": 0.4439461883408072,
+      "ndcg@10": 0.25319902581696047,
+      "mrr": 0.2074984022844608
+    },
+    "popularity": {
+      "cases": 223,
+      "hr@10": 0.4484304932735426,
+      "ndcg@10": 0.2551360650512001,
+      "mrr": 0.2082098612204531
+    },
+    "hybridVsPopularity": {
+      "hr@10": {
+        "difference": -0.004484304932735426,
+        "ci95Low": -0.013452914798206279,
+        "ci95High": 0.0,
+        "shareOfResamplesAtOrBelowZero": 1.0
+      },
+      "ndcg@10": {
+        "difference": -0.0019370392342396355,
+        "ci95Low": -0.005399641177829259,
+        "ci95High": 0.0,
+        "shareOfResamplesAtOrBelowZero": 1.0
+      },
+      "mrr": {
+        "difference": -0.0007114589359922947,
+        "ci95Low": -0.002461835478926732,
+        "ci95High": 0.000394073851179787,
+        "shareOfResamplesAtOrBelowZero": 0.785
+      }
+    },
+    "byTargetCuisine": {
+      "American": {
+        "cases": 25,
+        "hybrid": {
+          "cases": 25,
+          "hr@10": 0.88,
+          "ndcg@10": 0.5647438028571661,
+          "mrr": 0.4545821445763329
+        },
+        "popularity": {
+          "cases": 25,
+          "hr@10": 0.88,
+          "ndcg@10": 0.5699809930000242,
+          "mrr": 0.461274354027163
+        }
+      },
+      "Caribbean": {
+        "cases": 5,
+        "hybrid": {
+          "cases": 5,
+          "hr@10": 0.0,
+          "ndcg@10": 0.0,
+          "mrr": 0.03689790282587165
+        },
+        "popularity": {
+          "cases": 5,
+          "hr@10": 0.0,
+          "ndcg@10": 0.0,
+          "mrr": 0.03495629646561953
+        }
+      },
+      "Chinese": {
+        "cases": 6,
+        "hybrid": {
+          "cases": 6,
+          "hr@10": 0.0,
+          "ndcg@10": 0.0,
+          "mrr": 0.011596580228176804
+        },
+        "popularity": {
+          "cases": 6,
+          "hr@10": 0.0,
+          "ndcg@10": 0.0,
+          "mrr": 0.011546942498889476
+        }
+      },
+      "Filipino": {
+        "cases": 2,
+        "hybrid": {
+          "cases": 2,
+          "hr@10": 0.0,
+          "ndcg@10": 0.0,
+          "mrr": 0.004519875478927203
+        },
+        "popularity": {
+          "cases": 2,
+          "hr@10": 0.0,
+          "ndcg@10": 0.0,
+          "mrr": 0.004220167779489813
+        }
+      },
+      "French": {
+        "cases": 9,
+        "hybrid": {
+          "cases": 9,
+          "hr@10": 0.0,
+          "ndcg@10": 0.0,
+          "mrr": 0.029612839739436934
+        },
+        "popularity": {
+          "cases": 9,
+          "hr@10": 0.0,
+          "ndcg@10": 0.0,
+          "mrr": 0.027284782906520012
+        }
+      },
+      "Greek": {
+        "cases": 10,
+        "hybrid": {
+          "cases": 10,
+          "hr@10": 0.1,
+          "ndcg@10": 0.03333333333333333,
+          "mrr": 0.03784118441931638
+        },
+        "popularity": {
+          "cases": 10,
+          "hr@10": 0.2,
+          "ndcg@10": 0.06343633289973145,
+          "mrr": 0.04204732350082026
+        }
+      },
+      "Indian": {
+        "cases": 7,
+        "hybrid": {
+          "cases": 7,
+          "hr@10": 0.0,
+          "ndcg@10": 0.0,
+          "mrr": 0.014237191021602692
+        },
+        "popularity": {
+          "cases": 7,
+          "hr@10": 0.0,
+          "ndcg@10": 0.0,
+          "mrr": 0.014878963398330726
+        }
+      },
+      "Italian": {
+        "cases": 41,
+        "hybrid": {
+          "cases": 41,
+          "hr@10": 0.6097560975609756,
+          "ndcg@10": 0.5005877056068945,
+          "mrr": 0.47571144714232133
+        },
+        "popularity": {
+          "cases": 41,
+          "hr@10": 0.6097560975609756,
+          "ndcg@10": 0.5005877056068945,
+          "mrr": 0.47537937152076587
+        }
+      },
+      "Japanese": {
+        "cases": 18,
+        "hybrid": {
+          "cases": 18,
+          "hr@10": 0.5555555555555556,
+          "ndcg@10": 0.2850516529761921,
+          "mrr": 0.1985552724059277
+        },
+        "popularity": {
+          "cases": 18,
+          "hr@10": 0.5555555555555556,
+          "ndcg@10": 0.2850516529761921,
+          "mrr": 0.19873738505522998
+        }
+      },
+      "Korean": {
+        "cases": 4,
+        "hybrid": {
+          "cases": 4,
+          "hr@10": 0.0,
+          "ndcg@10": 0.0,
+          "mrr": 0.02774484993101808
+        },
+        "popularity": {
+          "cases": 4,
+          "hr@10": 0.0,
+          "ndcg@10": 0.0,
+          "mrr": 0.02610972474289171
+        }
+      },
+      "Malaysian": {
+        "cases": 1,
+        "hybrid": {
+          "cases": 1,
+          "hr@10": 0.0,
+          "ndcg@10": 0.0,
+          "mrr": 0.0024154589371980675
+        },
+        "popularity": {
+          "cases": 1,
+          "hr@10": 0.0,
+          "ndcg@10": 0.0,
+          "mrr": 0.002386634844868735
+        }
+      },
+      "Mexican": {
+        "cases": 63,
+        "hybrid": {
+          "cases": 63,
+          "hr@10": 0.6507936507936508,
+          "ndcg@10": 0.25962585188834236,
+          "mrr": 0.16039011614343074
+        },
+        "popularity": {
+          "cases": 63,
+          "hr@10": 0.6507936507936508,
+          "ndcg@10": 0.25962585188834236,
+          "mrr": 0.15993966375873636
+        }
+      },
+      "Middle Eastern": {
+        "cases": 6,
+        "hybrid": {
+          "cases": 6,
+          "hr@10": 0.0,
+          "ndcg@10": 0.0,
+          "mrr": 0.012288671178940903
+        },
+        "popularity": {
+          "cases": 6,
+          "hr@10": 0.0,
+          "ndcg@10": 0.0,
+          "mrr": 0.013545086864188103
+        }
+      },
+      "Moroccan": {
+        "cases": 11,
+        "hybrid": {
+          "cases": 11,
+          "hr@10": 0.0,
+          "ndcg@10": 0.0,
+          "mrr": 0.026754253089353353
+        },
+        "popularity": {
+          "cases": 11,
+          "hr@10": 0.0,
+          "ndcg@10": 0.0,
+          "mrr": 0.028796108247858956
+        }
+      },
+      "Spanish": {
+        "cases": 2,
+        "hybrid": {
+          "cases": 2,
+          "hr@10": 0.0,
+          "ndcg@10": 0.0,
+          "mrr": 0.006117724867724867
+        },
+        "popularity": {
+          "cases": 2,
+          "hr@10": 0.0,
+          "ndcg@10": 0.0,
+          "mrr": 0.006155401202571014
+        }
+      },
+      "Thai": {
+        "cases": 7,
+        "hybrid": {
+          "cases": 7,
+          "hr@10": 0.0,
+          "ndcg@10": 0.0,
+          "mrr": 0.00709777444352705
+        },
+        "popularity": {
+          "cases": 7,
+          "hr@10": 0.0,
+          "ndcg@10": 0.0,
+          "mrr": 0.0069671691401093265
+        }
+      },
+      "Vietnamese": {
+        "cases": 6,
+        "hybrid": {
+          "cases": 6,
+          "hr@10": 0.0,
+          "ndcg@10": 0.0,
+          "mrr": 0.028968085972482294
+        },
+        "popularity": {
+          "cases": 6,
+          "hr@10": 0.0,
+          "ndcg@10": 0.0,
+          "mrr": 0.027714581897750213
+        }
+      }
+    }
+  },
+  "withinCuisine": {
+    "model": {
+      "cases": 223,
+      "hr@10": 0.852017937219731,
+      "ndcg@10": 0.6138215838036006,
+      "mrr": 0.5488512851508006
+    },
+    "hybrid": {
+      "cases": 223,
+      "hr@10": 0.852017937219731,
+      "ndcg@10": 0.6169950410087813,
+      "mrr": 0.5527294617978216
+    },
+    "popularity": {
+      "cases": 223,
+      "hr@10": 0.852017937219731,
+      "ndcg@10": 0.6173854354373436,
+      "mrr": 0.5530556128132594
+    },
+    "hybridVsPopularity": {
+      "hr@10": {
+        "difference": 0.0,
+        "ci95Low": -0.017937219730941704,
+        "ci95High": 0.017937219730941704,
+        "shareOfResamplesAtOrBelowZero": 0.62
+      },
+      "ndcg@10": {
+        "difference": -0.00039039442856232285,
+        "ci95Low": -0.006234771697853472,
+        "ci95High": 0.004998617777907989,
+        "shareOfResamplesAtOrBelowZero": 0.592
+      },
+      "mrr": {
+        "difference": -0.0003261510154378481,
+        "ci95Low": -0.00253521830612308,
+        "ci95High": 0.0015367836863028725,
+        "shareOfResamplesAtOrBelowZero": 0.642
+      }
+    }
+  },
+  "meals": {
+    "cases": 222,
+    "meals": 1673,
+    "protocol": "rank of the best meal containing the user's next recipe among all meals",
+    "ANCHOR": {
+      "cases": 222,
+      "hr@10": 0.43243243243243246,
+      "ndcg@10": 0.22307860397191395,
+      "mrr": 0.1714201811222238
+    },
+    "MEAN": {
+      "cases": 222,
+      "hr@10": 0.43243243243243246,
+      "ndcg@10": 0.23699529160871782,
+      "mrr": 0.18839361722104048
+    },
+    "POPULARITY_ANCHOR": {
+      "cases": 222,
+      "hr@10": 0.43243243243243246,
+      "ndcg@10": 0.2239806453930764,
+      "mrr": 0.172542256183762
+    }
+  }
+}

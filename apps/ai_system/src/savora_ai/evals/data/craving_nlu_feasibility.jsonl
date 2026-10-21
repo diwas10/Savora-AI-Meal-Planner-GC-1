@@ -1,0 +1,58 @@
+{"text": "I want something spicy and Thai", "expected": {"intent": "CRAVING_RECOMMEND", "cuisineIds": ["THAI"], "flavorTags": ["SPICY"]}}
+{"text": "craving chinese food but no noodles please", "expected": {"intent": "CRAVING_RECOMMEND", "cuisineIds": ["CHINESE"], "excludedIngredientIds": ["NOODLES"]}}
+{"text": "something sweet", "expected": {"intent": "CRAVING_RECOMMEND", "flavorTags": ["SWEET"]}}
+{"text": "Give me a creamy Indian curry", "expected": {"intent": "CRAVING_RECOMMEND", "cuisineIds": ["INDIAN"], "flavorTags": ["CREAMY"]}}
+{"text": "I feel like Mexican tonight, smoky if possible", "expected": {"intent": "CRAVING_RECOMMEND", "cuisineIds": ["MEXICAN"], "flavorTags": ["SMOKY"]}}
+{"text": "anything Korean", "expected": {"intent": "CRAVING_RECOMMEND", "cuisineIds": ["KOREAN"]}}
+{"text": "a Malaysian dish without peanuts", "expected": {"intent": "CRAVING_RECOMMEND", "cuisineIds": ["MALAYSIAN"], "excludedIngredientIds": ["PEANUTS"]}}
+{"text": "I'm allergic to shellfish, suggest a Thai dish", "expected": {"intent": "CRAVING_RECOMMEND", "cuisineIds": ["THAI"], "requiresClarification": true}}
+{"text": "swap my tuesday lunch", "expected": {"intent": "SWAP_MEAL", "mealSlotId": "D2_LUNCH"}}
+{"text": "replace dinner on day 5 with something lighter", "expected": {"intent": "SWAP_MEAL", "mealSlotId": "D5_DINNER"}}
+{"text": "change my meal", "expected": {"intent": "SWAP_MEAL", "requiresClarification": true}}
+{"text": "hello", "expected": {"intent": "CRAVING_RECOMMEND", "requiresClarification": true}}
+{"text": "sour vietnamese soup", "expected": {"intent": "CRAVING_RECOMMEND", "cuisineIds": ["VIETNAMESE"], "flavorTags": ["SOUR"]}}
+{"text": "Japanese, no fish", "expected": {"intent": "CRAVING_RECOMMEND", "cuisineIds": ["JAPANESE"], "excludedIngredientIds": ["FISH"]}}
+{"text": "I want Greek food with no onions or garlic", "expected": {"intent": "CRAVING_RECOMMEND", "cuisineIds": ["GREEK"], "excludedIngredientIds": ["ONIONS", "GARLIC"]}}
+{"text": "Something Moroccan and spicy", "expected": {"intent": "CRAVING_RECOMMEND", "cuisineIds": ["MOROCCAN"], "flavorTags": ["SPICY"]}}
+{"text": "craving a sweet and sour Chinese dish", "expected": {"intent": "CRAVING_RECOMMEND", "cuisineIds": ["CHINESE"], "flavorTags": ["SWEET", "SOUR"]}}
+{"text": "filipino adobo", "expected": {"intent": "CRAVING_RECOMMEND", "cuisineIds": ["FILIPINO"]}}
+{"text": "indonesian food, spicy, no beef", "expected": {"intent": "CRAVING_RECOMMEND", "cuisineIds": ["INDONESIAN"], "flavorTags": ["SPICY"], "excludedIngredientIds": ["BEEF"]}}
+{"text": "I don't want pork. Something Caribbean.", "expected": {"intent": "CRAVING_RECOMMEND", "cuisineIds": ["CARIBBEAN"], "excludedIngredientIds": ["PORK"]}}
+{"text": "French dinner idea, creamy", "expected": {"intent": "CRAVING_RECOMMEND", "cuisineIds": ["FRENCH"], "flavorTags": ["CREAMY"]}}
+{"text": "Spanish tapas, smoky", "expected": {"intent": "CRAVING_RECOMMEND", "cuisineIds": ["SPANISH"], "flavorTags": ["SMOKY"]}}
+{"text": "middle eastern without chickpeas", "expected": {"intent": "CRAVING_RECOMMEND", "cuisineIds": ["MIDDLE_EASTERN"], "excludedIngredientIds": ["CHICKPEAS"]}}
+{"text": "can you replace thursday dinner", "expected": {"intent": "SWAP_MEAL", "mealSlotId": "D4_DINNER"}}
+{"text": "swap D3 breakfast", "expected": {"intent": "SWAP_MEAL", "mealSlotId": "D3_BREAKFAST"}}
+{"text": "I need something spicy", "expected": {"intent": "CRAVING_RECOMMEND", "flavorTags": ["SPICY"]}}
+{"text": "no mushrooms, any cuisine", "expected": {"intent": "CRAVING_RECOMMEND", "excludedIngredientIds": ["MUSHROOMS"]}}
+{"text": "Ethiopian food", "expected": {"intent": "CRAVING_RECOMMEND", "requiresClarification": true}}
+{"text": "thia curry", "expected": {"intent": "CRAVING_RECOMMEND", "cuisineIds": ["THAI"]}}
+{"text": "chineese fried rice", "expected": {"intent": "CRAVING_RECOMMEND", "cuisineIds": ["CHINESE"]}}
+{"text": "momo", "expected": {"intent": "CRAVING_RECOMMEND", "cuisineIds": ["NEPALI"]}}
+{"text": "dal bhat please", "expected": {"intent": "CRAVING_RECOMMEND", "cuisineIds": ["NEPALI"]}}
+{"text": "pad thai", "expected": {"intent": "CRAVING_RECOMMEND", "cuisineIds": ["THAI"]}}
+{"text": "sushi", "expected": {"intent": "CRAVING_RECOMMEND", "cuisineIds": ["JAPANESE"]}}
+{"text": "tacos with no cheese", "expected": {"intent": "CRAVING_RECOMMEND", "cuisineIds": ["MEXICAN"], "excludedIngredientIds": ["CHEESE"]}}
+{"text": "kimchi stew", "expected": {"intent": "CRAVING_RECOMMEND", "cuisineIds": ["KOREAN"]}}
+{"text": "pho", "expected": {"intent": "CRAVING_RECOMMEND", "cuisineIds": ["VIETNAMESE"]}}
+{"text": "nasi lemak", "expected": {"intent": "CRAVING_RECOMMEND", "cuisineIds": ["MALAYSIAN"]}}
+{"text": "biryani but not too spicy", "expected": {"intent": "CRAVING_RECOMMEND", "cuisineIds": ["INDIAN"]}}
+{"text": "replace my lunch on day 1", "expected": {"intent": "SWAP_MEAL", "mealSlotId": "D1_LUNCH"}}
+{"text": "I don't like my saturday breakfast, change it", "expected": {"intent": "SWAP_MEAL", "mealSlotId": "D6_BREAKFAST"}}
+{"text": "Swap sunday dinner for something Thai", "expected": {"intent": "SWAP_MEAL", "mealSlotId": "D7_DINNER", "cuisineIds": ["THAI"]}}
+{"text": "give me a smoky creamy american dish", "expected": {"intent": "CRAVING_RECOMMEND", "cuisineIds": ["AMERICAN"], "flavorTags": ["SMOKY", "CREAMY"]}}
+{"text": "sweet breakfast idea", "expected": {"intent": "CRAVING_RECOMMEND", "flavorTags": ["SWEET"]}}
+{"text": "something tangy", "expected": {"intent": "CRAVING_RECOMMEND", "flavorTags": ["SOUR"]}}
+{"text": "hot and spicy szechuan", "expected": {"intent": "CRAVING_RECOMMEND", "cuisineIds": ["CHINESE"], "flavorTags": ["SPICY"]}}
+{"text": "what's the weather like today", "expected": {"intent": "CRAVING_RECOMMEND", "requiresClarification": true}}
+{"text": "I am allergic to milk", "expected": {"intent": "CRAVING_RECOMMEND", "requiresClarification": true}}
+{"text": "no eggs, korean breakfast", "expected": {"intent": "CRAVING_RECOMMEND", "cuisineIds": ["KOREAN"], "excludedIngredientIds": ["EGGS"]}}
+{"text": "Indian or Thai, spicy", "expected": {"intent": "CRAVING_RECOMMEND", "cuisineIds": ["INDIAN", "THAI"], "flavorTags": ["SPICY"]}}
+{"text": "light italian, without tomatoes", "expected": {"intent": "CRAVING_RECOMMEND", "cuisineIds": ["ITALIAN"], "excludedIngredientIds": ["TOMATOES"]}}
+{"text": "replace lunch", "expected": {"intent": "SWAP_MEAL", "requiresClarification": true}}
+{"text": "greek salad style", "expected": {"intent": "CRAVING_RECOMMEND", "cuisineIds": ["GREEK"]}}
+{"text": "smoked bbq american", "expected": {"intent": "CRAVING_RECOMMEND", "cuisineIds": ["AMERICAN"], "flavorTags": ["SMOKY"]}}
+{"text": "coconut curry, Malaysian, creamy", "expected": {"intent": "CRAVING_RECOMMEND", "cuisineIds": ["MALAYSIAN"], "flavorTags": ["CREAMY"]}}
+{"text": "change wednesday's dinner to something without pork", "expected": {"intent": "SWAP_MEAL", "mealSlotId": "D3_DINNER", "excludedIngredientIds": ["PORK"]}}
+{"text": "sweet Filipino dessert", "expected": {"intent": "CRAVING_RECOMMEND", "cuisineIds": ["FILIPINO"], "flavorTags": ["SWEET"]}}
+{"text": "rendang without coconut", "expected": {"intent": "CRAVING_RECOMMEND", "cuisineIds": ["INDONESIAN"], "excludedIngredientIds": ["COCONUT"]}}

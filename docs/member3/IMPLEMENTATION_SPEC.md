@@ -128,12 +128,21 @@ jobs** with polling (S7, S8). Never run them inside a request handler.
    plus `asyncio.to_thread`) with job state persisted on the plan row. No queue or Redis
    (AGENTS.md). On startup, mark rows still `GENERATING` as `FAILED` with "server
    restarted".
-4. **Qwen.** Use a hosted OpenAI-compatible chat endpoint via `QWEN_API_KEY`,
-   `QWEN_MODEL_NAME` and a new `QWEN_BASE_URL` (add the last to `.env.example`). Use
-   `httpx` with an explicit timeout.
-   - Fall back to the deterministic template parser when the key is unset, on timeout or
-     on invalid output, and record which parser was used.
-   - A local `transformers` adapter is optional, behind the existing `ml` extra.
+4. **Qwen (team decision, 21 October 2026): a small quantized Qwen running locally in
+   Ollama.** The default is `qwen3:0.6b` (Q4_K_M, 522 MB). `qwen2.5:1.5b` is the
+   accuracy upgrade. Evidence: `docs/reports/craving_nlu_feasibility_report.md`.
+   - Configure with `QWEN_BASE_URL` (default `http://localhost:11434`) and
+     `QWEN_MODEL_NAME` (add both to `.env.example`). Local Ollama needs no
+     `QWEN_API_KEY`. Keep the key optional so that a hosted OpenAI-compatible endpoint
+     still works.
+   - Call `/api/chat` with `httpx` and an explicit timeout, using `"think": false`,
+     temperature 0, and `"format"` set to `CravingRequest.model_json_schema(by_alias=True)`
+     for constrained decoding.
+   - Then apply the deterministic grounding step from
+     `savora_ai/evals/craving_nlu_feasibility.py::ground` **before** strict validation.
+     Move it into the NLU package.
+   - Fall back to the deterministic template parser when Ollama is unreachable, on
+     timeout or on invalid output, and record which parser was used.
 5. **Seed dishes** are stored on the profile as `seed_recipe_ids` (ADR 0005 D1, accepted
    by the team on 2026-10-20, together with the seed endpoint names in section 4).
 
@@ -256,8 +265,11 @@ the backend.
 - `QwenParser(client, model, timeout_s=8)`:
   - Versioned prompt at `savora_ai/prompts/craving_v1.md`, with few-shot examples and the
     JSON schema from `CravingRequest.model_json_schema(by_alias=True)`.
-  - Use JSON mode if the endpoint supports it.
-  - Validate with `CravingRequest.model_validate_json`. On invalid JSON, schema
+  - Use schema-constrained output (Ollama `format`) and `think: false`; start from
+    `prompts/craving_nlu_feasibility_v2.md`, which was measured, rather than writing a
+    prompt from scratch.
+  - Ground the answer (see section 2 item 4), then validate with
+    `CravingRequest.model_validate_json`. On invalid JSON, schema
     violations or timeout, fall back to `TemplateParser` and record why.
   - The HTTP adapter lives in `savora_ai/providers/qwen.py` (httpx). Add `httpx` to the
     `savora-ai` dependencies.
@@ -269,7 +281,9 @@ the backend.
     mentions, typos and Nepali/Indian dish words.
   - Runner `python -m savora_ai.evals.craving_nlu` reports intent accuracy, slot
     precision, recall and micro-F1, schema-validity rate, clarification precision and
-    recall, and p50/p95 latency for the template parser, and for Qwen when a key is set.
+    recall, and p50/p95 latency for the template parser, and for Qwen when Ollama is
+    running. Extend `evals/data/craving_nlu_feasibility.jsonl` (58 cases) rather than
+    starting over.
   - Write `docs/eval/craving_nlu.json` and `docs/reports/craving_nlu_report.md` (dataset
     size, model ID, decoding settings, prompt version, hardware/endpoint). **Never report
     Qwen numbers you did not run.**

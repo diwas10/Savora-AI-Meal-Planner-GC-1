@@ -63,6 +63,100 @@
         "USDA_170440"
       ],
       "rationale": "meat and stew mains with bread or potatoes"
+    },
+    {
+      "cuisine": "Malaysian",
+      "staples": [
+        "USDA_169757",
+        "USDA_168914"
+      ],
+      "rationale": "curries, rendang and sambal dishes are eaten with rice; stir-fries also with rice noodles"
+    },
+    {
+      "cuisine": "Indonesian",
+      "staples": [
+        "USDA_169757",
+        "USDA_168914"
+      ],
+      "rationale": "rendang, curries and sambal dishes are eaten with rice; some with noodles"
+    },
+    {
+      "cuisine": "Vietnamese",
+      "staples": [
+        "USDA_169757",
+        "USDA_168914"
+      ],
+      "rationale": "braises and stir-fries are served with rice or rice noodles"
+    },
+    {
+      "cuisine": "Korean",
+      "staples": [
+        "USDA_169757"
+      ],
+      "rationale": "banchan-style mains and stews are eaten with a bowl of rice"
+    },
+    {
+      "cuisine": "Japanese",
+      "staples": [
+        "USDA_169757"
+      ],
+      "rationale": "mains such as teriyaki and curry are served with rice"
+    },
+    {
+      "cuisine": "Filipino",
+      "staples": [
+        "USDA_169757"
+      ],
+      "rationale": "adobo, stews and sinigang are eaten with rice"
+    },
+    {
+      "cuisine": "Middle Eastern",
+      "staples": [
+        "USDA_169757",
+        "USDA_2707598"
+      ],
+      "rationale": "stews and grilled meats with rice or bread (pita is not a verified staple yet)"
+    },
+    {
+      "cuisine": "Greek",
+      "staples": [
+        "USDA_2707598",
+        "USDA_170440",
+        "USDA_169757"
+      ],
+      "rationale": "stews and grilled dishes with bread, potatoes or rice"
+    },
+    {
+      "cuisine": "Moroccan",
+      "staples": [
+        "USDA_2707598",
+        "USDA_169757"
+      ],
+      "rationale": "tagines are eaten with bread; rice as an alternative (couscous is not a verified staple yet)"
+    },
+    {
+      "cuisine": "Spanish",
+      "staples": [
+        "USDA_2707598",
+        "USDA_170440",
+        "USDA_169757"
+      ],
+      "rationale": "stews and mains with bread, potatoes or rice"
+    },
+    {
+      "cuisine": "French",
+      "staples": [
+        "USDA_2707598",
+        "USDA_170440"
+      ],
+      "rationale": "braises and mains with bread or potatoes"
+    },
+    {
+      "cuisine": "Caribbean",
+      "staples": [
+        "USDA_169757"
+      ],
+      "rationale": "curries, jerk and stews are eaten with rice"
     }
   ]
 }

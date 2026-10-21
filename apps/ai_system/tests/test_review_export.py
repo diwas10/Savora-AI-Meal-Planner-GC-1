@@ -85,7 +85,7 @@ def test_sample_carries_ids_unknowns_status_and_shortlists() -> None:
             )
             assert "#" not in config["optionId"]
             sugar = config["nutrients"]["sugarsG"]
-            assert sugar["value"] is None and sugar["known"] is False  # Food.com sugar unknown
+            assert (sugar["value"] is None) == (sugar["known"] is False)  # unknown is never 0
             for q in config["componentQuantities"]:
                 assert (q["grams"] is None) == (q["member2QuantityUnit"] == "serving")
     shortlists = data["slotShortlists"]

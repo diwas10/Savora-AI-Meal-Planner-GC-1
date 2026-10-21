@@ -108,10 +108,13 @@ def test_swap_may_ask_for_clarification() -> None:
 
 
 def test_catalogue_bundle_and_cuisine_ids(bundle: CatalogueBundle) -> None:
-    assert bundle.version == "20261019T012206Z"
+    latest = sorted(EXPORT.glob("*_catalogue.json"))[-1].name.removesuffix("_catalogue.json")
+    assert bundle.version == latest
     assert bundle.cuisine_ids["NEPALI"] == "Nepali"
     assert bundle.cuisine_ids["MIDDLE_EASTERN"] == "Middle Eastern"
-    assert len(bundle.combinations) == 465
+    assert bundle.cuisine_ids["MALAYSIAN"] == "Malaysian"
+    combos = json.loads((EXPORT / f"{latest}_combinations.json").read_text("utf-8"))
+    assert len(bundle.combinations) == len(combos["combinations"])
 
 
 def test_screen_fails_closed_on_diet_and_matches_whole_words(bundle: CatalogueBundle) -> None:

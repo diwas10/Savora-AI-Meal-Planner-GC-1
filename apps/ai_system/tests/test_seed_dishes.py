@@ -17,7 +17,7 @@ from savora_ai.core.recommendation.seeds import (
 from savora_ai.schemas.enums import CulinaryRole
 
 REPO = Path(__file__).parents[3]
-CATALOGUE = REPO / "Data/catalogue/20261019T012206Z_catalogue.json"
+CATALOGUE = sorted((REPO / "Data/catalogue").glob("*_catalogue.json"))[-1]  # latest export
 
 
 def dish(source_id: int, cuisine: str, count: int | None, *tags: str) -> CatalogueRecipe:
