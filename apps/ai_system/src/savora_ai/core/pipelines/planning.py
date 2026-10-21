@@ -54,6 +54,7 @@ from savora_ai.core.meal_composition.member2_adapter import (
 )
 from savora_ai.core.meal_composition.models import MealCombination, PortionConfiguration
 from savora_ai.core.pipelines.catalogue import CatalogueBundle
+from savora_ai.core.pipelines.craving import _flavored, _has_word
 from savora_ai.core.pipelines.profile import (
     PlanningProfile,
     SafetyVerification,
@@ -70,6 +71,7 @@ from savora_ai.core.recommendation.ranking import (
     SequenceScorer,
     rank_combinations,
 )
+from savora_ai.schemas.craving import CravingRequest, FlavorTag
 from savora_ai.schemas.daily import (
     DailyOutcome,
     DailySlotDomain,
@@ -490,27 +492,62 @@ def plan_week(
     return _solve(bundle, profile, workflow, week_id, start_date, chosen, ranking, limits, clock)
 
 
-def substitute_slot(
+class ReplacementOption(_PipelineModel):
+    """One eligible meal for a saved slot, at its STANDARD portion, before the CSP runs."""
+
+    combination_id: str
+    rank: int  # 1 = first choice for this slot
+    cuisines: tuple[str, ...]
+    repeats_in_week: int  # how often its anchor dish already appears in the other 20 slots
+    explanation: MealExplanation  # dishes, portions, totals, ranking reason
+
+
+class ReplacementOptions(_PipelineModel):
+    slot_id: _SlotId
+    meal_type: MealType
+    current_combination_id: str
+    preference: CravingRequest | None
+    options: tuple[ReplacementOption, ...]
+    unknown_cuisine_ids: tuple[str, ...]
+    unmatched_flavor_tags: tuple[FlavorTag, ...]
+    model_version: str | None
+    fallback_reason: FallbackReason | None
+    message: str
+    safety: SafetyVerification
+
+
+@dataclass(frozen=True)
+class _Candidates:
+    chosen: dict[str, tuple[MealCombination, PortionConfiguration]]
+    ranking: CombinationRanking
+    meal: MealType
+    combos: list[MealCombination]  # eligible replacements, best first
+    repeats: dict[str, int]  # combination ID -> repeats of its anchor in the week
+    unknown_cuisine_ids: tuple[str, ...]
+    unmatched_flavor_tags: tuple[FlavorTag, ...]
+
+
+def _matches(
+    combo: MealCombination, bundle: CatalogueBundle, wanted: set[str], request: CravingRequest
+) -> bool:
+    dishes = [bundle.dishes[p.dish_id] for p in combo.components]
+    return (not wanted or bool(wanted & set(combo.cuisines))) and not any(
+        _has_word(d, x.replace("_", " ").lower())
+        for d in dishes
+        for x in request.excluded_ingredient_ids
+    )
+
+
+def _replacement_candidates(
     profile: PlanningProfile,
     bundle: CatalogueBundle,
     *,
     current: Mapping[str, str],
     slot: str,
-    week_id: str,
-    start_date: date,
-    exclude_combination_ids: Iterable[str] = (),
-    scorer: SequenceScorer | None = None,
-    limits: WeeklySearchLimits | None = None,
-    clock: Callable[[], float] = monotonic,
-) -> WeekPlan:
-    """Replace one saved slot; every other slot stays LOCKED to its saved option.
-
-    `current` maps all 21 slot IDs to their saved option IDs (`PlannedMeal.option_id`).
-    The new meal is the best-ranked allowed meal for that meal type, not in
-    `exclude_combination_ids` (e.g. earlier replacements the user rejected), whose anchor
-    dish is not yet in the week, else used fewer than MAX_REPEATS_PER_WEEK times. The
-    result is a full revision to store as new."""
-    workflow: _Workflow = "PLANNED_SWAP"
+    exclude_combination_ids: Iterable[str],
+    preference: CravingRequest | None,
+    scorer: SequenceScorer | None,
+) -> _Candidates:
     expected = {slot_id(d, m) for d in range(1, DAYS + 1) for m in MealType}
     if set(current) != expected:
         raise ValueError("current must map all 21 slot IDs (D1_BREAKFAST..D7_DINNER)")
@@ -538,26 +575,168 @@ def substitute_slot(
     meal = MealType(slot.split("_", 1)[1])
     kind = MealType.BREAKFAST if meal is MealType.BREAKFAST else MealType.LUNCH
     used = Counter(c.components[0].dish_id for sid, (c, _) in chosen.items() if sid != slot)
-    old_combo = chosen[slot][0]
-    excluded = {*exclude_combination_ids, old_combo.combination_id}
-    # Prefer a dish not yet in the week, then one used fewer than MAX_REPEATS_PER_WEEK times.
-    replacement = next(
-        (
-            c
-            for repeats in range(MAX_REPEATS_PER_WEEK)
-            for c in by_meal[kind]
-            if c.combination_id not in excluded and used[c.components[0].dish_id] == repeats
-        ),
-        None,
+    excluded = {*exclude_combination_ids, chosen[slot][0].combination_id}
+    pool = [
+        c
+        for c in by_meal[kind]
+        if c.combination_id not in excluded
+        and used[c.components[0].dish_id] < MAX_REPEATS_PER_WEEK
+        and (kind is MealType.BREAKFAST or meal in c.meal_types)
+    ]
+    unknown: tuple[str, ...] = ()
+    unmatched: tuple[FlavorTag, ...] = ()
+    if preference is not None:
+        known = bundle.cuisine_ids
+        unknown = tuple(c for c in preference.cuisine_ids if c not in known)
+        wanted = {known[c] for c in preference.cuisine_ids if c in known}
+        if preference.cuisine_ids and not wanted:
+            pool = []
+        pool = [c for c in pool if _matches(c, bundle, wanted, preference)]
+
+        def flavored(c: MealCombination, tag: FlavorTag) -> bool:
+            return any(_flavored(bundle.dishes[p.dish_id], tag) for p in c.components)
+
+        unmatched = tuple(
+            t for t in preference.flavor_tags if not any(flavored(c, t) for c in pool)
+        )
+        matched = [t for t in preference.flavor_tags if t not in unmatched]
+        pool = [c for c in pool if all(flavored(c, t) for t in matched)]
+    # Prefer a dish not yet in the week, then one used fewer than MAX_REPEATS_PER_WEEK
+    # times; the ranker's order decides within each group (sorted() is stable).
+    pool.sort(key=lambda c: used[c.components[0].dish_id])
+    return _Candidates(
+        chosen=chosen,
+        ranking=ranking,
+        meal=meal,
+        combos=pool,
+        repeats={c.combination_id: used[c.components[0].dish_id] for c in pool},
+        unknown_cuisine_ids=unknown,
+        unmatched_flavor_tags=unmatched,
     )
-    if replacement is None:
+
+
+def suggest_replacements(
+    profile: PlanningProfile,
+    bundle: CatalogueBundle,
+    *,
+    current: Mapping[str, str],
+    slot: str,
+    preference: CravingRequest | None = None,
+    exclude_combination_ids: Iterable[str] = (),
+    scorer: SequenceScorer | None = None,
+    limit: int = 6,
+) -> ReplacementOptions:
+    """Eligible meals the user may pick for one saved slot (section 4.4 steps 1 to 3).
+
+    Retrieval, the stand-in rule screen and the Transformer ranking run here; the options
+    are not yet CSP-verified. The chosen one goes to `substitute_slot`, which re-solves the
+    week with the other 20 slots locked and stores nothing unless it is FEASIBLE."""
+    found = _replacement_candidates(
+        profile,
+        bundle,
+        current=current,
+        slot=slot,
+        exclude_combination_ids=exclude_combination_ids,
+        preference=preference,
+        scorer=scorer,
+    )
+    options = []
+    for rank, combo in enumerate(found.combos[: max(1, limit)], start=1):
+        config = _standard(combo)
+        assert config is not None  # _ranked_meals keeps only measurable meals
+        options.append(
+            ReplacementOption(
+                combination_id=combo.combination_id,
+                rank=rank,
+                cuisines=combo.cuisines,
+                repeats_in_week=found.repeats[combo.combination_id],
+                explanation=explain_meal(
+                    combo, config, bundle.dishes, slot_id=slot, ranking=found.ranking
+                ),
+            )
+        )
+    meal_name = found.meal.value.lower()
+    message = (
+        f"{len(options)} eligible {meal_name} option(s), ranked; the week is checked again "
+        "with the other 20 meals locked before anything is saved."
+        if options
+        else f"No eligible {meal_name} meal matches this request and the rest of the week."
+    )
+    return ReplacementOptions(
+        slot_id=slot,
+        meal_type=found.meal,
+        current_combination_id=found.chosen[slot][0].combination_id,
+        preference=preference,
+        options=tuple(options),
+        unknown_cuisine_ids=found.unknown_cuisine_ids,
+        unmatched_flavor_tags=found.unmatched_flavor_tags,
+        model_version=found.ranking.model_version,
+        fallback_reason=found.ranking.fallback_reason,
+        message=message,
+        safety=safety_verification(profile),
+    )
+
+
+def substitute_slot(
+    profile: PlanningProfile,
+    bundle: CatalogueBundle,
+    *,
+    current: Mapping[str, str],
+    slot: str,
+    week_id: str,
+    start_date: date,
+    exclude_combination_ids: Iterable[str] = (),
+    replacement_combination_id: str | None = None,
+    preference: CravingRequest | None = None,
+    scorer: SequenceScorer | None = None,
+    limits: WeeklySearchLimits | None = None,
+    clock: Callable[[], float] = monotonic,
+) -> WeekPlan:
+    """Replace one saved slot; every other slot stays LOCKED to its saved option.
+
+    `current` maps all 21 slot IDs to their saved option IDs (`PlannedMeal.option_id`).
+    The new meal is `replacement_combination_id` when the user picked one from
+    `suggest_replacements` (it must still be eligible), else the best-ranked eligible meal
+    matching `preference` (if any): allowed for the profile, not in
+    `exclude_combination_ids`, and whose anchor dish the week does not already serve
+    MAX_REPEATS_PER_WEEK times, preferring a dish not yet in the week. The result is a
+    full revision to store as new."""
+    workflow: _Workflow = "PLANNED_SWAP"
+    found = _replacement_candidates(
+        profile,
+        bundle,
+        current=current,
+        slot=slot,
+        exclude_combination_ids=exclude_combination_ids,
+        preference=None if replacement_combination_id else preference,
+        scorer=scorer,
+    )
+    job = _Job(bundle, profile, workflow, week_id, start_date, found.ranking)
+    if replacement_combination_id is not None:
+        replacement = next(
+            (c for c in found.combos if c.combination_id == replacement_combination_id), None
+        )
+        if replacement is None:
+            return _week_plan(
+                job,
+                PlanStatus.INSUFFICIENT_DATA,
+                "The chosen meal is no longer eligible for this slot (profile rules, "
+                "repeats in the week, or a catalogue change). Pick another option.",
+            )
+    elif found.combos:
+        replacement = found.combos[0]
+    else:
+        wish = " matching your request" if preference is not None else ""
         return _week_plan(
-            _Job(bundle, profile, workflow, week_id, start_date, ranking),
+            job,
             PlanStatus.INSUFFICIENT_DATA,
-            f"No allowed {meal.value.lower()} meal left that the week does not already "
-            f"serve {MAX_REPEATS_PER_WEEK} times.",
+            f"No allowed {found.meal.value.lower()} meal{wish} left that the week does not "
+            f"already serve {MAX_REPEATS_PER_WEEK} times.",
         )
     config = _standard(replacement)
     assert config is not None
+    chosen = dict(found.chosen)
     chosen[slot] = (replacement, config)
-    return _solve(bundle, profile, workflow, week_id, start_date, chosen, ranking, limits, clock)
+    return _solve(
+        bundle, profile, workflow, week_id, start_date, chosen, found.ranking, limits, clock
+    )

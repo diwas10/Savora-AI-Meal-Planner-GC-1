@@ -2,7 +2,7 @@
 
 import pytest
 
-from savora_ai.evals.craving_nlu_feasibility import ground
+from savora_ai.core.craving_nlu.grounding import ground
 
 CUISINES = {"THAI": "Thai", "INDIAN": "Indian", "MIDDLE_EASTERN": "Middle Eastern"}
 

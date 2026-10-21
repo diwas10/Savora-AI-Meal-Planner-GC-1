@@ -1,35 +1,124 @@
 {
   "dataset": {
     "path": "apps/ai_system/src/savora_ai/evals/craving_nlu_gold.jsonl",
-    "samples": 125
-  },
-  "promptVersion": "craving-v1",
-  "environment": {
-    "python": "3.14.7",
-    "platform": "Windows"
-  },
-  "templateParser": {
     "samples": 125,
-    "schemaValidityRate": 1.0,
-    "intentAccuracy": 1.0,
-    "slotPrecision": 1.0,
-    "slotRecall": 1.0,
-    "slotMicroF1": 1.0,
-    "clarificationPrecision": 1.0,
-    "clarificationRecall": 1.0,
-    "clarificationF1": 1.0,
-    "latencyP50Ms": 0.146,
-    "latencyP95Ms": 0.298
+    "independentPath": "apps/ai_system/src/savora_ai/evals/data/craving_nlu_feasibility.jsonl",
+    "independentSamples": 58
   },
-  "qwenParser": {
-    "status": "NOT_RUN_NO_API_KEY",
-    "modelId": "Qwen/Qwen2.5-7B-Instruct",
-    "baseUrl": "https://api.openai.com/v1",
-    "decoding": {
-      "temperature": 0.0,
-      "responseFormat": "json_object",
-      "timeoutS": 8.0
+  "promptVersion": "craving-v2",
+  "qwen": {
+    "status": "MEASURED",
+    "provider": "ollama",
+    "modelId": "qwen3:0.6b",
+    "endpoint": "http://localhost:11434",
+    "decoding": "schema-constrained (CravingRequest), think off, temperature 0, seed 7, max 200 tokens, 8 s timeout; ground() before validation"
+  },
+  "environment": {
+    "python": "3.14.8",
+    "platform": "Darwin arm64"
+  },
+  "results": {
+    "gold": {
+      "samples": 125,
+      "template": {
+        "samples": 125,
+        "schemaValidityRate": 1.0,
+        "intentAccuracy": 1.0,
+        "slotPrecision": 1.0,
+        "slotRecall": 1.0,
+        "slotMicroF1": 1.0,
+        "clarificationPrecision": 1.0,
+        "clarificationRecall": 1.0,
+        "clarificationF1": 1.0,
+        "exactMatch": 1.0,
+        "fallbackRate": 0.0,
+        "fallbackReasons": {},
+        "latencyP50Ms": 0.167,
+        "latencyP95Ms": 0.236
+      },
+      "qwen": {
+        "samples": 125,
+        "schemaValidityRate": 1.0,
+        "intentAccuracy": 0.984,
+        "slotPrecision": 0.9359,
+        "slotRecall": 0.7711,
+        "slotMicroF1": 0.8455,
+        "clarificationPrecision": 0.6552,
+        "clarificationRecall": 0.7917,
+        "clarificationF1": 0.717,
+        "exactMatch": 0.52,
+        "fallbackRate": 0.0,
+        "fallbackReasons": {},
+        "latencyP50Ms": 377.456,
+        "latencyP95Ms": 449.572
+      },
+      "hybrid": {
+        "samples": 125,
+        "schemaValidityRate": 1.0,
+        "intentAccuracy": 1.0,
+        "slotPrecision": 0.9498,
+        "slotRecall": 1.0,
+        "slotMicroF1": 0.9743,
+        "clarificationPrecision": 1.0,
+        "clarificationRecall": 1.0,
+        "clarificationF1": 1.0,
+        "exactMatch": 0.896,
+        "fallbackRate": 0.0,
+        "fallbackReasons": {},
+        "latencyP50Ms": 401.001,
+        "latencyP95Ms": 476.59
+      }
     },
-    "metrics": null
+    "independent": {
+      "samples": 58,
+      "template": {
+        "samples": 58,
+        "schemaValidityRate": 1.0,
+        "intentAccuracy": 1.0,
+        "slotPrecision": 0.9868,
+        "slotRecall": 0.8929,
+        "slotMicroF1": 0.9375,
+        "clarificationPrecision": 0.5385,
+        "clarificationRecall": 1.0,
+        "clarificationF1": 0.7,
+        "exactMatch": 0.8448,
+        "fallbackRate": 0.0,
+        "fallbackReasons": {},
+        "latencyP50Ms": 0.136,
+        "latencyP95Ms": 0.256
+      },
+      "qwen": {
+        "samples": 58,
+        "schemaValidityRate": 1.0,
+        "intentAccuracy": 0.9828,
+        "slotPrecision": 0.9855,
+        "slotRecall": 0.8095,
+        "slotMicroF1": 0.8889,
+        "clarificationPrecision": 0.5,
+        "clarificationRecall": 1.0,
+        "clarificationF1": 0.6667,
+        "exactMatch": 0.6379,
+        "fallbackRate": 0.0,
+        "fallbackReasons": {},
+        "latencyP50Ms": 363.423,
+        "latencyP95Ms": 490.775
+      },
+      "hybrid": {
+        "samples": 58,
+        "schemaValidityRate": 1.0,
+        "intentAccuracy": 1.0,
+        "slotPrecision": 0.9756,
+        "slotRecall": 0.9524,
+        "slotMicroF1": 0.9639,
+        "clarificationPrecision": 0.875,
+        "clarificationRecall": 1.0,
+        "clarificationF1": 0.9333,
+        "exactMatch": 0.931,
+        "fallbackRate": 0.0,
+        "fallbackReasons": {},
+        "latencyP50Ms": 365.106,
+        "latencyP95Ms": 508.599
+      }
+    }
   }
 }

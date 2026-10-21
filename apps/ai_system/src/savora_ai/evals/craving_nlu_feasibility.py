@@ -26,7 +26,6 @@ Usage (from the repo root, Ollama running, models pulled):
 
 import argparse
 import json
-import re
 import statistics
 import time
 import urllib.request
@@ -35,6 +34,7 @@ from typing import Any
 
 from pydantic import ValidationError
 
+from savora_ai.core.craving_nlu.grounding import ground, norm_ingredient
 from savora_ai.core.pipelines.catalogue import load_catalogue_export
 from savora_ai.schemas.craving import CravingRequest
 
@@ -47,94 +47,14 @@ MAX_TOKENS = 200  # a valid answer is under 100 tokens; a runaway generation is 
 SLOT_FIELDS = ("cuisineIds", "flavorTags", "excludedIngredientIds", "mealSlotId")
 
 
-def _norm(value: str) -> str:
-    """Compare ingredient IDs singular/plural-insensitively: EGG == EGGS."""
-    return value.removesuffix("ES") if value.endswith("OES") else value.removesuffix("S")
-
-
 def slots(body: dict[str, Any]) -> set[tuple[str, str]]:
     pairs: set[tuple[str, str]] = set()
     for field in SLOT_FIELDS:
         value = body.get(field)
         values = value if isinstance(value, list) else [] if value is None else [value]
         for v in values:
-            pairs.add((field, _norm(v) if field == "excludedIngredientIds" else v))
+            pairs.add((field, norm_ingredient(v) if field == "excludedIngredientIds" else v))
     return pairs
-
-
-FLAVOR_WORDS = {
-    "SPICY": ("spicy", "spice", "hot", "chili", "chilli", "fiery", "szechuan", "sichuan"),
-    "SWEET": ("sweet", "dessert", "sugary"),
-    "SOUR": ("sour", "tangy", "tart"),
-    "SMOKY": ("smoky", "smoked", "smokey", "bbq", "barbecue"),
-    "CREAMY": ("creamy", "cream"),
-}
-DAYS = ("monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday")
-NEGATION = re.compile(r"\b(no|without|not|don t|dont|except|free of|minus)\b")
-
-
-def _words(text: str) -> list[str]:
-    return re.findall(r"[a-z0-9]+", text.lower())
-
-
-def _near(a: str, b: str) -> bool:
-    """Equal, or one edit apart for words of 4+ letters (thia ~ thai, chineese ~ chinese)."""
-    if a == b:
-        return True
-    if min(len(a), len(b)) < 4 or abs(len(a) - len(b)) > 1:
-        return False
-    if len(a) == len(b):
-        diff = [i for i in range(len(a)) if a[i] != b[i]]
-        return len(diff) == 1 or (
-            len(diff) == 2 and a[diff[0]] == b[diff[1]] and a[diff[1]] == b[diff[0]]
-        )
-    short, long = sorted((a, b), key=len)
-    return any(long[:i] + long[i + 1 :] == short for i in range(len(long)))
-
-
-def ground(text: str, body: dict[str, Any], cuisines: dict[str, str]) -> dict[str, Any]:
-    """Keep only what the message supports. Deterministic; never adds a value."""
-    words = _words(text)
-    lowered = " ".join(words)
-    if not isinstance(body, dict):
-        raise ValueError("the answer is not a JSON object")
-    out = dict(body)
-    named = {
-        cid
-        for cid, name in cuisines.items()
-        if all(any(_near(w, part) for w in words) for part in _words(name))
-    }
-    # A cuisine word in the text wins; otherwise one dish-implied cuisine may stay.
-    model_cuisines = [c for c in body.get("cuisineIds", []) if c in cuisines]
-    out["cuisineIds"] = (
-        [c for c in model_cuisines if c in named] or sorted(named) if named else model_cuisines[:1]
-    )
-    out["flavorTags"] = [
-        tag
-        for tag in body.get("flavorTags", [])
-        if any(w in FLAVOR_WORDS[tag] for w in words)
-        and not re.search(rf"not (too |very )?({'|'.join(FLAVOR_WORDS[tag])})", lowered)
-    ]
-    negated = NEGATION.search(lowered)
-    after = lowered[negated.start() :] if negated else ""
-    out["excludedIngredientIds"] = [
-        x for x in body.get("excludedIngredientIds", []) if after and _norm(x).lower() in after
-    ]
-    # The slot is read from the words when they name it (weekday or "day N", and a meal);
-    # the model's guess is never kept without them.
-    meal = next((m for m in ("breakfast", "lunch", "dinner") if m in words), None)
-    day = next((i + 1 for i, d in enumerate(DAYS) if d in lowered), None)
-    number = re.search(r"\b(?:day ?|d)([1-7])\b", lowered)
-    day = int(number.group(1)) if number else day
-    slot = None
-    if body.get("intent") == "SWAP_MEAL" and meal and day:
-        slot = f"D{day}_{meal.upper()}"
-    out["mealSlotId"] = slot
-    clarify = bool(body.get("requiresClarification"))
-    if "allerg" in lowered or (body.get("intent") == "SWAP_MEAL" and slot is None):
-        clarify = True
-    out["requiresClarification"] = clarify
-    return out
 
 
 def ask(model: str, system: str, text: str, constrained: bool) -> tuple[str, float]:

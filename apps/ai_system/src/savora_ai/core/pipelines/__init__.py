@@ -3,6 +3,8 @@
     load_catalogue_export(Path("Data/catalogue"))      startup: catalogue + popularity
     recommend_for_craving(request, profile, bundle)    section 4.3, no composer / CSP
     plan_week(profile, bundle, week_id=, start_date=)  section 4.2, 21 slots via weekly CSP
+    suggest_replacements(profile, bundle, current=, slot=, preference=)
+                                                       section 4.4: ranked, rule-screened options
     substitute_slot(profile, bundle, current=, slot=)  section 4.4, other slots locked
     suggest_seeds / confirm_seeds / revalidate_seeds   ADR 0005 onboarding seed dishes
 
@@ -21,9 +23,12 @@ from savora_ai.core.pipelines.onboarding import confirm_seeds, revalidate_seeds,
 from savora_ai.core.pipelines.planning import (
     PlannedMeal,
     PlanStatus,
+    ReplacementOption,
+    ReplacementOptions,
     WeekPlan,
     plan_week,
     substitute_slot,
+    suggest_replacements,
 )
 from savora_ai.core.pipelines.profile import (
     DietPattern,
@@ -39,6 +44,8 @@ __all__ = [
     "PlanStatus",
     "PlannedMeal",
     "PlanningProfile",
+    "ReplacementOption",
+    "ReplacementOptions",
     "SafetyVerification",
     "WeekPlan",
     "confirm_seeds",
@@ -48,5 +55,6 @@ __all__ = [
     "recommend_for_craving",
     "revalidate_seeds",
     "substitute_slot",
+    "suggest_replacements",
     "suggest_seeds",
 ]

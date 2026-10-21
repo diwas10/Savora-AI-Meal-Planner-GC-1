@@ -18,25 +18,42 @@ import httpx
 from pydantic import BaseModel, ConfigDict, ValidationError
 from pydantic.alias_generators import to_camel
 
-from savora_ai.providers.qwen import FakeQwenClient, HttpxQwenClient, QwenClient
+from savora_ai.core.craving_nlu.grounding import ground
+from savora_ai.providers.qwen import (
+    FakeQwenClient,
+    OllamaQwenClient,
+    OpenAICompatibleQwenClient,
+    QwenClient,
+    build_qwen_client,
+)
 from savora_ai.schemas.craving import CravingIntent, CravingRequest, FlavorTag
 
 logger = logging.getLogger(__name__)
 
-PROMPT_VERSION = "craving-v1"
-PROMPT_PATH = Path(__file__).resolve().parents[2] / "prompts" / "craving_v1.md"
+PROMPT_VERSION = "craving-v2"
+PROMPT_PATH = Path(__file__).resolve().parents[2] / "prompts" / "craving_v2.md"
 
+# The 19 target cuisines of the catalogue; the backend passes `bundle.cuisine_ids`.
 DEFAULT_CUISINE_IDS: dict[str, str] = {
     "AMERICAN": "American",
+    "CARIBBEAN": "Caribbean",
     "CHINESE": "Chinese",
+    "FILIPINO": "Filipino",
+    "FRENCH": "French",
+    "GREEK": "Greek",
     "INDIAN": "Indian",
+    "INDONESIAN": "Indonesian",
     "ITALIAN": "Italian",
     "JAPANESE": "Japanese",
+    "KOREAN": "Korean",
+    "MALAYSIAN": "Malaysian",
     "MEXICAN": "Mexican",
     "MIDDLE_EASTERN": "Middle Eastern",
+    "MOROCCAN": "Moroccan",
     "NEPALI": "Nepali",
     "SPANISH": "Spanish",
     "THAI": "Thai",
+    "VIETNAMESE": "Vietnamese",
 }
 
 CUISINE_LEXICON: dict[str, str] = {
@@ -296,7 +313,7 @@ class CravingParse(BaseModel):
     )
 
     request: CravingRequest
-    parser: Literal["TEMPLATE", "QWEN"]
+    parser: Literal["TEMPLATE", "QWEN", "HYBRID"]
     prompt_version: str
     latency_ms: float
     clarification: str | None = None
@@ -391,9 +408,7 @@ def _normalize_ingredient_candidate(raw: str) -> list[str]:
             continue
         # Check if any known alias phrase appears inside token
         matched_alias = False
-        for phrase, canonical in sorted(
-            INGREDIENT_ALIASES.items(), key=lambda item: -len(item[0])
-        ):
+        for phrase, canonical in sorted(INGREDIENT_ALIASES.items(), key=lambda item: -len(item[0])):
             if re.search(rf"(?<!\w){re.escape(phrase)}(?!\w)", token):
                 if canonical not in results:
                     results.append(canonical)
@@ -532,110 +547,148 @@ class TemplateParser:
         )
 
 
-def load_prompt_text() -> str:
-    base = PROMPT_PATH.read_text(encoding="utf-8")
-    schema_json = json.dumps(CravingRequest.model_json_schema(by_alias=True), indent=2)
-    return f"{base}\n\n## JSON Schema\n{schema_json}\n"
+def load_prompt_text(cuisine_ids: Mapping[str, str] | None = None) -> str:
+    """The versioned system prompt, listing the catalogue's canonical cuisine IDs."""
+    ids = cuisine_ids or DEFAULT_CUISINE_IDS
+    return PROMPT_PATH.read_text(encoding="utf-8").format(cuisine_ids=", ".join(sorted(ids)))
+
+
+SWAP_SLOT_QUESTION = (
+    "Which saved meal would you like to swap? Name the day and the meal, for example "
+    "'Tuesday lunch'."
+)
+NARROW_QUESTION = (
+    "What are you in the mood for? Try a cuisine (Nepali, Thai, Korean...), a flavor "
+    "(spicy, sweet, sour, smoky, creamy) or something to leave out."
+)
 
 
 class QwenParser:
-    """Qwen NLU parser with strict `CravingRequest.model_validate_json` and template fallback."""
+    """Local Qwen with schema-constrained decoding, grounding, strict validation, fallback.
+
+    Order (spec section 2 item 4): constrained decode -> `ground()` -> strict
+    `CravingRequest` validation. Any failure falls back to the template parser and the
+    reason is recorded: QWEN_UNCONFIGURED, QWEN_UNAVAILABLE (Ollama not reachable),
+    QWEN_TIMEOUT, QWEN_INVALID_SCHEMA or QWEN_ERROR.
+
+    With `merge_with_template` (the default) the grounded answer is merged with the
+    deterministic template parse and labelled HYBRID: slots are the union of both,
+    intent follows the swap words, and clarification is asked only when nothing was
+    extracted, on an allergy mention, or for a swap without a slot. Measured on the
+    independent set (`docs/reports/craving_nlu_report.md`) it beats both parsers alone.
+    """
 
     def __init__(
         self,
         client: QwenClient | None,
         *,
-        model: str = "Qwen/Qwen2.5-7B-Instruct",
+        model: str = "qwen3:0.6b",
         timeout_s: float = 8.0,
+        cuisine_ids: Mapping[str, str] | None = None,
         template_fallback: TemplateParser | None = None,
+        merge_with_template: bool = True,
     ) -> None:
         self._client = client
+        self._merge = merge_with_template
         self._model = model
         self._timeout_s = timeout_s
-        self._fallback = template_fallback or TemplateParser()
-        self._system_prompt = load_prompt_text()
+        self._cuisine_ids = dict(cuisine_ids or DEFAULT_CUISINE_IDS)
+        self._fallback = template_fallback or TemplateParser(self._cuisine_ids)
+        self._system_prompt = load_prompt_text(self._cuisine_ids)
+        self._schema = CravingRequest.model_json_schema(by_alias=True)
+
+    def _fallback_parse(self, text: str, started: float, reason: str) -> CravingParse:
+        return self._fallback.parse(text).model_copy(
+            update={
+                "latency_ms": round((perf_counter() - started) * 1000, 3),
+                "fallback_reason": reason,
+            }
+        )
 
     def parse(self, text: str) -> CravingParse:
         started = perf_counter()
         cleaned = " ".join(str(text).strip().split())
-        if not cleaned:
+        # Empty input and allergy mentions never go to the model (allergies come only
+        # from the confirmed profile; the template parser asks the user to update it).
+        if not cleaned or _ALLERGY_RE.search(cleaned):
             return self._fallback.parse(text)
-
-        # Safety invariant: allergy mentions in free text must NEVER trust model exclusions
-        if _ALLERGY_RE.search(cleaned):
-            return self._fallback.parse(text)
-
-        if self._client is None or (
-            isinstance(self._client, HttpxQwenClient) and not self._client.is_configured
-        ):
-            fb = self._fallback.parse(text)
-            return fb.model_copy(update={"fallback_reason": "QWEN_UNCONFIGURED"})
-
+        if self._client is None:
+            return self._fallback_parse(text, started, "QWEN_UNCONFIGURED")
         try:
             raw_output = self._client.complete(
                 system_prompt=self._system_prompt,
                 user_text=cleaned,
                 model=self._model,
                 timeout_s=self._timeout_s,
+                json_schema=self._schema,
             )
-            request = CravingRequest.model_validate_json(raw_output.strip())
-        except TimeoutError as exc:
+            answer = json.loads(raw_output.strip())
+            if not isinstance(answer, dict):
+                raise ValueError("the answer is not a JSON object")
+            # 1. Strict schema check (enums, canonical IDs, no extra keys). Only the
+            #    "SWAP_MEAL needs a slot" rule is relaxed here, so grounding can turn a
+            #    swap without a slot into a clarification instead of discarding it.
+            CravingRequest.model_validate_json(
+                json.dumps({**answer, "requiresClarification": True})
+            )
+            # 2. Keep only what the user's words support; 3. strict validation again.
+            grounded = ground(cleaned, answer, self._cuisine_ids)
+            request = CravingRequest.model_validate_json(json.dumps(grounded))
+        except (TimeoutError, httpx.TimeoutException) as exc:
             logger.warning("Qwen NLU timed out after %ss: %s", self._timeout_s, exc)
-            fb = self._fallback.parse(text)
-            return fb.model_copy(
-                update={
-                    "latency_ms": round((perf_counter() - started) * 1000, 3),
-                    "fallback_reason": "QWEN_TIMEOUT",
-                }
-            )
-        except httpx.TimeoutException as exc:
-            logger.warning("Qwen HTTP request timed out: %s", exc)
-            fb = self._fallback.parse(text)
-            return fb.model_copy(
-                update={
-                    "latency_ms": round((perf_counter() - started) * 1000, 3),
-                    "fallback_reason": "QWEN_TIMEOUT",
-                }
-            )
-        except ValidationError as exc:
-            logger.warning("Qwen NLU output failed schema validation: %s", exc)
-            fb = self._fallback.parse(text)
-            return fb.model_copy(
-                update={
-                    "latency_ms": round((perf_counter() - started) * 1000, 3),
-                    "fallback_reason": "QWEN_INVALID_SCHEMA",
-                }
-            )
+            return self._fallback_parse(text, started, "QWEN_TIMEOUT")
+        except httpx.TransportError as exc:
+            logger.warning("Qwen endpoint unreachable: %s", exc)
+            return self._fallback_parse(text, started, "QWEN_UNAVAILABLE")
+        except (ValidationError, ValueError, TypeError, AttributeError) as exc:
+            logger.warning("Qwen NLU output rejected: %s", exc)
+            return self._fallback_parse(text, started, "QWEN_INVALID_SCHEMA")
         except Exception as exc:
             logger.warning("Qwen NLU call failed (%s): %s", type(exc).__name__, exc)
-            fb = self._fallback.parse(text)
-            return fb.model_copy(
-                update={
-                    "latency_ms": round((perf_counter() - started) * 1000, 3),
-                    "fallback_reason": "QWEN_ERROR",
-                }
-            )
+            return self._fallback_parse(text, started, "QWEN_ERROR")
 
+        parser: Literal["QWEN", "HYBRID"] = "QWEN"
+        if self._merge:
+            request = _merge(request, self._fallback.parse(text).request)
+            parser = "HYBRID"
         clarification: str | None = None
         if request.requires_clarification:
-            if request.intent is CravingIntent.SWAP_MEAL and request.meal_slot_id is None:
-                clarification = (
-                    "Which saved meal slot would you like to swap? Please specify both the "
-                    "day and meal (for example, 'Tuesday lunch' or 'D2_LUNCH')."
-                )
-            else:
-                clarification = (
-                    "Could you share a cuisine (like Indian, Chinese, Nepali, Thai) or "
-                    "a flavor tag (spicy, sweet, sour, smoky, creamy) to narrow down recipes?"
-                )
-
+            swap_without_slot = (
+                request.intent is CravingIntent.SWAP_MEAL and request.meal_slot_id is None
+            )
+            clarification = SWAP_SLOT_QUESTION if swap_without_slot else NARROW_QUESTION
         return CravingParse(
             request=request,
-            parser="QWEN",
+            parser=parser,
             prompt_version=PROMPT_VERSION,
             latency_ms=round((perf_counter() - started) * 1000, 3),
             clarification=clarification,
         )
+
+
+def _union[T](*groups: tuple[T, ...]) -> tuple[T, ...]:
+    return tuple(dict.fromkeys(v for group in groups for v in group))
+
+
+def _merge(model: CravingRequest, template: CravingRequest) -> CravingRequest:
+    """Grounded model answer + deterministic template parse (both only use the text)."""
+    cuisines = _union(model.cuisine_ids, template.cuisine_ids)[:10]
+    flavors = _union(model.flavor_tags, template.flavor_tags)
+    exclusions = _union(template.excluded_ingredient_ids, model.excluded_ingredient_ids)[:10]
+    intent = template.intent  # swap words decide, as in ground()
+    slot = template.meal_slot_id or model.meal_slot_id
+    nothing = not (cuisines or flavors or exclusions)
+    clarify = (template.requires_clarification and nothing) or (
+        intent is CravingIntent.SWAP_MEAL and slot is None
+    )
+    return CravingRequest(
+        intent=intent,
+        cuisine_ids=cuisines,
+        flavor_tags=flavors,
+        excluded_ingredient_ids=exclusions,
+        meal_slot_id=slot,
+        requires_clarification=clarify,
+    )
 
 
 def parse_craving(
@@ -652,13 +705,17 @@ __all__ = [
     "DEFAULT_CUISINE_IDS",
     "INGREDIENT_ALIASES",
     "PROMPT_VERSION",
+    "SWAP_SLOT_QUESTION",
     "CravingParse",
     "CravingParser",
     "FakeQwenClient",
-    "HttpxQwenClient",
+    "OllamaQwenClient",
+    "OpenAICompatibleQwenClient",
     "QwenClient",
     "QwenParser",
     "TemplateParser",
+    "build_qwen_client",
+    "ground",
     "load_prompt_text",
     "parse_craving",
 ]
