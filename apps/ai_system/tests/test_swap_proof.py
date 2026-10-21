@@ -8,7 +8,7 @@ from swap_oracle import arguments, different_saved_plan, literal_swap_cost, make
 from test_planned_swap_contracts import rebuild
 from test_swap_proof_contracts import limits
 
-from savora_ai.core.reasoning import swap_checks
+from savora_ai.core.reasoning import swap_checks, swap_validation
 from savora_ai.core.reasoning.planned_swap import validate_swap, verify_swap_validation
 from savora_ai.schemas import planned_swap as s
 from savora_ai.schemas.candidates import validate_contract_json
@@ -249,6 +249,7 @@ def test_checker_forbidden_executor_and_optimized_calls(case, verified, monkeypa
         raise AssertionError("checker invoked an execution/optimized entry point")
 
     monkeypatch.setattr(planned_swap, "validate_swap", forbidden)
+    monkeypatch.setattr(swap_validation, "validate_swap", forbidden)
     monkeypatch.setattr(swap_checks, "_execute_phase", forbidden)
     for module in (weekly_incremental, weekly_search_v2):
         for name in vars(module):
@@ -470,7 +471,7 @@ def test_full_result_encoded_byte_boundary_and_certificate_distinction(case, ver
 def test_unrelated_or_mixed_validation_errors_are_not_timeouts(
     case, verified, monkeypatch, mixed, side
 ):
-    from savora_ai.core.reasoning import planned_swap, swap_proof
+    from savora_ai.core.reasoning import swap_proof
 
     errors: Any = [
         {
@@ -495,7 +496,7 @@ def test_unrelated_or_mixed_validation_errors_are_not_timeouts(
         raise ValidationError.from_exception_data("InjectedOutputFailure", errors)
 
     if side == "executor":
-        monkeypatch.setattr(planned_swap, "ComputedSwapCertificate", fail)
+        monkeypatch.setattr(swap_validation, "ComputedSwapCertificate", fail)
     else:
         monkeypatch.setattr(swap_proof, "SwapPhaseAssessment", fail)
     with pytest.raises(ValidationError, match="unrelated output validation"):

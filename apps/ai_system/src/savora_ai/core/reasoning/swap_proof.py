@@ -6,15 +6,16 @@ assessments are shared; traversal, source selection, verdict and plan assembly
 are reconstructed here from separately supplied roots.
 """
 
+from __future__ import annotations
+
 import hashlib
 from collections.abc import Callable
 from time import monotonic
-from typing import Literal
+from typing import Literal, Self
 
-from pydantic import ValidationError
+from pydantic import ValidationError, ValidationInfo, model_validator
 
 from savora_ai.core.reasoning.day_checks import _slot_status
-from savora_ai.core.reasoning.planned_swap import _ref
 from savora_ai.core.reasoning.swap_checks import (
     _admit,
     _aggregate_cost,
@@ -28,6 +29,7 @@ from savora_ai.core.reasoning.swap_checks import (
     _option_cost,
     _schedule,
 )
+from savora_ai.core.reasoning.swap_material import _ref
 from savora_ai.schemas.candidates import CandidateRecipeFacts, RuleContext, _content_digest
 from savora_ai.schemas.daily import MealOptionReference
 from savora_ai.schemas.knowledge_base import KnowledgeBaseSnapshot
@@ -49,11 +51,9 @@ from savora_ai.schemas.planned_swap import (
     _selection_digest,
 )
 from savora_ai.schemas.reasoning import RuleStatus
-from savora_ai.schemas.swap_proof import (
+from savora_ai.schemas.swap_proof_types import (
     ComputedSwapCertificate,
     ComputedSwapSelectionCertificate,
-    ComputedSwapSelectionResult,
-    ComputedSwapValidationResult,
     SwapOutcome,
     SwapPhaseAssessment,
     SwapProofCheck,
@@ -380,7 +380,7 @@ def _check_selection_claim(
     Nested visits use the independent B1 replay, not validate_swap or its executor.
     """
     from savora_ai.core.reasoning.combinations import evaluate_combination
-    from savora_ai.core.reasoning.swap_selection import (
+    from savora_ai.core.reasoning.swap_selection_material import (
         _hard_cost,
         _header,
         _nested,
@@ -700,3 +700,44 @@ def verify_swap_selection(
         limits=limits,
         clock=clock,
     )
+
+
+class ComputedSwapValidationResult(_SwapClaim):
+    """Affirmative construction requires fresh replay against supplied authority.
+
+    Wire claims must be checked with verify_swap_validation and independently
+    loaded roots. A digest, model_copy, historical stamp or caller boolean is
+    never authority. Context carries roots, not a precomputed PASS token.
+    """
+
+    @model_validator(mode="after")
+    def independently_checked(self, info: ValidationInfo) -> Self:
+        if self.outcome is SwapOutcome.TIMEOUT:
+            return self
+        if not info.context or "authority" not in info.context:
+            raise ValueError("computed swap verdict requires independent authority replay")
+        check = _check_claim(self, **info.context["authority"], clock=info.context["clock"])
+        if not check.accepted:
+            if not check.complete:
+                if check.reason not in ("RESERVATION", "DEADLINE"):
+                    raise ValueError("unexpected incomplete checker result")
+                raise _Interrupted(check.reason, check.actual_verification)
+            raise ValueError("independent swap proof reconstruction failed")
+        return self
+
+
+class ComputedSwapSelectionResult(_SwapSelectionClaim):
+    @model_validator(mode="after")
+    def independently_checked_selection(self, info: ValidationInfo) -> Self:
+        if self.outcome is SwapOutcome.TIMEOUT:
+            return self
+        if not info.context or "authority" not in info.context:
+            raise ValueError("computed selection requires independent authority replay")
+        report = _check_selection_claim(
+            self, **info.context["authority"], clock=info.context["clock"]
+        )
+        if not report.accepted:
+            if not report.complete and report.reason in ("RESERVATION", "DEADLINE"):
+                raise _Interrupted(report.reason, report.actual_verification)
+            raise ValueError("independent selection proof reconstruction failed")
+        return self

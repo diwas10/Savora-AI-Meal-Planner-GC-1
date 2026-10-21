@@ -21,7 +21,7 @@ from savora_ai.core.reasoning.day_checks import _slot_status
 from savora_ai.core.reasoning.evaluation import _applicability, _observation, _predicate
 from savora_ai.core.reasoning.facts import _validated_fact_index
 from savora_ai.core.reasoning.manifest import _descriptors_for, _mandatory_checks
-from savora_ai.core.reasoning.planned_swap import _ref, _SwapInputs
+from savora_ai.core.reasoning.swap_material import _ref, _SwapInputs
 from savora_ai.schemas.candidates import CandidateRecipeFacts, RuleContext, _content_digest
 from savora_ai.schemas.combination_evaluation import _combine_statuses
 from savora_ai.schemas.daily import DailyMealOption, MealOptionReference
@@ -43,7 +43,7 @@ from savora_ai.schemas.reasoning import (
     RuleTrace,
     aggregate_hard_status,
 )
-from savora_ai.schemas.swap_proof import (
+from savora_ai.schemas.swap_proof_types import (
     SwapAggregateAssessment,
     SwapOperation,
     SwapOperationReservation,
