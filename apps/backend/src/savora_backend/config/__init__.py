@@ -17,7 +17,7 @@ class Settings(BaseSettings):
     )
 
     database_url: str = Field(
-        default="postgresql+asyncpg://postgres:postgres@localhost:5432/postgres"
+        default="postgresql+asyncpg://postgres:<YOUR-DB-PASSWORD>@localhost:5432/postgres"
     )
     jwt_secret_key: str = Field(default="dev-secret-key-change-in-production-32bytes")
     jwt_algorithm: str = Field(default="HS256")

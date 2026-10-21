@@ -8,6 +8,7 @@ import json
 import os
 import platform
 import statistics
+import sys
 from pathlib import Path
 from typing import Any
 
@@ -252,7 +253,7 @@ def run_evaluation(
 
 def main() -> None:
     summary = run_evaluation()
-    print(json.dumps(summary, indent=2))
+    sys.stdout.write(json.dumps(summary, indent=2) + "\n")
 
 
 if __name__ == "__main__":
