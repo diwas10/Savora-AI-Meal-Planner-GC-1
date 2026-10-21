@@ -904,3 +904,37 @@ HEAD/index remain unchanged and no files were staged. Local/cached main refs do 
 confirm that Phase 1 PR #5 has merged. Any later reconciliation must use the approved
 main state and transfer only the eventual Phase 2 work, without replaying Phase 1
 history; fetching or changing Git history requires a separate instruction.
+
+## Phase 7.3b authorized synthetic workflow-policy extension
+
+The original Phase 2 equality policy remains the unchanged default
+`synthetic-workflow-scopes.v1`. Its accepted cases, omissions, complete twelve-cell
+coverage and historical hashes remain mandatory compatibility gates.
+
+The separately authorized opt-in
+`synthetic-workflow-scopes.v2-registered-swap` adds one closed, code-owned
+registration: `synthetic-swap-week-quantity-cap`, version1, WEEK scope,
+PLANNED_SWAP only. Its complete approved RuleDefinition digest is
+`0b9d9ead8206504f86f2385550184b743fdf398a38e10bb0c7c59a2bdca9de5d`.
+The immutable registration includes exact identity/version/scope/workflows and
+full definition digest. The fictional integer cap44 mg has no nutrition or
+clinical meaning and cannot enable production serving.
+
+V2 independently derives each catalogue cell as all unregistered ACTIVE ABSOLUTE
+rules of its scope plus exact registered extensions assigned to that workflow.
+Exact equality and every existing release, graph, taxonomy, applicability,
+evidence and complete-coverage check remain. Missing or changed registered rules
+reject; unregistered names/prefixes remain common mandatory rules. V1 does not
+use the registry, even when the same rule identity is present in a v1 release.
+
+Only the existing KB/context/recipe-manifest policy fields accept the new exact
+token. Recipe manifests explicitly receive the accepted KB policy. There is no
+new public signature, serialized field, arbitrary registry argument, exclusion
+callback or default migration. Existing v1 hashes and weekly proof protocols
+retain their original bindings. A token or rehashed release is not authority;
+trusted release selection remains the loader's responsibility.
+
+See [the policy ADR](adr_member2_workflow_rule_inventory_v2.md) for the exact
+decision, security tests, frozen compatibility evidence and final verification.
+This extension does not complete the draft swap executor/proof work or authorize
+Phase 7.3c.

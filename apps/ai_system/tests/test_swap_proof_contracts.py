@@ -275,15 +275,21 @@ def test_ordered_events_and_cross_protocol_attack(case, attack):
         p.SwapValidationCertificate.model_validate(data)
 
 
-def test_computed_apis_absent():
+def test_computed_apis_are_disjoint_from_declarations():
     from savora_ai.core.reasoning import planned_swap
 
     for name in (
-        "validate_swap",
-        "verify_swap_validation",
         "select_swap_replacement",
         "verify_swap_selection",
     ):
-        assert not hasattr(planned_swap, name)
-    for name in ("ComputedSwapValidationResult", "ComputedSwapSelectionResult"):
+        assert callable(getattr(planned_swap, name))
+    for name in ("ComputedSwapSelectionResult",):
         assert not hasattr(s, name)
+    assert callable(planned_swap.validate_swap)
+    assert callable(planned_swap.verify_swap_validation)
+    assert p.ComputedSwapValidationResult.model_fields["schema_version"].default != (
+        p.SwapValidationDeclaration.model_fields["schema_version"].default
+    )
+    assert p.ComputedSwapSelectionResult.model_fields["schema_version"].default != (
+        p.SwapSelectionDeclaration.model_fields["schema_version"].default
+    )

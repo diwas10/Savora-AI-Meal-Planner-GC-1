@@ -5,10 +5,12 @@ Original WEEKLY_PLAN payloads remain immutable; projections are declarations tha
 must match separately selected PLANNED_SWAP material. No predicate executes here.
 """
 
+import hashlib
+import json
 from enum import StrEnum
-from typing import Annotated, Literal, Self, get_args, get_origin
+from typing import Annotated, Any, Literal, Self, get_args, get_origin
 
-from pydantic import Field, model_validator
+from pydantic import Field, TypeAdapter, model_validator
 
 from savora_ai.core.reasoning.kb import build_knowledge_snapshot
 from savora_ai.core.reasoning.manifest import _KnowledgeContextRequest, _mandatory_checks
@@ -57,6 +59,23 @@ from savora_ai.schemas.weekly import (
 Revision = Annotated[int, Field(ge=1, le=1_000_000)]
 Count = Annotated[int, Field(ge=0, le=1_000_000)]
 ByteCount = Annotated[int, Field(ge=0, le=1_048_576)]
+
+
+class SwapBoundaryError(ValueError):
+    """Conflicting independent authority, distinct from a semantic verdict."""
+
+    def __init__(self, code: str, message: str):
+        if code not in {
+            "PIN_MISMATCH",
+            "STALE_PLAN",
+            "STALE_LOCKS",
+            "UNSUPPORTED_PROTOCOL",
+            "INCOMPATIBLE_RELEASE",
+            "INVALID_BRIDGE",
+        }:
+            raise ValueError("unsupported swap boundary code")
+        self.code = code
+        super().__init__(code + ": " + message)
 
 
 class _SwapModel(_DailyModel):
@@ -576,8 +595,35 @@ class _RankingContent(_SwapModel):
         return self
 
 
+def _selection_digest(value: object) -> str:
+    data = TypeAdapter(Any).dump_python(value, mode="json", by_alias=True)
+    raw = json.dumps(
+        _canonical_content(data),
+        sort_keys=True,
+        ensure_ascii=True,
+        allow_nan=False,
+        separators=(",", ":"),
+    )
+    return hashlib.sha256(raw.encode()).hexdigest()
+
+
 class SyntheticSwapRanking(_RankingContent, _SwapSnapshot):
     _body_type = _RankingContent
+
+    @property
+    def eligibility_digest(self) -> str:
+        """Read-only binding; it does not authenticate the declared eligible set.
+
+        A computed property preserves historical v1 declaration wire/digests.
+        B2 independently derives the set before comparing this binding.
+        """
+        return _selection_digest(
+            {
+                "policy": "synthetic-swap-hard-eligible-set.v1",
+                "domain": self.domain.content_digest,
+                "eligible": self.eligible,
+            }
+        )
 
 
 class _ManifestContent(_SwapModel):

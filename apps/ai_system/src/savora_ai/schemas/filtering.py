@@ -50,6 +50,7 @@ from savora_ai.schemas.reasoning import (
     aggregate_hard_status,
     is_candidate_eligible,
 )
+from savora_ai.schemas.workflow_policy import WorkflowPolicyVersion
 
 
 class _AttributePolicy(NamedTuple):
@@ -283,9 +284,7 @@ def _validate_week_rule_policy(rule: RuleDefinition) -> None:
 class _ManifestContent(_ContractModel):
     schema_version: Literal["expected-check-manifest.v1"] = "expected-check-manifest.v1"
     stage: Literal["RECIPE_FILTER"] = "RECIPE_FILTER"
-    workflow_policy_version: Literal["synthetic-workflow-scopes.v1"] = (
-        "synthetic-workflow-scopes.v1"
-    )
+    workflow_policy_version: WorkflowPolicyVersion = "synthetic-workflow-scopes.v1"
     admission_policy_version: Literal["synthetic-hard-rule-admission.v1"] = (
         "synthetic-hard-rule-admission.v1"
     )

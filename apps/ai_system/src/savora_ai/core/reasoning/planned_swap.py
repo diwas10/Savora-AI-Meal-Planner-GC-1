@@ -1,12 +1,10 @@
-"""Pure saved-material binding and complete swap-manifest selection only.
+"""Pure saved-material admission and independently checked single-swap validation."""
 
-No validate_swap/selection/checker or semantic assessment is implemented. These
-helpers cannot authenticate a source, refresh a revision or establish prior PASS.
-"""
-
+from collections.abc import Callable
+from time import monotonic
 from typing import Any, Self
 
-from pydantic import model_validator
+from pydantic import ValidationError, model_validator
 
 from savora_ai.core.reasoning.kb import build_knowledge_snapshot
 from savora_ai.core.reasoning.manifest import (
@@ -19,6 +17,7 @@ from savora_ai.schemas.candidates import (
     RuleContext,
     _canonical_content,
 )
+from savora_ai.schemas.daily import MealOptionReference
 from savora_ai.schemas.knowledge_base import KnowledgeBaseSnapshot
 from savora_ai.schemas.planned_swap import (
     ExpectedSwapCheckManifest,
@@ -29,10 +28,22 @@ from savora_ai.schemas.planned_swap import (
     SavedPlanLockInventory,
     SavedPlanMaterial,
     SwapReference,
+    SwapReplacementDomain,
+    SwapSelectionLimits,
     SwapTargetPermission,
+    SwapValidationLimits,
+    SwapWork,
+    SyntheticSwapRanking,
     _recipe_reference,
     _slot_digests,
     _SwapModel,
+)
+from savora_ai.schemas.swap_proof import (
+    ComputedSwapCertificate,
+    ComputedSwapSelectionResult,
+    ComputedSwapValidationResult,
+    SwapOutcome,
+    SwapProofCheck,
 )
 from savora_ai.schemas.weekly import WeeklySourceSnapshot
 
@@ -317,4 +328,251 @@ def build_swap_check_manifest(
             original_slots=tuple(s.identity for s in accepted.saved_plan.snapshot.slots),
             required_checks=_mandatory_checks(accepted.knowledge, accepted.context),
         )
+    )
+
+
+def validate_swap(
+    request: PlannedSwapRequest,
+    replacement: MealOptionReference,
+    *,
+    saved_plan: SavedPlanMaterial,
+    locks: SavedPlanLockInventory,
+    permission: SwapTargetPermission,
+    candidates: tuple[CandidateRecipeFacts, ...],
+    knowledge: KnowledgeBaseSnapshot,
+    context: RuleContext,
+    sources: PlannedSwapSourceSnapshot,
+    bridge: PlannedSwapWorkflowBridge,
+    limits: SwapValidationLimits,
+    clock: Callable[[], float] = monotonic,
+) -> ComputedSwapValidationResult:
+    """Recheck both complete fixed plans; return a witness only after full replay.
+
+    Pydantic admission errors are explicit structural boundary failures. This API
+    does not authenticate the loader, persist plans, override locks or search.
+    """
+    from savora_ai.core.reasoning.swap_checks import (
+        _admit,
+        _binding_cost,
+        _execute_phase,
+        _input_digest,
+        _Interrupted,
+        _Meter,
+        _proposed,
+        _schedule,
+        _verdict,
+    )
+
+    authority: dict[str, object] = dict(
+        request=request,
+        replacement=replacement,
+        saved_plan=saved_plan,
+        locks=locks,
+        permission=permission,
+        candidates=candidates,
+        knowledge=knowledge,
+        context=context,
+        sources=sources,
+        bridge=bridge,
+        limits=limits,
+    )
+    inputs = _admit(authority)
+    # One shared clock guard spans executor, checker and their boundary.
+    guard = _Meter(clock, None, checker=False)
+
+    def guarded_clock() -> float:
+        guard.checkpoint()
+        assert guard.previous is not None
+        return guard.previous
+
+    meter = _Meter(guarded_clock, limits.deadline, checker=False)
+    checker_work = SwapWork()
+    stage = "RESERVATION"
+    try:
+        schedule = _schedule(inputs)
+        meter.start(_binding_cost(inputs))
+        inputs = _admit(authority)
+        meter.checkpoint()
+        stage = "EXECUTION"
+        original = _execute_phase(inputs, "ORIGINAL", meter)
+        resulting = _execute_phase(inputs, "RESULT", meter)
+        meter.start(SwapWork(full_validations=1))
+        outcome, scope, reason = _verdict(inputs, original, resulting)
+        certificate = ComputedSwapCertificate(
+            input_digest=_input_digest(inputs),
+            reservations=schedule.plan,
+            original=original,
+            result=resulting,
+        )
+        proof_bytes = len(certificate.model_dump_json(by_alias=True).encode())
+        claim = dict(
+            request=request,
+            replacement=replacement,
+            limits=limits,
+            stage="COMPLETE",
+            outcome=outcome,
+            failure_scope=scope,
+            reason=reason,
+            certificate=certificate,
+            resulting_plan=_proposed(inputs) if outcome is SwapOutcome.VALID else None,
+            verification_complete=True,
+            actual_execution=meter.work,
+            actual_verification=schedule.verification,
+            proof_bytes=proof_bytes,
+        )
+        # Check the complete wire envelope before the mandatory checker starts.
+        from savora_ai.schemas.swap_proof import _SwapClaim
+
+        parsed = _SwapClaim.model_validate(claim)
+        if (
+            proof_bytes > limits.max_proof_bytes
+            or len(parsed.model_dump_json(by_alias=True).encode()) > limits.max_result_bytes
+        ):
+            raise _Interrupted("RESERVATION")
+        meter.checkpoint()
+        stage = "VERIFICATION"
+        try:
+            return ComputedSwapValidationResult.model_validate(
+                claim, context={"authority": authority, "clock": guarded_clock}
+            )
+        except _Interrupted as error:
+            checker_work = error.work
+            raise
+    except _Interrupted as error:
+        return ComputedSwapValidationResult(
+            request=request,
+            replacement=replacement,
+            limits=limits,
+            stage=stage,
+            outcome=SwapOutcome.TIMEOUT,
+            reason=error.reason,
+            actual_execution=meter.work,
+            actual_verification=checker_work,
+        )
+    except ValidationError as error:
+        # Source admission already succeeded. Only the exact bounded computed
+        # envelope overflow is a resource stop; policy/binding errors propagate.
+        if not all(
+            e["msg"] == "Value error, swap structural envelope exceeds 1 MiB"
+            for e in error.errors()
+        ):
+            raise
+        return ComputedSwapValidationResult(
+            request=request,
+            replacement=replacement,
+            limits=limits,
+            stage=stage,
+            outcome=SwapOutcome.TIMEOUT,
+            reason="RESERVATION",
+            actual_execution=meter.work,
+            actual_verification=checker_work,
+        )
+
+
+def verify_swap_validation(
+    result: ComputedSwapValidationResult,
+    *,
+    request: PlannedSwapRequest,
+    replacement: MealOptionReference,
+    saved_plan: SavedPlanMaterial,
+    locks: SavedPlanLockInventory,
+    permission: SwapTargetPermission,
+    candidates: tuple[CandidateRecipeFacts, ...],
+    knowledge: KnowledgeBaseSnapshot,
+    context: RuleContext,
+    sources: PlannedSwapSourceSnapshot,
+    bridge: PlannedSwapWorkflowBridge,
+    limits: SwapValidationLimits,
+    clock: Callable[[], float] = monotonic,
+) -> SwapProofCheck:
+    """Public independently supplied-authority proof API; see the dedicated checker."""
+    from savora_ai.core.reasoning.swap_proof import verify_swap_validation as check
+
+    return check(
+        result,
+        request=request,
+        replacement=replacement,
+        saved_plan=saved_plan,
+        locks=locks,
+        permission=permission,
+        candidates=candidates,
+        knowledge=knowledge,
+        context=context,
+        sources=sources,
+        bridge=bridge,
+        limits=limits,
+        clock=clock,
+    )
+
+
+def select_swap_replacement(
+    request: PlannedSwapRequest,
+    *,
+    domain: SwapReplacementDomain,
+    ranking: SyntheticSwapRanking,
+    saved_plan: SavedPlanMaterial,
+    locks: SavedPlanLockInventory,
+    permission: SwapTargetPermission,
+    candidates: tuple[CandidateRecipeFacts, ...],
+    knowledge: KnowledgeBaseSnapshot,
+    context: RuleContext,
+    sources: PlannedSwapSourceSnapshot,
+    bridge: PlannedSwapWorkflowBridge,
+    limits: SwapSelectionLimits,
+    clock: Callable[[], float] = monotonic,
+) -> ComputedSwapSelectionResult:
+    """Select from an independently accepted fixed domain; see the B2 module."""
+    from savora_ai.core.reasoning.swap_selection import select_swap_replacement as select
+
+    return select(
+        request,
+        domain=domain,
+        ranking=ranking,
+        saved_plan=saved_plan,
+        locks=locks,
+        permission=permission,
+        candidates=candidates,
+        knowledge=knowledge,
+        context=context,
+        sources=sources,
+        bridge=bridge,
+        limits=limits,
+        clock=clock,
+    )
+
+
+def verify_swap_selection(
+    result: ComputedSwapSelectionResult,
+    *,
+    request: PlannedSwapRequest,
+    domain: SwapReplacementDomain,
+    ranking: SyntheticSwapRanking,
+    saved_plan: SavedPlanMaterial,
+    locks: SavedPlanLockInventory,
+    permission: SwapTargetPermission,
+    candidates: tuple[CandidateRecipeFacts, ...],
+    knowledge: KnowledgeBaseSnapshot,
+    context: RuleContext,
+    sources: PlannedSwapSourceSnapshot,
+    bridge: PlannedSwapWorkflowBridge,
+    limits: SwapSelectionLimits,
+    clock: Callable[[], float] = monotonic,
+) -> SwapProofCheck:
+    from savora_ai.core.reasoning.swap_proof import verify_swap_selection as check
+
+    return check(
+        result,
+        request=request,
+        domain=domain,
+        ranking=ranking,
+        saved_plan=saved_plan,
+        locks=locks,
+        permission=permission,
+        candidates=candidates,
+        knowledge=knowledge,
+        context=context,
+        sources=sources,
+        bridge=bridge,
+        limits=limits,
+        clock=clock,
     )

@@ -22,6 +22,7 @@ from savora_ai.schemas.knowledge import (
 )
 from savora_ai.schemas.knowledge_base import KnowledgeWorkflow, _ContentDigest
 from savora_ai.schemas.reasoning import FactObservation
+from savora_ai.schemas.workflow_policy import WorkflowPolicyVersion
 
 STRICT_JSON_MAX_BYTES = 1_048_576
 STRICT_JSON_MAX_DEPTH = 64
@@ -566,9 +567,7 @@ class _ContextContent(_ContractModel):
     expected_taxonomy_version: _NonBlank | None
     expected_catalogue_version: _NonBlank
     expected_check_catalogue_version: _NonBlank
-    workflow_policy_version: Literal["synthetic-workflow-scopes.v1"] = (
-        "synthetic-workflow-scopes.v1"
-    )
+    workflow_policy_version: WorkflowPolicyVersion = "synthetic-workflow-scopes.v1"
     evaluator_policy_version: Literal["synthetic-rule-evaluation.v1"] = (
         "synthetic-rule-evaluation.v1"
     )
