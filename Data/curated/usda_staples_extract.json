@@ -1,6 +1,6 @@
 {
   "schemaVersion": "usda-staples-extract.v1",
-  "specSha": "c68ebb839d106c0c4ad3f16a2f68f3dc5ee3b487a6b31fb6251944f0c9d79ba8",
+  "specSha": "a7a92dbef5e10e5b187d2789fbe5025b884d1f4a5ac01fba3723a6249002f404",
   "staples": [
     {
       "fdcId": 169757,
@@ -506,6 +506,75 @@
         "amount": 1.0,
         "gramWeight": 50.0,
         "gramsPerUnit": 50.0
+      }
+    },
+    {
+      "fdcId": 2707714,
+      "dataType": "survey_fndds_food",
+      "description": "Bread, puri",
+      "publicationDate": "2024-10-31",
+      "per100G": {
+        "energyKcal": 409.0,
+        "fatG": 24.94,
+        "saturatedFatG": 3.339,
+        "carbohydrateG": 39.23,
+        "proteinG": 6.84,
+        "sodiumMg": 170.0,
+        "sugarsG": 0.18
+      },
+      "qualityFlags": [],
+      "portion": {
+        "portionId": 299427,
+        "label": "1 puri (approx 4-4/5\" dia)",
+        "amount": 1.0,
+        "gramWeight": 36.0,
+        "gramsPerUnit": 36.0
+      }
+    },
+    {
+      "fdcId": 2707715,
+      "dataType": "survey_fndds_food",
+      "description": "Bread, paratha",
+      "publicationDate": "2024-10-31",
+      "per100G": {
+        "energyKcal": 326.0,
+        "fatG": 13.2,
+        "saturatedFatG": 5.826,
+        "carbohydrateG": 45.35,
+        "proteinG": 6.36,
+        "sodiumMg": 452.0,
+        "sugarsG": 4.15
+      },
+      "qualityFlags": [],
+      "portion": {
+        "portionId": 299429,
+        "label": "1 paratha",
+        "amount": 1.0,
+        "gramWeight": 70.0,
+        "gramsPerUnit": 70.0
+      }
+    },
+    {
+      "fdcId": 2708984,
+      "dataType": "survey_fndds_food",
+      "description": "Congee, with egg",
+      "publicationDate": "2024-10-31",
+      "per100G": {
+        "energyKcal": 60.0,
+        "fatG": 2.06,
+        "saturatedFatG": 0.658,
+        "carbohydrateG": 6.91,
+        "proteinG": 3.12,
+        "sodiumMg": 213.0,
+        "sugarsG": 0.05
+      },
+      "qualityFlags": [],
+      "portion": {
+        "portionId": 305447,
+        "label": "1 cup",
+        "amount": 1.0,
+        "gramWeight": 255.0,
+        "gramsPerUnit": 255.0
       }
     }
   ]

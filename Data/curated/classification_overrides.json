@@ -1,6 +1,6 @@
 {
   "schemaVersion": "classification-overrides.v1",
-  "note": "Curated corrections to tag-based classification (ADR 0001 D5). curatedBy 'ai-review:claude' means the entry was chosen by AI judgement on the recipe name, tags and nutrition, at the project lead's request; it has not been confirmed by a person. Nepali entries come from a reviewed name search (momo, thukpa, sekuwa, tarkari, dal bhat, aloo dum); false positives were excluded (bara brith is Welsh, 'momo's crock pot ribs' is a person's name, nimki and spiced tea are not meals). Thai breakfasts (21 Oct 2026) come from a reviewed name search (khao tom, congee, roti); 'thai congee kao tome vegetarian' was excluded because its 'vegetarian' tag is wrong (chicken broth).",
+  "note": "Curated corrections to tag-based classification (ADR 0001 D5). curatedBy 'ai-review:claude' means the entry was chosen by AI judgement on the recipe name, tags and nutrition, at the project lead's request; it has not been confirmed by a person. Nepali entries come from a reviewed name search (momo, thukpa, sekuwa, tarkari, dal bhat, aloo dum); false positives were excluded (bara brith is Welsh, 'momo's crock pot ribs' is a person's name, nimki and spiced tea are not meals). Thai breakfasts (21 Oct 2026) come from a reviewed name search (khao tom, congee, roti); 'thai congee kao tome vegetarian' was excluded because its 'vegetarian' tag is wrong (chicken broth). Breakfasts for Nepali, Korean and Indonesian (21 Oct 2026) come from a reviewed search of Food.com breakfast-tagged and dish-name matches; 'egg bara' (5,659 kcal per serving), the westernised 'churu' (blue cheese) and 'egg jjim' (202% DV sodium per serving) were rejected.",
   "overrides": [
     {
       "recipeId": "FC_304023",
@@ -439,6 +439,90 @@
         "BREAKFAST"
       ],
       "rationale": "thai roti pancake with banana: a common Thai street breakfast; tagged desserts only",
+      "curatedBy": "ai-review:claude"
+    },
+    {
+      "recipeId": "FC_478796",
+      "roles": [
+        "BREAKFAST_BASE"
+      ],
+      "dishClass": "COMPLETE_MEAL",
+      "mealTypes": [
+        "BREAKFAST"
+      ],
+      "cuisines": [
+        "Indian",
+        "Nepali"
+      ],
+      "rationale": "alu paratha: potato-stuffed flatbread, a common breakfast in Nepal and North India; Food.com tags breakfast and indian",
+      "curatedBy": "ai-review:claude"
+    },
+    {
+      "recipeId": "FC_482891",
+      "roles": [
+        "BREAKFAST_BASE"
+      ],
+      "dishClass": "COMPLETE_MEAL",
+      "mealTypes": [
+        "BREAKFAST"
+      ],
+      "cuisines": [
+        "Indian",
+        "Nepali"
+      ],
+      "rationale": "indian omelet: onion, chilli and tomato omelette, the everyday egg breakfast in Nepali and Indian homes; Food.com tags breakfast and indian",
+      "curatedBy": "ai-review:claude"
+    },
+    {
+      "recipeId": "FC_459783",
+      "roles": [
+        "BREAKFAST_BASE"
+      ],
+      "dishClass": "COMPLETE_MEAL",
+      "mealTypes": [
+        "BREAKFAST"
+      ],
+      "rationale": "egg rice (gyeran-bap): rice with egg, soy and sesame, a classic quick Korean breakfast; Food.com tags breakfast and korean",
+      "curatedBy": "ai-review:claude"
+    },
+    {
+      "recipeId": "FC_99028",
+      "roles": [
+        "BREAKFAST_BASE"
+      ],
+      "dishClass": "COMPLETE_MEAL",
+      "mealTypes": [
+        "BREAKFAST"
+      ],
+      "rationale": "banana pancakes (Wayan's recipe): Balinese dadar pisang, a common Indonesian breakfast; tags were breakfast and desserts",
+      "curatedBy": "ai-review:claude"
+    },
+    {
+      "recipeId": "FC_478798",
+      "roles": [
+        "MAIN_DISH",
+        "BREAKFAST_BASE"
+      ],
+      "dishClass": "COMPLETE_MEAL",
+      "mealTypes": [
+        "BREAKFAST",
+        "LUNCH",
+        "DINNER"
+      ],
+      "rationale": "nasi goreng: Indonesian fried rice is eaten for breakfast as often as for lunch or dinner, so it is both; rice is part of the dish",
+      "curatedBy": "ai-review:claude"
+    },
+    {
+      "recipeId": "FC_109823",
+      "roles": [
+        "MAIN_DISH"
+      ],
+      "dishClass": "REQUIRES_ACCOMPANIMENT",
+      "mealTypes": [
+        "LUNCH",
+        "DINNER"
+      ],
+      "rationale": "drstevers filipino stir fry: a tofu and vegetable stir-fry served with rice, a main, not a breakfast base (flagged in the 21 Oct 2026 catalogue audit)",
       "curatedBy": "ai-review:claude"
     }
   ]

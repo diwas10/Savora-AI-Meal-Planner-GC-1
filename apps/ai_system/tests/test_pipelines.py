@@ -25,6 +25,7 @@ from savora_ai.core.pipelines import (
     recommend_for_craving,
     revalidate_seeds,
     substitute_slot,
+    suggest_replacements,
     suggest_seeds,
 )
 from savora_ai.core.pipelines.catalogue import CatalogueBundle
@@ -282,8 +283,9 @@ def test_substitution_changes_only_the_target_slot(week: WeekPlan, swapped: Week
 
 
 def test_too_few_meals_is_insufficient_without_solving(bundle: CatalogueBundle) -> None:
-    nepali = profile(cuisinePolicy="STRICT", cuisines=["Nepali"])
-    result = plan_week(nepali, bundle, week_id="week-np", start_date=START)
+    # British is an incidental Food.com tag, not a target cuisine: one breakfast dish.
+    british = profile(cuisinePolicy="STRICT", cuisines=["British"])
+    result = plan_week(british, bundle, week_id="week-gb", start_date=START)
     assert result.status is PlanStatus.INSUFFICIENT_DATA
     assert "breakfast" in result.message and result.search is None and not result.meals
 
@@ -309,3 +311,90 @@ def test_substitution_refuses_to_lock_meals_the_profile_no_longer_allows(
         substitute_slot(
             vegan, bundle, current=current, slot="D2_LUNCH", week_id="w", start_date=START
         )
+
+
+def test_strict_nepali_has_enough_breakfasts_for_a_week(bundle: CatalogueBundle) -> None:
+    # 7 breakfasts with each dish at most twice need 4 distinct anchors (catalogue audit).
+    from savora_ai.core.pipelines.planning import _ranked_meals
+    from savora_ai.schemas.enums import MealType
+
+    nepali = profile(cuisinePolicy="STRICT", cuisines=["Nepali"])
+    _, by_meal = _ranked_meals(bundle, nepali, None)
+    anchors = {c.components[0].dish_id for c in by_meal[MealType.BREAKFAST]}
+    assert len(anchors) >= 4
+    assert {"USDA_2707714", "USDA_2707715"} <= anchors  # puri, paratha (curated USDA)
+
+
+def test_replacements_are_ranked_eligible_and_exclude_the_current_meal(
+    bundle: CatalogueBundle, week: WeekPlan
+) -> None:
+    user = profile(**PLANNER)
+    current = {m.slot_id: m.option_id for m in week.meals}
+    result = suggest_replacements(user, bundle, current=current, slot="D2_LUNCH")
+    assert result.options and [o.rank for o in result.options] == list(
+        range(1, len(result.options) + 1)
+    )
+    saved = next(m.combination_id for m in week.meals if m.slot_id == "D2_LUNCH")
+    assert result.current_combination_id == saved
+    for option in result.options:
+        combo = bundle.combinations[option.combination_id]
+        assert option.combination_id != saved
+        assert "LUNCH" in {m.value for m in combo.meal_types}
+        assert all(dish_allowed(bundle.dishes[c.dish_id], user) for c in combo.components)
+        assert option.repeats_in_week < 2
+    assert result.safety.status == "STAND_IN_UNVERIFIED"
+
+
+def test_replacement_preference_filters_by_exclusion_and_reports_unknowns(
+    bundle: CatalogueBundle, week: WeekPlan
+) -> None:
+    user = profile(**PLANNER)
+    current = {m.slot_id: m.option_id for m in week.meals}
+    wish = craving(intent="SWAP_MEAL", mealSlotId="D2_LUNCH", excludedIngredientIds=["POTATO"])
+    result = suggest_replacements(user, bundle, current=current, slot="D2_LUNCH", preference=wish)
+    for option in result.options:
+        combo = bundle.combinations[option.combination_id]
+        for part in combo.components:
+            dish = bundle.dishes[part.dish_id]
+            assert not any("potato" in i.lower().split() for i in dish.ingredients)
+    nowhere = craving(intent="SWAP_MEAL", mealSlotId="D2_LUNCH", cuisineIds=["ATLANTEAN"])
+    empty = suggest_replacements(user, bundle, current=current, slot="D2_LUNCH", preference=nowhere)
+    assert empty.options == () and empty.unknown_cuisine_ids == ("ATLANTEAN",)
+    assert "No eligible" in empty.message
+
+
+def test_substitution_uses_the_chosen_replacement(bundle: CatalogueBundle, week: WeekPlan) -> None:
+    user = profile(**PLANNER)
+    current = {m.slot_id: m.option_id for m in week.meals}
+    choice = suggest_replacements(user, bundle, current=current, slot="D3_DINNER").options[-1]
+    result = substitute_slot(
+        user,
+        bundle,
+        current=current,
+        slot="D3_DINNER",
+        week_id="week-1-r3",
+        start_date=START,
+        replacement_combination_id=choice.combination_id,
+    )
+    assert result.status is PlanStatus.FEASIBLE, result.message
+    after = {m.slot_id: m for m in result.meals}
+    assert after["D3_DINNER"].combination_id == choice.combination_id
+    assert [s for s in current if current[s] != after[s].option_id] == ["D3_DINNER"]
+
+
+def test_substitution_refuses_a_replacement_that_is_not_eligible(
+    bundle: CatalogueBundle, week: WeekPlan
+) -> None:
+    current = {m.slot_id: m.option_id for m in week.meals}
+    saved = next(m.combination_id for m in week.meals if m.slot_id == "D2_LUNCH")
+    result = substitute_slot(
+        profile(**PLANNER),
+        bundle,
+        current=current,
+        slot="D2_LUNCH",
+        week_id="w",
+        start_date=START,
+        replacement_combination_id=saved,  # the meal being replaced is never eligible
+    )
+    assert result.status is PlanStatus.INSUFFICIENT_DATA and not result.meals
+    assert "no longer eligible" in result.message

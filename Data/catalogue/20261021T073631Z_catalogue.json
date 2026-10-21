@@ -1,5 +1,5 @@
 {
-  "catalogueVersion": "20261020T230903Z",
+  "catalogueVersion": "20261021T073631Z",
   "source": {
     "file": "RAW_recipes.csv",
     "sha256": "6a8136d1da9e03396a9f52d72200b3fddb8fe103f11e1496effca30ac4e0539f"
@@ -39,25 +39,25 @@
   "report": {
     "rawRecipes": 231637,
     "accepted": 213696,
-    "plannable": 105999,
-    "requiresReview": 52449,
+    "plannable": 106001,
+    "requiresReview": 52447,
     "notPlanningDish": 55248,
     "classificationStatus": {
-      "AUTO": 161219,
-      "CURATED": 28,
-      "REQUIRES_REVIEW": 52449
+      "AUTO": 161215,
+      "CURATED": 34,
+      "REQUIRES_REVIEW": 52447
     },
-    "curatedOverridesApplied": 32,
+    "curatedOverridesApplied": 38,
     "plannableRoles": {
-      "BREAKFAST_BASE": 15800,
+      "BREAKFAST_BASE": 15802,
       "MAIN_DISH": 65578,
       "STAPLE": 15875,
       "VEGETABLE": 17345
     },
     "plannableDishClasses": {
-      "COMPLETE_MEAL": 44345,
+      "COMPLETE_MEAL": 44346,
       "COMPONENT": 27440,
-      "REQUIRES_ACCOMPANIMENT": 34214
+      "REQUIRES_ACCOMPANIMENT": 34215
     },
     "quarantinedRows": 17941,
     "quarantineReasons": {
@@ -65,18 +65,18 @@
       "MALFORMED_METADATA": 1,
       "NUTRITION_OUT_OF_RANGE": 11457
     },
-    "selected": 675,
-    "usdaStaples": 22,
+    "selected": 679,
+    "usdaStaples": 25,
     "withVerifiedServingMass": 0,
     "strata": [
       {
         "cuisine": "Nepali",
         "slotKind": "BREAKFAST_BASE",
         "quota": 15,
-        "eligible": 0,
-        "selected": 0,
-        "vegetarianSelected": 0,
-        "shortfall": 15
+        "eligible": 2,
+        "selected": 2,
+        "vegetarianSelected": 2,
+        "shortfall": 13
       },
       {
         "cuisine": "Nepali",
@@ -145,27 +145,27 @@
         "cuisine": "Filipino",
         "slotKind": "BREAKFAST_BASE",
         "quota": 15,
-        "eligible": 5,
-        "selected": 5,
-        "vegetarianSelected": 2,
-        "shortfall": 10
+        "eligible": 4,
+        "selected": 4,
+        "vegetarianSelected": 1,
+        "shortfall": 11
       },
       {
         "cuisine": "Filipino",
         "slotKind": "COMPLETE_MAIN",
         "quota": 15,
-        "eligible": 23,
+        "eligible": 22,
         "selected": 15,
-        "vegetarianSelected": 1,
+        "vegetarianSelected": 0,
         "shortfall": 0
       },
       {
         "cuisine": "Filipino",
         "slotKind": "MAIN_WITH_ACCOMPANIMENT",
         "quota": 15,
-        "eligible": 49,
+        "eligible": 50,
         "selected": 15,
-        "vegetarianSelected": 2,
+        "vegetarianSelected": 3,
         "shortfall": 0
       },
       {
@@ -181,10 +181,10 @@
         "cuisine": "Indonesian",
         "slotKind": "BREAKFAST_BASE",
         "quota": 15,
-        "eligible": 2,
-        "selected": 2,
-        "vegetarianSelected": 1,
-        "shortfall": 13
+        "eligible": 4,
+        "selected": 4,
+        "vegetarianSelected": 2,
+        "shortfall": 11
       },
       {
         "cuisine": "Indonesian",
@@ -217,10 +217,10 @@
         "cuisine": "Korean",
         "slotKind": "BREAKFAST_BASE",
         "quota": 15,
-        "eligible": 4,
-        "selected": 4,
+        "eligible": 5,
+        "selected": 5,
         "vegetarianSelected": 2,
-        "shortfall": 11
+        "shortfall": 10
       },
       {
         "cuisine": "Korean",
@@ -505,16 +505,16 @@
         "cuisine": "Middle Eastern",
         "slotKind": "BREAKFAST_BASE",
         "quota": 15,
-        "eligible": 83,
+        "eligible": 82,
         "selected": 15,
-        "vegetarianSelected": 9,
+        "vegetarianSelected": 8,
         "shortfall": 0
       },
       {
         "cuisine": "Middle Eastern",
         "slotKind": "COMPLETE_MAIN",
         "quota": 15,
-        "eligible": 258,
+        "eligible": 257,
         "selected": 15,
         "vegetarianSelected": 8,
         "shortfall": 0
@@ -523,7 +523,7 @@
         "cuisine": "Middle Eastern",
         "slotKind": "MAIN_WITH_ACCOMPANIMENT",
         "quota": 15,
-        "eligible": 329,
+        "eligible": 330,
         "selected": 15,
         "vegetarianSelected": 8,
         "shortfall": 0
@@ -615,7 +615,7 @@
         "quota": 15,
         "eligible": 63,
         "selected": 15,
-        "vegetarianSelected": 8,
+        "vegetarianSelected": 9,
         "shortfall": 0
       },
       {
@@ -3561,20 +3561,19 @@
         "vegetarian"
       ],
       "roles": [
-        "MAIN_DISH",
-        "BREAKFAST_BASE"
+        "MAIN_DISH"
       ],
-      "dishClass": "COMPLETE_MEAL",
+      "dishClass": "REQUIRES_ACCOMPANIMENT",
       "mealTypes": [
-        "BREAKFAST",
         "LUNCH",
         "DINNER"
       ],
-      "classificationStatus": "AUTO",
+      "classificationStatus": "CURATED",
       "classificationEvidence": [
         "course main-dish/one-dish-meal -> MAIN_DISH",
         "course breakfast/brunch -> BREAKFAST_BASE",
-        "dish class COMPLETE_MEAL"
+        "dish class COMPLETE_MEAL",
+        "curated by ai-review:claude: drstevers filipino stir fry: a tofu and vegetable stir-fry served with rice, a main, not a breakfast base (flagged in the 21 Oct 2026 catalogue audit)"
       ],
       "nutrition": {
         "source": "FOODCOM_DERIVED",
@@ -4855,6 +4854,152 @@
             "proteinG": 17.25,
             "sodiumMg": 288.0,
             "sugarsG": 3.375
+          }
+        }
+      ]
+    },
+    {
+      "recipeId": "FC_112849",
+      "name": "pancit bihon  or bijon",
+      "ingredients": [
+        "boneless skinless chicken breasts",
+        "lean pork",
+        "small shrimp",
+        "garlic",
+        "onion",
+        "chinese cabbage",
+        "carrots",
+        "sesame oil",
+        "soy sauce",
+        "salt",
+        "pepper",
+        "rice noodles"
+      ],
+      "cuisines": [
+        "Filipino"
+      ],
+      "dietTags": [],
+      "roles": [
+        "MAIN_DISH"
+      ],
+      "dishClass": "COMPLETE_MEAL",
+      "mealTypes": [
+        "LUNCH",
+        "DINNER"
+      ],
+      "classificationStatus": "AUTO",
+      "classificationEvidence": [
+        "course main-dish/one-dish-meal -> MAIN_DISH",
+        "side-dishes without a staple/vegetable qualifier",
+        "dish class COMPLETE_MEAL"
+      ],
+      "nutrition": {
+        "source": "FOODCOM_DERIVED",
+        "basis": "PER_SERVING",
+        "values": {
+          "energyKcal": 653.3,
+          "fatG": 15.6,
+          "saturatedFatG": 3.4000000000000004,
+          "carbohydrateG": 69.0,
+          "proteinG": 53.0,
+          "sodiumMg": 1056.0,
+          "sugarsG": 2.0
+        },
+        "sourceReference": "FDA_1993_LABEL_2000KCAL",
+        "qualityFlags": []
+      },
+      "servingMassG": null,
+      "servingMassSource": null,
+      "provenance": [
+        "Food.com RAW_recipes.csv",
+        "%DV converted with FDA_1993_LABEL_2000KCAL; sugar left unknown",
+        "serving mass unverified"
+      ],
+      "trainingInteractions": 2,
+      "portions": [
+        {
+          "portionId": "FC_112849:0.5xSERVING",
+          "quantity": 0.5,
+          "unit": "SERVING",
+          "grams": null,
+          "label": "0.5 servings",
+          "isStandard": false,
+          "nutrients": {
+            "energyKcal": 326.65,
+            "fatG": 7.8,
+            "saturatedFatG": 1.7,
+            "carbohydrateG": 34.5,
+            "proteinG": 26.5,
+            "sodiumMg": 528.0,
+            "sugarsG": 1.0
+          }
+        },
+        {
+          "portionId": "FC_112849:0.75xSERVING",
+          "quantity": 0.75,
+          "unit": "SERVING",
+          "grams": null,
+          "label": "0.75 servings",
+          "isStandard": false,
+          "nutrients": {
+            "energyKcal": 489.975,
+            "fatG": 11.7,
+            "saturatedFatG": 2.55,
+            "carbohydrateG": 51.75,
+            "proteinG": 39.75,
+            "sodiumMg": 792.0,
+            "sugarsG": 1.5
+          }
+        },
+        {
+          "portionId": "FC_112849:1xSERVING",
+          "quantity": 1.0,
+          "unit": "SERVING",
+          "grams": null,
+          "label": "1 serving",
+          "isStandard": true,
+          "nutrients": {
+            "energyKcal": 653.3,
+            "fatG": 15.6,
+            "saturatedFatG": 3.4,
+            "carbohydrateG": 69.0,
+            "proteinG": 53.0,
+            "sodiumMg": 1056.0,
+            "sugarsG": 2.0
+          }
+        },
+        {
+          "portionId": "FC_112849:1.25xSERVING",
+          "quantity": 1.25,
+          "unit": "SERVING",
+          "grams": null,
+          "label": "1.25 servings",
+          "isStandard": false,
+          "nutrients": {
+            "energyKcal": 816.625,
+            "fatG": 19.5,
+            "saturatedFatG": 4.25,
+            "carbohydrateG": 86.25,
+            "proteinG": 66.25,
+            "sodiumMg": 1320.0,
+            "sugarsG": 2.5
+          }
+        },
+        {
+          "portionId": "FC_112849:1.5xSERVING",
+          "quantity": 1.5,
+          "unit": "SERVING",
+          "grams": null,
+          "label": "1.5 servings",
+          "isStandard": false,
+          "nutrients": {
+            "energyKcal": 979.95,
+            "fatG": 23.4,
+            "saturatedFatG": 5.1,
+            "carbohydrateG": 103.5,
+            "proteinG": 79.5,
+            "sodiumMg": 1584.0,
+            "sugarsG": 3.0
           }
         }
       ]
@@ -17445,162 +17590,6 @@
             "proteinG": 15.75,
             "sodiumMg": 1008.0,
             "sugarsG": 22.125
-          }
-        }
-      ]
-    },
-    {
-      "recipeId": "FC_14050",
-      "name": "lumpia  philippine egg rolls from scratch",
-      "ingredients": [
-        "flour",
-        "water",
-        "salt",
-        "ground pork",
-        "raw shrimp",
-        "onion",
-        "water chestnuts",
-        "bamboo shoots",
-        "celery",
-        "garlic",
-        "carrot",
-        "bean sprouts",
-        "raisins",
-        "salt and pepper",
-        "egg white",
-        "corn oil",
-        "pineapple juice",
-        "ketchup",
-        "vinegar",
-        "brown sugar",
-        "hot pepper sauce",
-        "ginger",
-        "cornstarch"
-      ],
-      "cuisines": [
-        "Filipino"
-      ],
-      "dietTags": [],
-      "roles": [
-        "MAIN_DISH"
-      ],
-      "dishClass": "REQUIRES_ACCOMPANIMENT",
-      "mealTypes": [
-        "LUNCH",
-        "DINNER"
-      ],
-      "classificationStatus": "AUTO",
-      "classificationEvidence": [
-        "course main-dish/one-dish-meal -> MAIN_DISH",
-        "dish class REQUIRES_ACCOMPANIMENT"
-      ],
-      "nutrition": {
-        "source": "FOODCOM_DERIVED",
-        "basis": "PER_SERVING",
-        "values": {
-          "energyKcal": 80.7,
-          "fatG": 1.3,
-          "saturatedFatG": 0.6,
-          "carbohydrateG": 12.0,
-          "proteinG": 3.0,
-          "sodiumMg": 96.0,
-          "sugarsG": 4.25
-        },
-        "sourceReference": "FDA_1993_LABEL_2000KCAL",
-        "qualityFlags": []
-      },
-      "servingMassG": null,
-      "servingMassSource": null,
-      "provenance": [
-        "Food.com RAW_recipes.csv",
-        "%DV converted with FDA_1993_LABEL_2000KCAL; sugar left unknown",
-        "serving mass unverified"
-      ],
-      "trainingInteractions": 3,
-      "portions": [
-        {
-          "portionId": "FC_14050:0.5xSERVING",
-          "quantity": 0.5,
-          "unit": "SERVING",
-          "grams": null,
-          "label": "0.5 servings",
-          "isStandard": false,
-          "nutrients": {
-            "energyKcal": 40.35,
-            "fatG": 0.65,
-            "saturatedFatG": 0.3,
-            "carbohydrateG": 6.0,
-            "proteinG": 1.5,
-            "sodiumMg": 48.0,
-            "sugarsG": 2.125
-          }
-        },
-        {
-          "portionId": "FC_14050:0.75xSERVING",
-          "quantity": 0.75,
-          "unit": "SERVING",
-          "grams": null,
-          "label": "0.75 servings",
-          "isStandard": false,
-          "nutrients": {
-            "energyKcal": 60.525,
-            "fatG": 0.975,
-            "saturatedFatG": 0.45,
-            "carbohydrateG": 9.0,
-            "proteinG": 2.25,
-            "sodiumMg": 72.0,
-            "sugarsG": 3.188
-          }
-        },
-        {
-          "portionId": "FC_14050:1xSERVING",
-          "quantity": 1.0,
-          "unit": "SERVING",
-          "grams": null,
-          "label": "1 serving",
-          "isStandard": true,
-          "nutrients": {
-            "energyKcal": 80.7,
-            "fatG": 1.3,
-            "saturatedFatG": 0.6,
-            "carbohydrateG": 12.0,
-            "proteinG": 3.0,
-            "sodiumMg": 96.0,
-            "sugarsG": 4.25
-          }
-        },
-        {
-          "portionId": "FC_14050:1.25xSERVING",
-          "quantity": 1.25,
-          "unit": "SERVING",
-          "grams": null,
-          "label": "1.25 servings",
-          "isStandard": false,
-          "nutrients": {
-            "energyKcal": 100.875,
-            "fatG": 1.625,
-            "saturatedFatG": 0.75,
-            "carbohydrateG": 15.0,
-            "proteinG": 3.75,
-            "sodiumMg": 120.0,
-            "sugarsG": 5.312
-          }
-        },
-        {
-          "portionId": "FC_14050:1.5xSERVING",
-          "quantity": 1.5,
-          "unit": "SERVING",
-          "grams": null,
-          "label": "1.5 servings",
-          "isStandard": false,
-          "nutrients": {
-            "energyKcal": 121.05,
-            "fatG": 1.95,
-            "saturatedFatG": 0.9,
-            "carbohydrateG": 18.0,
-            "proteinG": 4.5,
-            "sodiumMg": 144.0,
-            "sugarsG": 6.375
           }
         }
       ]
@@ -45414,158 +45403,6 @@
       ]
     },
     {
-      "recipeId": "FC_237740",
-      "name": "hard boiled eggs in a moghlai sauce",
-      "ingredients": [
-        "cayenne pepper",
-        "ground cumin",
-        "garam masala",
-        "ground coriander",
-        "lemon juice",
-        "salt",
-        "ground black pepper",
-        "water",
-        "olive oil",
-        "onions",
-        "fresh ginger",
-        "tomato paste",
-        "chicken stock",
-        "skim milk",
-        "fresh cilantro",
-        "hardboiled egg"
-      ],
-      "cuisines": [
-        "Indian"
-      ],
-      "dietTags": [],
-      "roles": [
-        "MAIN_DISH",
-        "BREAKFAST_BASE"
-      ],
-      "dishClass": "COMPLETE_MEAL",
-      "mealTypes": [
-        "BREAKFAST",
-        "LUNCH",
-        "DINNER"
-      ],
-      "classificationStatus": "AUTO",
-      "classificationEvidence": [
-        "course main-dish/one-dish-meal -> MAIN_DISH",
-        "course breakfast/brunch -> BREAKFAST_BASE",
-        "dish class COMPLETE_MEAL"
-      ],
-      "nutrition": {
-        "source": "FOODCOM_DERIVED",
-        "basis": "PER_SERVING",
-        "values": {
-          "energyKcal": 248.9,
-          "fatG": 17.55,
-          "saturatedFatG": 3.8,
-          "carbohydrateG": 9.0,
-          "proteinG": 12.5,
-          "sodiumMg": 480.0,
-          "sugarsG": 2.25
-        },
-        "sourceReference": "FDA_1993_LABEL_2000KCAL",
-        "qualityFlags": []
-      },
-      "servingMassG": null,
-      "servingMassSource": null,
-      "provenance": [
-        "Food.com RAW_recipes.csv",
-        "%DV converted with FDA_1993_LABEL_2000KCAL; sugar left unknown",
-        "serving mass unverified"
-      ],
-      "trainingInteractions": 3,
-      "portions": [
-        {
-          "portionId": "FC_237740:0.5xSERVING",
-          "quantity": 0.5,
-          "unit": "SERVING",
-          "grams": null,
-          "label": "0.5 servings",
-          "isStandard": false,
-          "nutrients": {
-            "energyKcal": 124.45,
-            "fatG": 8.775,
-            "saturatedFatG": 1.9,
-            "carbohydrateG": 4.5,
-            "proteinG": 6.25,
-            "sodiumMg": 240.0,
-            "sugarsG": 1.125
-          }
-        },
-        {
-          "portionId": "FC_237740:0.75xSERVING",
-          "quantity": 0.75,
-          "unit": "SERVING",
-          "grams": null,
-          "label": "0.75 servings",
-          "isStandard": false,
-          "nutrients": {
-            "energyKcal": 186.675,
-            "fatG": 13.163,
-            "saturatedFatG": 2.85,
-            "carbohydrateG": 6.75,
-            "proteinG": 9.375,
-            "sodiumMg": 360.0,
-            "sugarsG": 1.688
-          }
-        },
-        {
-          "portionId": "FC_237740:1xSERVING",
-          "quantity": 1.0,
-          "unit": "SERVING",
-          "grams": null,
-          "label": "1 serving",
-          "isStandard": true,
-          "nutrients": {
-            "energyKcal": 248.9,
-            "fatG": 17.55,
-            "saturatedFatG": 3.8,
-            "carbohydrateG": 9.0,
-            "proteinG": 12.5,
-            "sodiumMg": 480.0,
-            "sugarsG": 2.25
-          }
-        },
-        {
-          "portionId": "FC_237740:1.25xSERVING",
-          "quantity": 1.25,
-          "unit": "SERVING",
-          "grams": null,
-          "label": "1.25 servings",
-          "isStandard": false,
-          "nutrients": {
-            "energyKcal": 311.125,
-            "fatG": 21.938,
-            "saturatedFatG": 4.75,
-            "carbohydrateG": 11.25,
-            "proteinG": 15.625,
-            "sodiumMg": 600.0,
-            "sugarsG": 2.812
-          }
-        },
-        {
-          "portionId": "FC_237740:1.5xSERVING",
-          "quantity": 1.5,
-          "unit": "SERVING",
-          "grams": null,
-          "label": "1.5 servings",
-          "isStandard": false,
-          "nutrients": {
-            "energyKcal": 373.35,
-            "fatG": 26.325,
-            "saturatedFatG": 5.7,
-            "carbohydrateG": 13.5,
-            "proteinG": 18.75,
-            "sodiumMg": 720.0,
-            "sugarsG": 3.375
-          }
-        }
-      ]
-    },
-    {
       "recipeId": "FC_23818",
       "name": "spicy fried celery",
       "ingredients": [
@@ -53453,6 +53290,151 @@
             "proteinG": 66.0,
             "sodiumMg": 2844.0,
             "sugarsG": 13.125
+          }
+        }
+      ]
+    },
+    {
+      "recipeId": "FC_29920",
+      "name": "chicken thighs with lime and curry",
+      "ingredients": [
+        "chicken thighs",
+        "flour",
+        "pepper",
+        "oil",
+        "red onion",
+        "garlic",
+        "stock",
+        "curry powder",
+        "hot pepper sauce",
+        "lime",
+        "fresh cilantro",
+        "sour cream"
+      ],
+      "cuisines": [
+        "Indian"
+      ],
+      "dietTags": [],
+      "roles": [
+        "MAIN_DISH"
+      ],
+      "dishClass": "COMPLETE_MEAL",
+      "mealTypes": [
+        "LUNCH",
+        "DINNER"
+      ],
+      "classificationStatus": "AUTO",
+      "classificationEvidence": [
+        "course main-dish/one-dish-meal -> MAIN_DISH",
+        "dish class COMPLETE_MEAL"
+      ],
+      "nutrition": {
+        "source": "FOODCOM_DERIVED",
+        "basis": "PER_SERVING",
+        "values": {
+          "energyKcal": 271.4,
+          "fatG": 19.5,
+          "saturatedFatG": 5.4,
+          "carbohydrateG": 3.0,
+          "proteinG": 17.0,
+          "sodiumMg": 72.0,
+          "sugarsG": 1.0
+        },
+        "sourceReference": "FDA_1993_LABEL_2000KCAL",
+        "qualityFlags": []
+      },
+      "servingMassG": null,
+      "servingMassSource": null,
+      "provenance": [
+        "Food.com RAW_recipes.csv",
+        "%DV converted with FDA_1993_LABEL_2000KCAL; sugar left unknown",
+        "serving mass unverified"
+      ],
+      "trainingInteractions": 21,
+      "portions": [
+        {
+          "portionId": "FC_29920:0.5xSERVING",
+          "quantity": 0.5,
+          "unit": "SERVING",
+          "grams": null,
+          "label": "0.5 servings",
+          "isStandard": false,
+          "nutrients": {
+            "energyKcal": 135.7,
+            "fatG": 9.75,
+            "saturatedFatG": 2.7,
+            "carbohydrateG": 1.5,
+            "proteinG": 8.5,
+            "sodiumMg": 36.0,
+            "sugarsG": 0.5
+          }
+        },
+        {
+          "portionId": "FC_29920:0.75xSERVING",
+          "quantity": 0.75,
+          "unit": "SERVING",
+          "grams": null,
+          "label": "0.75 servings",
+          "isStandard": false,
+          "nutrients": {
+            "energyKcal": 203.55,
+            "fatG": 14.625,
+            "saturatedFatG": 4.05,
+            "carbohydrateG": 2.25,
+            "proteinG": 12.75,
+            "sodiumMg": 54.0,
+            "sugarsG": 0.75
+          }
+        },
+        {
+          "portionId": "FC_29920:1xSERVING",
+          "quantity": 1.0,
+          "unit": "SERVING",
+          "grams": null,
+          "label": "1 serving",
+          "isStandard": true,
+          "nutrients": {
+            "energyKcal": 271.4,
+            "fatG": 19.5,
+            "saturatedFatG": 5.4,
+            "carbohydrateG": 3.0,
+            "proteinG": 17.0,
+            "sodiumMg": 72.0,
+            "sugarsG": 1.0
+          }
+        },
+        {
+          "portionId": "FC_29920:1.25xSERVING",
+          "quantity": 1.25,
+          "unit": "SERVING",
+          "grams": null,
+          "label": "1.25 servings",
+          "isStandard": false,
+          "nutrients": {
+            "energyKcal": 339.25,
+            "fatG": 24.375,
+            "saturatedFatG": 6.75,
+            "carbohydrateG": 3.75,
+            "proteinG": 21.25,
+            "sodiumMg": 90.0,
+            "sugarsG": 1.25
+          }
+        },
+        {
+          "portionId": "FC_29920:1.5xSERVING",
+          "quantity": 1.5,
+          "unit": "SERVING",
+          "grams": null,
+          "label": "1.5 servings",
+          "isStandard": false,
+          "nutrients": {
+            "energyKcal": 407.1,
+            "fatG": 29.25,
+            "saturatedFatG": 8.1,
+            "carbohydrateG": 4.5,
+            "proteinG": 25.5,
+            "sodiumMg": 108.0,
+            "sugarsG": 1.5
           }
         }
       ]
@@ -69494,6 +69476,145 @@
       ]
     },
     {
+      "recipeId": "FC_398565",
+      "name": "turkish scrambled eggs  menemen",
+      "ingredients": [
+        "eggs",
+        "cream",
+        "cubanelle pepper",
+        "roma tomatoes",
+        "extra virgin olive oil",
+        "feta cheese",
+        "salt and pepper"
+      ],
+      "cuisines": [
+        "Middle Eastern"
+      ],
+      "dietTags": [],
+      "roles": [
+        "BREAKFAST_BASE"
+      ],
+      "dishClass": "COMPLETE_MEAL",
+      "mealTypes": [
+        "BREAKFAST"
+      ],
+      "classificationStatus": "AUTO",
+      "classificationEvidence": [
+        "course breakfast/brunch -> BREAKFAST_BASE",
+        "dish class COMPLETE_MEAL"
+      ],
+      "nutrition": {
+        "source": "FOODCOM_DERIVED",
+        "basis": "PER_SERVING",
+        "values": {
+          "energyKcal": 278.4,
+          "fatG": 19.5,
+          "saturatedFatG": 7.800000000000001,
+          "carbohydrateG": 9.0,
+          "proteinG": 16.5,
+          "sodiumMg": 360.0,
+          "sugarsG": 5.75
+        },
+        "sourceReference": "FDA_1993_LABEL_2000KCAL",
+        "qualityFlags": []
+      },
+      "servingMassG": null,
+      "servingMassSource": null,
+      "provenance": [
+        "Food.com RAW_recipes.csv",
+        "%DV converted with FDA_1993_LABEL_2000KCAL; sugar left unknown",
+        "serving mass unverified"
+      ],
+      "trainingInteractions": 5,
+      "portions": [
+        {
+          "portionId": "FC_398565:0.5xSERVING",
+          "quantity": 0.5,
+          "unit": "SERVING",
+          "grams": null,
+          "label": "0.5 servings",
+          "isStandard": false,
+          "nutrients": {
+            "energyKcal": 139.2,
+            "fatG": 9.75,
+            "saturatedFatG": 3.9,
+            "carbohydrateG": 4.5,
+            "proteinG": 8.25,
+            "sodiumMg": 180.0,
+            "sugarsG": 2.875
+          }
+        },
+        {
+          "portionId": "FC_398565:0.75xSERVING",
+          "quantity": 0.75,
+          "unit": "SERVING",
+          "grams": null,
+          "label": "0.75 servings",
+          "isStandard": false,
+          "nutrients": {
+            "energyKcal": 208.8,
+            "fatG": 14.625,
+            "saturatedFatG": 5.85,
+            "carbohydrateG": 6.75,
+            "proteinG": 12.375,
+            "sodiumMg": 270.0,
+            "sugarsG": 4.312
+          }
+        },
+        {
+          "portionId": "FC_398565:1xSERVING",
+          "quantity": 1.0,
+          "unit": "SERVING",
+          "grams": null,
+          "label": "1 serving",
+          "isStandard": true,
+          "nutrients": {
+            "energyKcal": 278.4,
+            "fatG": 19.5,
+            "saturatedFatG": 7.8,
+            "carbohydrateG": 9.0,
+            "proteinG": 16.5,
+            "sodiumMg": 360.0,
+            "sugarsG": 5.75
+          }
+        },
+        {
+          "portionId": "FC_398565:1.25xSERVING",
+          "quantity": 1.25,
+          "unit": "SERVING",
+          "grams": null,
+          "label": "1.25 servings",
+          "isStandard": false,
+          "nutrients": {
+            "energyKcal": 348.0,
+            "fatG": 24.375,
+            "saturatedFatG": 9.75,
+            "carbohydrateG": 11.25,
+            "proteinG": 20.625,
+            "sodiumMg": 450.0,
+            "sugarsG": 7.188
+          }
+        },
+        {
+          "portionId": "FC_398565:1.5xSERVING",
+          "quantity": 1.5,
+          "unit": "SERVING",
+          "grams": null,
+          "label": "1.5 servings",
+          "isStandard": false,
+          "nutrients": {
+            "energyKcal": 417.6,
+            "fatG": 29.25,
+            "saturatedFatG": 11.7,
+            "carbohydrateG": 13.5,
+            "proteinG": 24.75,
+            "sodiumMg": 540.0,
+            "sugarsG": 8.625
+          }
+        }
+      ]
+    },
+    {
       "recipeId": "FC_39900",
       "name": "skillet parmesan chicken",
       "ingredients": [
@@ -72119,149 +72240,6 @@
       ]
     },
     {
-      "recipeId": "FC_421904",
-      "name": "kandhe ki roti   mummy s favourite onion paratha",
-      "ingredients": [
-        "onions",
-        "green chilies",
-        "gram flour",
-        "whole wheat flour",
-        "oil",
-        "fresh coriander leaves",
-        "salt",
-        "water"
-      ],
-      "cuisines": [
-        "Indian"
-      ],
-      "dietTags": [
-        "vegan",
-        "vegetarian"
-      ],
-      "roles": [
-        "BREAKFAST_BASE"
-      ],
-      "dishClass": "COMPLETE_MEAL",
-      "mealTypes": [
-        "BREAKFAST"
-      ],
-      "classificationStatus": "AUTO",
-      "classificationEvidence": [
-        "course breakfast/brunch -> BREAKFAST_BASE",
-        "dish class COMPLETE_MEAL"
-      ],
-      "nutrition": {
-        "source": "FOODCOM_DERIVED",
-        "basis": "PER_SERVING",
-        "values": {
-          "energyKcal": 149.6,
-          "fatG": 7.15,
-          "saturatedFatG": 0.8,
-          "carbohydrateG": 18.0,
-          "proteinG": 3.5000000000000004,
-          "sodiumMg": 576.0,
-          "sugarsG": 1.7500000000000002
-        },
-        "sourceReference": "FDA_1993_LABEL_2000KCAL",
-        "qualityFlags": []
-      },
-      "servingMassG": null,
-      "servingMassSource": null,
-      "provenance": [
-        "Food.com RAW_recipes.csv",
-        "%DV converted with FDA_1993_LABEL_2000KCAL; sugar left unknown",
-        "serving mass unverified"
-      ],
-      "trainingInteractions": 3,
-      "portions": [
-        {
-          "portionId": "FC_421904:0.5xSERVING",
-          "quantity": 0.5,
-          "unit": "SERVING",
-          "grams": null,
-          "label": "0.5 servings",
-          "isStandard": false,
-          "nutrients": {
-            "energyKcal": 74.8,
-            "fatG": 3.575,
-            "saturatedFatG": 0.4,
-            "carbohydrateG": 9.0,
-            "proteinG": 1.75,
-            "sodiumMg": 288.0,
-            "sugarsG": 0.875
-          }
-        },
-        {
-          "portionId": "FC_421904:0.75xSERVING",
-          "quantity": 0.75,
-          "unit": "SERVING",
-          "grams": null,
-          "label": "0.75 servings",
-          "isStandard": false,
-          "nutrients": {
-            "energyKcal": 112.2,
-            "fatG": 5.363,
-            "saturatedFatG": 0.6,
-            "carbohydrateG": 13.5,
-            "proteinG": 2.625,
-            "sodiumMg": 432.0,
-            "sugarsG": 1.313
-          }
-        },
-        {
-          "portionId": "FC_421904:1xSERVING",
-          "quantity": 1.0,
-          "unit": "SERVING",
-          "grams": null,
-          "label": "1 serving",
-          "isStandard": true,
-          "nutrients": {
-            "energyKcal": 149.6,
-            "fatG": 7.15,
-            "saturatedFatG": 0.8,
-            "carbohydrateG": 18.0,
-            "proteinG": 3.5,
-            "sodiumMg": 576.0,
-            "sugarsG": 1.75
-          }
-        },
-        {
-          "portionId": "FC_421904:1.25xSERVING",
-          "quantity": 1.25,
-          "unit": "SERVING",
-          "grams": null,
-          "label": "1.25 servings",
-          "isStandard": false,
-          "nutrients": {
-            "energyKcal": 187.0,
-            "fatG": 8.938,
-            "saturatedFatG": 1.0,
-            "carbohydrateG": 22.5,
-            "proteinG": 4.375,
-            "sodiumMg": 720.0,
-            "sugarsG": 2.188
-          }
-        },
-        {
-          "portionId": "FC_421904:1.5xSERVING",
-          "quantity": 1.5,
-          "unit": "SERVING",
-          "grams": null,
-          "label": "1.5 servings",
-          "isStandard": false,
-          "nutrients": {
-            "energyKcal": 224.4,
-            "fatG": 10.725,
-            "saturatedFatG": 1.2,
-            "carbohydrateG": 27.0,
-            "proteinG": 5.25,
-            "sodiumMg": 864.0,
-            "sugarsG": 2.625
-          }
-        }
-      ]
-    },
-    {
       "recipeId": "FC_42238",
       "name": "spinach tofu manicotti",
       "ingredients": [
@@ -74586,6 +74564,146 @@
       ]
     },
     {
+      "recipeId": "FC_459783",
+      "name": "egg rice",
+      "ingredients": [
+        "egg",
+        "cooked rice",
+        "soy sauce",
+        "sesame oil",
+        "sesame seeds",
+        "olive oil"
+      ],
+      "cuisines": [
+        "Korean"
+      ],
+      "dietTags": [],
+      "roles": [
+        "BREAKFAST_BASE"
+      ],
+      "dishClass": "COMPLETE_MEAL",
+      "mealTypes": [
+        "BREAKFAST"
+      ],
+      "classificationStatus": "CURATED",
+      "classificationEvidence": [
+        "breakfast/brunch tag, but a lunch/dinner dish name: not breakfast",
+        "lunch only: dish role is unclear",
+        "dish class COMPLETE_MEAL",
+        "curated by ai-review:claude: egg rice (gyeran-bap): rice with egg, soy and sesame, a classic quick Korean breakfast; Food.com tags breakfast and korean"
+      ],
+      "nutrition": {
+        "source": "FOODCOM_DERIVED",
+        "basis": "PER_SERVING",
+        "values": {
+          "energyKcal": 403.7,
+          "fatG": 13.65,
+          "saturatedFatG": 2.8000000000000003,
+          "carbohydrateG": 54.0,
+          "proteinG": 12.5,
+          "sodiumMg": 1056.0,
+          "sugarsG": 0.25
+        },
+        "sourceReference": "FDA_1993_LABEL_2000KCAL",
+        "qualityFlags": []
+      },
+      "servingMassG": null,
+      "servingMassSource": null,
+      "provenance": [
+        "Food.com RAW_recipes.csv",
+        "%DV converted with FDA_1993_LABEL_2000KCAL; sugar left unknown",
+        "serving mass unverified"
+      ],
+      "trainingInteractions": 3,
+      "portions": [
+        {
+          "portionId": "FC_459783:0.5xSERVING",
+          "quantity": 0.5,
+          "unit": "SERVING",
+          "grams": null,
+          "label": "0.5 servings",
+          "isStandard": false,
+          "nutrients": {
+            "energyKcal": 201.85,
+            "fatG": 6.825,
+            "saturatedFatG": 1.4,
+            "carbohydrateG": 27.0,
+            "proteinG": 6.25,
+            "sodiumMg": 528.0,
+            "sugarsG": 0.125
+          }
+        },
+        {
+          "portionId": "FC_459783:0.75xSERVING",
+          "quantity": 0.75,
+          "unit": "SERVING",
+          "grams": null,
+          "label": "0.75 servings",
+          "isStandard": false,
+          "nutrients": {
+            "energyKcal": 302.775,
+            "fatG": 10.238,
+            "saturatedFatG": 2.1,
+            "carbohydrateG": 40.5,
+            "proteinG": 9.375,
+            "sodiumMg": 792.0,
+            "sugarsG": 0.188
+          }
+        },
+        {
+          "portionId": "FC_459783:1xSERVING",
+          "quantity": 1.0,
+          "unit": "SERVING",
+          "grams": null,
+          "label": "1 serving",
+          "isStandard": true,
+          "nutrients": {
+            "energyKcal": 403.7,
+            "fatG": 13.65,
+            "saturatedFatG": 2.8,
+            "carbohydrateG": 54.0,
+            "proteinG": 12.5,
+            "sodiumMg": 1056.0,
+            "sugarsG": 0.25
+          }
+        },
+        {
+          "portionId": "FC_459783:1.25xSERVING",
+          "quantity": 1.25,
+          "unit": "SERVING",
+          "grams": null,
+          "label": "1.25 servings",
+          "isStandard": false,
+          "nutrients": {
+            "energyKcal": 504.625,
+            "fatG": 17.062,
+            "saturatedFatG": 3.5,
+            "carbohydrateG": 67.5,
+            "proteinG": 15.625,
+            "sodiumMg": 1320.0,
+            "sugarsG": 0.312
+          }
+        },
+        {
+          "portionId": "FC_459783:1.5xSERVING",
+          "quantity": 1.5,
+          "unit": "SERVING",
+          "grams": null,
+          "label": "1.5 servings",
+          "isStandard": false,
+          "nutrients": {
+            "energyKcal": 605.55,
+            "fatG": 20.475,
+            "saturatedFatG": 4.2,
+            "carbohydrateG": 81.0,
+            "proteinG": 18.75,
+            "sodiumMg": 1584.0,
+            "sugarsG": 0.375
+          }
+        }
+      ]
+    },
+    {
       "recipeId": "FC_4608",
       "name": "okonomiyaki   japanese pizza",
       "ingredients": [
@@ -76062,6 +76180,150 @@
       ]
     },
     {
+      "recipeId": "FC_478796",
+      "name": "alu paratha   mashed potato stuffed bread",
+      "ingredients": [
+        "wheat flour",
+        "boiled potatoes",
+        "onion",
+        "green chili",
+        "roasted cumin seeds",
+        "salt",
+        "vegetable oil"
+      ],
+      "cuisines": [
+        "Indian",
+        "Nepali"
+      ],
+      "dietTags": [
+        "vegan",
+        "vegetarian"
+      ],
+      "roles": [
+        "BREAKFAST_BASE"
+      ],
+      "dishClass": "COMPLETE_MEAL",
+      "mealTypes": [
+        "BREAKFAST"
+      ],
+      "classificationStatus": "CURATED",
+      "classificationEvidence": [
+        "course breakfast/brunch -> BREAKFAST_BASE",
+        "dish class COMPLETE_MEAL",
+        "curated by ai-review:claude: alu paratha: potato-stuffed flatbread, a common breakfast in Nepal and North India; Food.com tags breakfast and indian"
+      ],
+      "nutrition": {
+        "source": "FOODCOM_DERIVED",
+        "basis": "PER_SERVING",
+        "values": {
+          "energyKcal": 413.5,
+          "fatG": 14.950000000000001,
+          "saturatedFatG": 2.0,
+          "carbohydrateG": 63.0,
+          "proteinG": 9.5,
+          "sodiumMg": 864.0,
+          "sugarsG": 2.5
+        },
+        "sourceReference": "FDA_1993_LABEL_2000KCAL",
+        "qualityFlags": []
+      },
+      "servingMassG": null,
+      "servingMassSource": null,
+      "provenance": [
+        "Food.com RAW_recipes.csv",
+        "%DV converted with FDA_1993_LABEL_2000KCAL; sugar left unknown",
+        "serving mass unverified"
+      ],
+      "trainingInteractions": 0,
+      "portions": [
+        {
+          "portionId": "FC_478796:0.5xSERVING",
+          "quantity": 0.5,
+          "unit": "SERVING",
+          "grams": null,
+          "label": "0.5 servings",
+          "isStandard": false,
+          "nutrients": {
+            "energyKcal": 206.75,
+            "fatG": 7.475,
+            "saturatedFatG": 1.0,
+            "carbohydrateG": 31.5,
+            "proteinG": 4.75,
+            "sodiumMg": 432.0,
+            "sugarsG": 1.25
+          }
+        },
+        {
+          "portionId": "FC_478796:0.75xSERVING",
+          "quantity": 0.75,
+          "unit": "SERVING",
+          "grams": null,
+          "label": "0.75 servings",
+          "isStandard": false,
+          "nutrients": {
+            "energyKcal": 310.125,
+            "fatG": 11.213,
+            "saturatedFatG": 1.5,
+            "carbohydrateG": 47.25,
+            "proteinG": 7.125,
+            "sodiumMg": 648.0,
+            "sugarsG": 1.875
+          }
+        },
+        {
+          "portionId": "FC_478796:1xSERVING",
+          "quantity": 1.0,
+          "unit": "SERVING",
+          "grams": null,
+          "label": "1 serving",
+          "isStandard": true,
+          "nutrients": {
+            "energyKcal": 413.5,
+            "fatG": 14.95,
+            "saturatedFatG": 2.0,
+            "carbohydrateG": 63.0,
+            "proteinG": 9.5,
+            "sodiumMg": 864.0,
+            "sugarsG": 2.5
+          }
+        },
+        {
+          "portionId": "FC_478796:1.25xSERVING",
+          "quantity": 1.25,
+          "unit": "SERVING",
+          "grams": null,
+          "label": "1.25 servings",
+          "isStandard": false,
+          "nutrients": {
+            "energyKcal": 516.875,
+            "fatG": 18.688,
+            "saturatedFatG": 2.5,
+            "carbohydrateG": 78.75,
+            "proteinG": 11.875,
+            "sodiumMg": 1080.0,
+            "sugarsG": 3.125
+          }
+        },
+        {
+          "portionId": "FC_478796:1.5xSERVING",
+          "quantity": 1.5,
+          "unit": "SERVING",
+          "grams": null,
+          "label": "1.5 servings",
+          "isStandard": false,
+          "nutrients": {
+            "energyKcal": 620.25,
+            "fatG": 22.425,
+            "saturatedFatG": 3.0,
+            "carbohydrateG": 94.5,
+            "proteinG": 14.25,
+            "sodiumMg": 1296.0,
+            "sugarsG": 3.75
+          }
+        }
+      ]
+    },
+    {
       "recipeId": "FC_478798",
       "name": "nasi goreng  indonesian fried rice",
       "ingredients": [
@@ -76085,18 +76347,21 @@
         "vegetarian"
       ],
       "roles": [
-        "MAIN_DISH"
+        "MAIN_DISH",
+        "BREAKFAST_BASE"
       ],
       "dishClass": "COMPLETE_MEAL",
       "mealTypes": [
+        "BREAKFAST",
         "LUNCH",
         "DINNER"
       ],
-      "classificationStatus": "AUTO",
+      "classificationStatus": "CURATED",
       "classificationEvidence": [
         "course main-dish/one-dish-meal -> MAIN_DISH",
         "breakfast/brunch tag, but a lunch/dinner dish name: not breakfast",
-        "dish class COMPLETE_MEAL"
+        "dish class COMPLETE_MEAL",
+        "curated by ai-review:claude: nasi goreng: Indonesian fried rice is eaten for breakfast as often as for lunch or dinner, so it is both; rice is part of the dish"
       ],
       "nutrition": {
         "source": "FOODCOM_DERIVED",
@@ -76205,6 +76470,152 @@
             "proteinG": 14.25,
             "sodiumMg": 936.0,
             "sugarsG": 4.5
+          }
+        }
+      ]
+    },
+    {
+      "recipeId": "FC_482891",
+      "name": "indian omelet",
+      "ingredients": [
+        "eggs",
+        "milk",
+        "cilantro",
+        "salt",
+        "pepper",
+        "butter",
+        "green chilies",
+        "onions",
+        "turmeric",
+        "tomatoes"
+      ],
+      "cuisines": [
+        "Indian",
+        "Nepali"
+      ],
+      "dietTags": [
+        "vegetarian"
+      ],
+      "roles": [
+        "BREAKFAST_BASE"
+      ],
+      "dishClass": "COMPLETE_MEAL",
+      "mealTypes": [
+        "BREAKFAST"
+      ],
+      "classificationStatus": "CURATED",
+      "classificationEvidence": [
+        "course breakfast/brunch -> BREAKFAST_BASE",
+        "dish class COMPLETE_MEAL",
+        "curated by ai-review:claude: indian omelet: onion, chilli and tomato omelette, the everyday egg breakfast in Nepali and Indian homes; Food.com tags breakfast and indian"
+      ],
+      "nutrition": {
+        "source": "FOODCOM_DERIVED",
+        "basis": "PER_SERVING",
+        "values": {
+          "energyKcal": 244.7,
+          "fatG": 15.6,
+          "saturatedFatG": 7.0,
+          "carbohydrateG": 9.0,
+          "proteinG": 14.499999999999998,
+          "sodiumMg": 480.0,
+          "sugarsG": 6.0
+        },
+        "sourceReference": "FDA_1993_LABEL_2000KCAL",
+        "qualityFlags": []
+      },
+      "servingMassG": null,
+      "servingMassSource": null,
+      "provenance": [
+        "Food.com RAW_recipes.csv",
+        "%DV converted with FDA_1993_LABEL_2000KCAL; sugar left unknown",
+        "serving mass unverified"
+      ],
+      "trainingInteractions": 0,
+      "portions": [
+        {
+          "portionId": "FC_482891:0.5xSERVING",
+          "quantity": 0.5,
+          "unit": "SERVING",
+          "grams": null,
+          "label": "0.5 servings",
+          "isStandard": false,
+          "nutrients": {
+            "energyKcal": 122.35,
+            "fatG": 7.8,
+            "saturatedFatG": 3.5,
+            "carbohydrateG": 4.5,
+            "proteinG": 7.25,
+            "sodiumMg": 240.0,
+            "sugarsG": 3.0
+          }
+        },
+        {
+          "portionId": "FC_482891:0.75xSERVING",
+          "quantity": 0.75,
+          "unit": "SERVING",
+          "grams": null,
+          "label": "0.75 servings",
+          "isStandard": false,
+          "nutrients": {
+            "energyKcal": 183.525,
+            "fatG": 11.7,
+            "saturatedFatG": 5.25,
+            "carbohydrateG": 6.75,
+            "proteinG": 10.875,
+            "sodiumMg": 360.0,
+            "sugarsG": 4.5
+          }
+        },
+        {
+          "portionId": "FC_482891:1xSERVING",
+          "quantity": 1.0,
+          "unit": "SERVING",
+          "grams": null,
+          "label": "1 serving",
+          "isStandard": true,
+          "nutrients": {
+            "energyKcal": 244.7,
+            "fatG": 15.6,
+            "saturatedFatG": 7.0,
+            "carbohydrateG": 9.0,
+            "proteinG": 14.5,
+            "sodiumMg": 480.0,
+            "sugarsG": 6.0
+          }
+        },
+        {
+          "portionId": "FC_482891:1.25xSERVING",
+          "quantity": 1.25,
+          "unit": "SERVING",
+          "grams": null,
+          "label": "1.25 servings",
+          "isStandard": false,
+          "nutrients": {
+            "energyKcal": 305.875,
+            "fatG": 19.5,
+            "saturatedFatG": 8.75,
+            "carbohydrateG": 11.25,
+            "proteinG": 18.125,
+            "sodiumMg": 600.0,
+            "sugarsG": 7.5
+          }
+        },
+        {
+          "portionId": "FC_482891:1.5xSERVING",
+          "quantity": 1.5,
+          "unit": "SERVING",
+          "grams": null,
+          "label": "1.5 servings",
+          "isStandard": false,
+          "nutrients": {
+            "energyKcal": 367.05,
+            "fatG": 23.4,
+            "saturatedFatG": 10.5,
+            "carbohydrateG": 13.5,
+            "proteinG": 21.75,
+            "sodiumMg": 720.0,
+            "sugarsG": 9.0
           }
         }
       ]
@@ -93921,6 +94332,151 @@
       ]
     },
     {
+      "recipeId": "FC_84776",
+      "name": "imam bayildi  a stuffed eggplant recipe from asia minor",
+      "ingredients": [
+        "onions",
+        "olive oil",
+        "garlic cloves",
+        "tomatoes",
+        "parsley",
+        "of fresh mint",
+        "salt and pepper",
+        "eggplants",
+        "sugar",
+        "fresh lemon juice"
+      ],
+      "cuisines": [
+        "Middle Eastern"
+      ],
+      "dietTags": [
+        "vegetarian"
+      ],
+      "roles": [
+        "MAIN_DISH"
+      ],
+      "dishClass": "COMPLETE_MEAL",
+      "mealTypes": [
+        "LUNCH",
+        "DINNER"
+      ],
+      "classificationStatus": "AUTO",
+      "classificationEvidence": [
+        "course main-dish/one-dish-meal -> MAIN_DISH",
+        "dish class COMPLETE_MEAL"
+      ],
+      "nutrition": {
+        "source": "FOODCOM_DERIVED",
+        "basis": "PER_SERVING",
+        "values": {
+          "energyKcal": 353.0,
+          "fatG": 27.3,
+          "saturatedFatG": 3.8,
+          "carbohydrateG": 24.0,
+          "proteinG": 4.0,
+          "sodiumMg": 0.0,
+          "sugarsG": 12.25
+        },
+        "sourceReference": "FDA_1993_LABEL_2000KCAL",
+        "qualityFlags": []
+      },
+      "servingMassG": null,
+      "servingMassSource": null,
+      "provenance": [
+        "Food.com RAW_recipes.csv",
+        "%DV converted with FDA_1993_LABEL_2000KCAL; sugar left unknown",
+        "serving mass unverified"
+      ],
+      "trainingInteractions": 15,
+      "portions": [
+        {
+          "portionId": "FC_84776:0.5xSERVING",
+          "quantity": 0.5,
+          "unit": "SERVING",
+          "grams": null,
+          "label": "0.5 servings",
+          "isStandard": false,
+          "nutrients": {
+            "energyKcal": 176.5,
+            "fatG": 13.65,
+            "saturatedFatG": 1.9,
+            "carbohydrateG": 12.0,
+            "proteinG": 2.0,
+            "sodiumMg": 0.0,
+            "sugarsG": 6.125
+          }
+        },
+        {
+          "portionId": "FC_84776:0.75xSERVING",
+          "quantity": 0.75,
+          "unit": "SERVING",
+          "grams": null,
+          "label": "0.75 servings",
+          "isStandard": false,
+          "nutrients": {
+            "energyKcal": 264.75,
+            "fatG": 20.475,
+            "saturatedFatG": 2.85,
+            "carbohydrateG": 18.0,
+            "proteinG": 3.0,
+            "sodiumMg": 0.0,
+            "sugarsG": 9.188
+          }
+        },
+        {
+          "portionId": "FC_84776:1xSERVING",
+          "quantity": 1.0,
+          "unit": "SERVING",
+          "grams": null,
+          "label": "1 serving",
+          "isStandard": true,
+          "nutrients": {
+            "energyKcal": 353.0,
+            "fatG": 27.3,
+            "saturatedFatG": 3.8,
+            "carbohydrateG": 24.0,
+            "proteinG": 4.0,
+            "sodiumMg": 0.0,
+            "sugarsG": 12.25
+          }
+        },
+        {
+          "portionId": "FC_84776:1.25xSERVING",
+          "quantity": 1.25,
+          "unit": "SERVING",
+          "grams": null,
+          "label": "1.25 servings",
+          "isStandard": false,
+          "nutrients": {
+            "energyKcal": 441.25,
+            "fatG": 34.125,
+            "saturatedFatG": 4.75,
+            "carbohydrateG": 30.0,
+            "proteinG": 5.0,
+            "sodiumMg": 0.0,
+            "sugarsG": 15.312
+          }
+        },
+        {
+          "portionId": "FC_84776:1.5xSERVING",
+          "quantity": 1.5,
+          "unit": "SERVING",
+          "grams": null,
+          "label": "1.5 servings",
+          "isStandard": false,
+          "nutrients": {
+            "energyKcal": 529.5,
+            "fatG": 40.95,
+            "saturatedFatG": 5.7,
+            "carbohydrateG": 36.0,
+            "proteinG": 6.0,
+            "sodiumMg": 0.0,
+            "sugarsG": 18.375
+          }
+        }
+      ]
+    },
+    {
       "recipeId": "FC_85782",
       "name": "moroccan chickpeas and sweet potatoes",
       "ingredients": [
@@ -98923,152 +99479,6 @@
       ]
     },
     {
-      "recipeId": "FC_9809",
-      "name": "turkish spinach",
-      "ingredients": [
-        "olive oil",
-        "onion",
-        "diced tomatoes",
-        "lemon",
-        "garlic",
-        "salt",
-        "pepper",
-        "fresh spinach",
-        "rice",
-        "water"
-      ],
-      "cuisines": [
-        "Middle Eastern"
-      ],
-      "dietTags": [
-        "vegan",
-        "vegetarian"
-      ],
-      "roles": [
-        "MAIN_DISH"
-      ],
-      "dishClass": "REQUIRES_ACCOMPANIMENT",
-      "mealTypes": [
-        "LUNCH",
-        "DINNER"
-      ],
-      "classificationStatus": "AUTO",
-      "classificationEvidence": [
-        "course main-dish/one-dish-meal -> MAIN_DISH",
-        "dish class REQUIRES_ACCOMPANIMENT"
-      ],
-      "nutrition": {
-        "source": "FOODCOM_DERIVED",
-        "basis": "PER_SERVING",
-        "values": {
-          "energyKcal": 277.8,
-          "fatG": 4.550000000000001,
-          "saturatedFatG": 0.6,
-          "carbohydrateG": 51.00000000000001,
-          "proteinG": 11.5,
-          "sodiumMg": 432.0,
-          "sugarsG": 11.25
-        },
-        "sourceReference": "FDA_1993_LABEL_2000KCAL",
-        "qualityFlags": []
-      },
-      "servingMassG": null,
-      "servingMassSource": null,
-      "provenance": [
-        "Food.com RAW_recipes.csv",
-        "%DV converted with FDA_1993_LABEL_2000KCAL; sugar left unknown",
-        "serving mass unverified"
-      ],
-      "trainingInteractions": 6,
-      "portions": [
-        {
-          "portionId": "FC_9809:0.5xSERVING",
-          "quantity": 0.5,
-          "unit": "SERVING",
-          "grams": null,
-          "label": "0.5 servings",
-          "isStandard": false,
-          "nutrients": {
-            "energyKcal": 138.9,
-            "fatG": 2.275,
-            "saturatedFatG": 0.3,
-            "carbohydrateG": 25.5,
-            "proteinG": 5.75,
-            "sodiumMg": 216.0,
-            "sugarsG": 5.625
-          }
-        },
-        {
-          "portionId": "FC_9809:0.75xSERVING",
-          "quantity": 0.75,
-          "unit": "SERVING",
-          "grams": null,
-          "label": "0.75 servings",
-          "isStandard": false,
-          "nutrients": {
-            "energyKcal": 208.35,
-            "fatG": 3.413,
-            "saturatedFatG": 0.45,
-            "carbohydrateG": 38.25,
-            "proteinG": 8.625,
-            "sodiumMg": 324.0,
-            "sugarsG": 8.438
-          }
-        },
-        {
-          "portionId": "FC_9809:1xSERVING",
-          "quantity": 1.0,
-          "unit": "SERVING",
-          "grams": null,
-          "label": "1 serving",
-          "isStandard": true,
-          "nutrients": {
-            "energyKcal": 277.8,
-            "fatG": 4.55,
-            "saturatedFatG": 0.6,
-            "carbohydrateG": 51.0,
-            "proteinG": 11.5,
-            "sodiumMg": 432.0,
-            "sugarsG": 11.25
-          }
-        },
-        {
-          "portionId": "FC_9809:1.25xSERVING",
-          "quantity": 1.25,
-          "unit": "SERVING",
-          "grams": null,
-          "label": "1.25 servings",
-          "isStandard": false,
-          "nutrients": {
-            "energyKcal": 347.25,
-            "fatG": 5.688,
-            "saturatedFatG": 0.75,
-            "carbohydrateG": 63.75,
-            "proteinG": 14.375,
-            "sodiumMg": 540.0,
-            "sugarsG": 14.062
-          }
-        },
-        {
-          "portionId": "FC_9809:1.5xSERVING",
-          "quantity": 1.5,
-          "unit": "SERVING",
-          "grams": null,
-          "label": "1.5 servings",
-          "isStandard": false,
-          "nutrients": {
-            "energyKcal": 416.7,
-            "fatG": 6.825,
-            "saturatedFatG": 0.9,
-            "carbohydrateG": 76.5,
-            "proteinG": 17.25,
-            "sodiumMg": 648.0,
-            "sugarsG": 16.875
-          }
-        }
-      ]
-    },
-    {
       "recipeId": "FC_98927",
       "name": "indian spiced omelet",
       "ingredients": [
@@ -99210,6 +99620,150 @@
             "proteinG": 29.25,
             "sodiumMg": 252.0,
             "sugarsG": 34.125
+          }
+        }
+      ]
+    },
+    {
+      "recipeId": "FC_99028",
+      "name": "banana pancakes  wayan s recipe",
+      "ingredients": [
+        "all-purpose flour",
+        "egg",
+        "salt",
+        "milk",
+        "butter",
+        "bananas",
+        "lemon",
+        "sugar",
+        "ice cream"
+      ],
+      "cuisines": [
+        "Indonesian"
+      ],
+      "dietTags": [],
+      "roles": [
+        "BREAKFAST_BASE"
+      ],
+      "dishClass": "COMPLETE_MEAL",
+      "mealTypes": [
+        "BREAKFAST"
+      ],
+      "classificationStatus": "CURATED",
+      "classificationEvidence": [
+        "course breakfast/brunch -> BREAKFAST_BASE",
+        "non-meal course: desserts",
+        "dish class COMPLETE_MEAL",
+        "conflict: meal course and non-meal course",
+        "curated by ai-review:claude: banana pancakes (Wayan's recipe): Balinese dadar pisang, a common Indonesian breakfast; tags were breakfast and desserts"
+      ],
+      "nutrition": {
+        "source": "FOODCOM_DERIVED",
+        "basis": "PER_SERVING",
+        "values": {
+          "energyKcal": 378.0,
+          "fatG": 15.6,
+          "saturatedFatG": 9.200000000000001,
+          "carbohydrateG": 51.00000000000001,
+          "proteinG": 8.0,
+          "sodiumMg": 264.0,
+          "sugarsG": 14.499999999999998
+        },
+        "sourceReference": "FDA_1993_LABEL_2000KCAL",
+        "qualityFlags": []
+      },
+      "servingMassG": null,
+      "servingMassSource": null,
+      "provenance": [
+        "Food.com RAW_recipes.csv",
+        "%DV converted with FDA_1993_LABEL_2000KCAL; sugar left unknown",
+        "serving mass unverified"
+      ],
+      "trainingInteractions": 1,
+      "portions": [
+        {
+          "portionId": "FC_99028:0.5xSERVING",
+          "quantity": 0.5,
+          "unit": "SERVING",
+          "grams": null,
+          "label": "0.5 servings",
+          "isStandard": false,
+          "nutrients": {
+            "energyKcal": 189.0,
+            "fatG": 7.8,
+            "saturatedFatG": 4.6,
+            "carbohydrateG": 25.5,
+            "proteinG": 4.0,
+            "sodiumMg": 132.0,
+            "sugarsG": 7.25
+          }
+        },
+        {
+          "portionId": "FC_99028:0.75xSERVING",
+          "quantity": 0.75,
+          "unit": "SERVING",
+          "grams": null,
+          "label": "0.75 servings",
+          "isStandard": false,
+          "nutrients": {
+            "energyKcal": 283.5,
+            "fatG": 11.7,
+            "saturatedFatG": 6.9,
+            "carbohydrateG": 38.25,
+            "proteinG": 6.0,
+            "sodiumMg": 198.0,
+            "sugarsG": 10.875
+          }
+        },
+        {
+          "portionId": "FC_99028:1xSERVING",
+          "quantity": 1.0,
+          "unit": "SERVING",
+          "grams": null,
+          "label": "1 serving",
+          "isStandard": true,
+          "nutrients": {
+            "energyKcal": 378.0,
+            "fatG": 15.6,
+            "saturatedFatG": 9.2,
+            "carbohydrateG": 51.0,
+            "proteinG": 8.0,
+            "sodiumMg": 264.0,
+            "sugarsG": 14.5
+          }
+        },
+        {
+          "portionId": "FC_99028:1.25xSERVING",
+          "quantity": 1.25,
+          "unit": "SERVING",
+          "grams": null,
+          "label": "1.25 servings",
+          "isStandard": false,
+          "nutrients": {
+            "energyKcal": 472.5,
+            "fatG": 19.5,
+            "saturatedFatG": 11.5,
+            "carbohydrateG": 63.75,
+            "proteinG": 10.0,
+            "sodiumMg": 330.0,
+            "sugarsG": 18.125
+          }
+        },
+        {
+          "portionId": "FC_99028:1.5xSERVING",
+          "quantity": 1.5,
+          "unit": "SERVING",
+          "grams": null,
+          "label": "1.5 servings",
+          "isStandard": false,
+          "nutrients": {
+            "energyKcal": 567.0,
+            "fatG": 23.4,
+            "saturatedFatG": 13.8,
+            "carbohydrateG": 76.5,
+            "proteinG": 12.0,
+            "sodiumMg": 396.0,
+            "sugarsG": 21.75
           }
         }
       ]
@@ -101837,6 +102391,324 @@
             "proteinG": 18.6,
             "sodiumMg": 193.5,
             "sugarsG": 0.3
+          }
+        }
+      ]
+    },
+    {
+      "recipeId": "USDA_2707714",
+      "name": "puri",
+      "ingredients": [
+        "whole wheat flour",
+        "water",
+        "salt",
+        "vegetable oil"
+      ],
+      "cuisines": [
+        "Indian",
+        "Nepali"
+      ],
+      "dietTags": [
+        "vegan",
+        "vegetarian"
+      ],
+      "roles": [
+        "BREAKFAST_BASE"
+      ],
+      "dishClass": "COMPLETE_MEAL",
+      "mealTypes": [
+        "BREAKFAST"
+      ],
+      "classificationStatus": "CURATED",
+      "classificationEvidence": [
+        "curated by ai-review:claude: deep-fried whole-wheat bread, exact FNDDS identity; puri is a common Nepali and North Indian breakfast (usually with a potato or chickpea curry, which the breakfast template does not compose)"
+      ],
+      "nutrition": {
+        "source": "USDA_FNDDS",
+        "basis": "PER_100_G",
+        "values": {
+          "energyKcal": 409.0,
+          "fatG": 24.94,
+          "saturatedFatG": 3.339,
+          "carbohydrateG": 39.23,
+          "proteinG": 6.84,
+          "sodiumMg": 170.0,
+          "sugarsG": 0.18
+        },
+        "sourceReference": "fdc:2707714 Bread, puri (2024-10-31)",
+        "qualityFlags": []
+      },
+      "servingMassG": null,
+      "servingMassSource": null,
+      "provenance": [
+        "USDA FoodData Central survey_fndds_food fdc_id 2707714",
+        "exact identity, curated fdc_id list (ADR 0003 D1)",
+        "portion: 1 puri (approx 4-4/5\" dia) = 36 g (food_portion id 299427)"
+      ],
+      "trainingInteractions": null,
+      "portions": [
+        {
+          "portionId": "USDA_2707714:2xPIECE",
+          "quantity": 2.0,
+          "unit": "PIECE",
+          "grams": 72.0,
+          "label": "2 pieces (72 g)",
+          "isStandard": false,
+          "nutrients": {
+            "energyKcal": 294.48,
+            "fatG": 17.957,
+            "saturatedFatG": 2.404,
+            "carbohydrateG": 28.246,
+            "proteinG": 4.925,
+            "sodiumMg": 122.4,
+            "sugarsG": 0.13
+          }
+        },
+        {
+          "portionId": "USDA_2707714:3xPIECE",
+          "quantity": 3.0,
+          "unit": "PIECE",
+          "grams": 108.0,
+          "label": "3 pieces (108 g)",
+          "isStandard": true,
+          "nutrients": {
+            "energyKcal": 441.72,
+            "fatG": 26.935,
+            "saturatedFatG": 3.606,
+            "carbohydrateG": 42.368,
+            "proteinG": 7.387,
+            "sodiumMg": 183.6,
+            "sugarsG": 0.194
+          }
+        },
+        {
+          "portionId": "USDA_2707714:4xPIECE",
+          "quantity": 4.0,
+          "unit": "PIECE",
+          "grams": 144.0,
+          "label": "4 pieces (144 g)",
+          "isStandard": false,
+          "nutrients": {
+            "energyKcal": 588.96,
+            "fatG": 35.914,
+            "saturatedFatG": 4.808,
+            "carbohydrateG": 56.491,
+            "proteinG": 9.85,
+            "sodiumMg": 244.8,
+            "sugarsG": 0.259
+          }
+        }
+      ]
+    },
+    {
+      "recipeId": "USDA_2707715",
+      "name": "paratha",
+      "ingredients": [
+        "whole wheat flour",
+        "water",
+        "salt",
+        "ghee"
+      ],
+      "cuisines": [
+        "Indian",
+        "Nepali"
+      ],
+      "dietTags": [
+        "vegetarian"
+      ],
+      "roles": [
+        "BREAKFAST_BASE"
+      ],
+      "dishClass": "COMPLETE_MEAL",
+      "mealTypes": [
+        "BREAKFAST"
+      ],
+      "classificationStatus": "CURATED",
+      "classificationEvidence": [
+        "curated by ai-review:claude: layered pan-fried flatbread, exact FNDDS identity; a staple Nepali and North Indian breakfast. Ghee is listed as the typical fat, so the dish is vegetarian, not vegan"
+      ],
+      "nutrition": {
+        "source": "USDA_FNDDS",
+        "basis": "PER_100_G",
+        "values": {
+          "energyKcal": 326.0,
+          "fatG": 13.2,
+          "saturatedFatG": 5.826,
+          "carbohydrateG": 45.35,
+          "proteinG": 6.36,
+          "sodiumMg": 452.0,
+          "sugarsG": 4.15
+        },
+        "sourceReference": "fdc:2707715 Bread, paratha (2024-10-31)",
+        "qualityFlags": []
+      },
+      "servingMassG": null,
+      "servingMassSource": null,
+      "provenance": [
+        "USDA FoodData Central survey_fndds_food fdc_id 2707715",
+        "exact identity, curated fdc_id list (ADR 0003 D1)",
+        "portion: 1 paratha = 70 g (food_portion id 299429)"
+      ],
+      "trainingInteractions": null,
+      "portions": [
+        {
+          "portionId": "USDA_2707715:1xPIECE",
+          "quantity": 1.0,
+          "unit": "PIECE",
+          "grams": 70.0,
+          "label": "1 piece (70 g)",
+          "isStandard": false,
+          "nutrients": {
+            "energyKcal": 228.2,
+            "fatG": 9.24,
+            "saturatedFatG": 4.078,
+            "carbohydrateG": 31.745,
+            "proteinG": 4.452,
+            "sodiumMg": 316.4,
+            "sugarsG": 2.905
+          }
+        },
+        {
+          "portionId": "USDA_2707715:2xPIECE",
+          "quantity": 2.0,
+          "unit": "PIECE",
+          "grams": 140.0,
+          "label": "2 pieces (140 g)",
+          "isStandard": true,
+          "nutrients": {
+            "energyKcal": 456.4,
+            "fatG": 18.48,
+            "saturatedFatG": 8.156,
+            "carbohydrateG": 63.49,
+            "proteinG": 8.904,
+            "sodiumMg": 632.8,
+            "sugarsG": 5.81
+          }
+        },
+        {
+          "portionId": "USDA_2707715:3xPIECE",
+          "quantity": 3.0,
+          "unit": "PIECE",
+          "grams": 210.0,
+          "label": "3 pieces (210 g)",
+          "isStandard": false,
+          "nutrients": {
+            "energyKcal": 684.6,
+            "fatG": 27.72,
+            "saturatedFatG": 12.235,
+            "carbohydrateG": 95.235,
+            "proteinG": 13.356,
+            "sodiumMg": 949.2,
+            "sugarsG": 8.715
+          }
+        }
+      ]
+    },
+    {
+      "recipeId": "USDA_2708984",
+      "name": "rice congee with egg",
+      "ingredients": [
+        "white rice",
+        "water",
+        "egg",
+        "salt"
+      ],
+      "cuisines": [
+        "Chinese",
+        "Korean",
+        "Vietnamese",
+        "Filipino",
+        "Indonesian",
+        "Malaysian",
+        "Thai"
+      ],
+      "dietTags": [
+        "vegetarian"
+      ],
+      "roles": [
+        "BREAKFAST_BASE"
+      ],
+      "dishClass": "COMPLETE_MEAL",
+      "mealTypes": [
+        "BREAKFAST"
+      ],
+      "classificationStatus": "CURATED",
+      "classificationEvidence": [
+        "curated by ai-review:claude: rice porridge with egg, exact FNDDS identity; the everyday breakfast porridge of these cuisines (Chinese zhou, Korean juk, Vietnamese chao, Filipino lugaw, Indonesian and Malaysian bubur, Thai jok). Ovo-vegetarian: the Rule Engine decides from the egg ingredient"
+      ],
+      "nutrition": {
+        "source": "USDA_FNDDS",
+        "basis": "PER_100_G",
+        "values": {
+          "energyKcal": 60.0,
+          "fatG": 2.06,
+          "saturatedFatG": 0.658,
+          "carbohydrateG": 6.91,
+          "proteinG": 3.12,
+          "sodiumMg": 213.0,
+          "sugarsG": 0.05
+        },
+        "sourceReference": "fdc:2708984 Congee, with egg (2024-10-31)",
+        "qualityFlags": []
+      },
+      "servingMassG": null,
+      "servingMassSource": null,
+      "provenance": [
+        "USDA FoodData Central survey_fndds_food fdc_id 2708984",
+        "exact identity, curated fdc_id list (ADR 0003 D1)",
+        "portion: 1 cup = 255 g (food_portion id 305447)"
+      ],
+      "trainingInteractions": null,
+      "portions": [
+        {
+          "portionId": "USDA_2708984:1xCUP",
+          "quantity": 1.0,
+          "unit": "CUP",
+          "grams": 255.0,
+          "label": "1 cup (255 g)",
+          "isStandard": true,
+          "nutrients": {
+            "energyKcal": 153.0,
+            "fatG": 5.253,
+            "saturatedFatG": 1.678,
+            "carbohydrateG": 17.62,
+            "proteinG": 7.956,
+            "sodiumMg": 543.15,
+            "sugarsG": 0.128
+          }
+        },
+        {
+          "portionId": "USDA_2708984:1.5xCUP",
+          "quantity": 1.5,
+          "unit": "CUP",
+          "grams": 382.5,
+          "label": "1.5 cups (382.5 g)",
+          "isStandard": false,
+          "nutrients": {
+            "energyKcal": 229.5,
+            "fatG": 7.88,
+            "saturatedFatG": 2.517,
+            "carbohydrateG": 26.431,
+            "proteinG": 11.934,
+            "sodiumMg": 814.725,
+            "sugarsG": 0.191
+          }
+        },
+        {
+          "portionId": "USDA_2708984:2xCUP",
+          "quantity": 2.0,
+          "unit": "CUP",
+          "grams": 510.0,
+          "label": "2 cups (510 g)",
+          "isStandard": false,
+          "nutrients": {
+            "energyKcal": 306.0,
+            "fatG": 10.506,
+            "saturatedFatG": 3.356,
+            "carbohydrateG": 35.241,
+            "proteinG": 15.912,
+            "sodiumMg": 1086.3,
+            "sugarsG": 0.255
           }
         }
       ]

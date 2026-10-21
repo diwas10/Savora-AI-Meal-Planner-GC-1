@@ -1,27 +1,27 @@
 {
-  "catalogueVersion": "20261020T230903Z",
+  "catalogueVersion": "20261021T073631Z",
   "catalogue": {
     "rawRecipes": 231637,
     "accepted": 213696,
-    "plannable": 105999,
-    "requiresReview": 52449,
+    "plannable": 106001,
+    "requiresReview": 52447,
     "notPlanningDish": 55248,
     "classificationStatus": {
-      "AUTO": 161219,
-      "CURATED": 28,
-      "REQUIRES_REVIEW": 52449
+      "AUTO": 161215,
+      "CURATED": 34,
+      "REQUIRES_REVIEW": 52447
     },
-    "curatedOverridesApplied": 32,
+    "curatedOverridesApplied": 38,
     "plannableRoles": {
-      "BREAKFAST_BASE": 15800,
+      "BREAKFAST_BASE": 15802,
       "MAIN_DISH": 65578,
       "STAPLE": 15875,
       "VEGETABLE": 17345
     },
     "plannableDishClasses": {
-      "COMPLETE_MEAL": 44345,
+      "COMPLETE_MEAL": 44346,
       "COMPONENT": 27440,
-      "REQUIRES_ACCOMPANIMENT": 34214
+      "REQUIRES_ACCOMPANIMENT": 34215
     },
     "quarantinedRows": 17941,
     "quarantineReasons": {
@@ -29,18 +29,18 @@
       "MALFORMED_METADATA": 1,
       "NUTRITION_OUT_OF_RANGE": 11457
     },
-    "selected": 675,
-    "usdaStaples": 22,
+    "selected": 679,
+    "usdaStaples": 25,
     "withVerifiedServingMass": 0,
     "strata": [
       {
         "cuisine": "Nepali",
         "slotKind": "BREAKFAST_BASE",
         "quota": 15,
-        "eligible": 0,
-        "selected": 0,
-        "vegetarianSelected": 0,
-        "shortfall": 15
+        "eligible": 2,
+        "selected": 2,
+        "vegetarianSelected": 2,
+        "shortfall": 13
       },
       {
         "cuisine": "Nepali",
@@ -109,27 +109,27 @@
         "cuisine": "Filipino",
         "slotKind": "BREAKFAST_BASE",
         "quota": 15,
-        "eligible": 5,
-        "selected": 5,
-        "vegetarianSelected": 2,
-        "shortfall": 10
+        "eligible": 4,
+        "selected": 4,
+        "vegetarianSelected": 1,
+        "shortfall": 11
       },
       {
         "cuisine": "Filipino",
         "slotKind": "COMPLETE_MAIN",
         "quota": 15,
-        "eligible": 23,
+        "eligible": 22,
         "selected": 15,
-        "vegetarianSelected": 1,
+        "vegetarianSelected": 0,
         "shortfall": 0
       },
       {
         "cuisine": "Filipino",
         "slotKind": "MAIN_WITH_ACCOMPANIMENT",
         "quota": 15,
-        "eligible": 49,
+        "eligible": 50,
         "selected": 15,
-        "vegetarianSelected": 2,
+        "vegetarianSelected": 3,
         "shortfall": 0
       },
       {
@@ -145,10 +145,10 @@
         "cuisine": "Indonesian",
         "slotKind": "BREAKFAST_BASE",
         "quota": 15,
-        "eligible": 2,
-        "selected": 2,
-        "vegetarianSelected": 1,
-        "shortfall": 13
+        "eligible": 4,
+        "selected": 4,
+        "vegetarianSelected": 2,
+        "shortfall": 11
       },
       {
         "cuisine": "Indonesian",
@@ -181,10 +181,10 @@
         "cuisine": "Korean",
         "slotKind": "BREAKFAST_BASE",
         "quota": 15,
-        "eligible": 4,
-        "selected": 4,
+        "eligible": 5,
+        "selected": 5,
         "vegetarianSelected": 2,
-        "shortfall": 11
+        "shortfall": 10
       },
       {
         "cuisine": "Korean",
@@ -469,16 +469,16 @@
         "cuisine": "Middle Eastern",
         "slotKind": "BREAKFAST_BASE",
         "quota": 15,
-        "eligible": 83,
+        "eligible": 82,
         "selected": 15,
-        "vegetarianSelected": 9,
+        "vegetarianSelected": 8,
         "shortfall": 0
       },
       {
         "cuisine": "Middle Eastern",
         "slotKind": "COMPLETE_MAIN",
         "quota": 15,
-        "eligible": 258,
+        "eligible": 257,
         "selected": 15,
         "vegetarianSelected": 8,
         "shortfall": 0
@@ -487,7 +487,7 @@
         "cuisine": "Middle Eastern",
         "slotKind": "MAIN_WITH_ACCOMPANIMENT",
         "quota": 15,
-        "eligible": 329,
+        "eligible": 330,
         "selected": 15,
         "vegetarianSelected": 8,
         "shortfall": 0
@@ -579,7 +579,7 @@
         "quota": 15,
         "eligible": 63,
         "selected": 15,
-        "vegetarianSelected": 8,
+        "vegetarianSelected": 9,
         "shortfall": 0
       },
       {
@@ -729,44 +729,44 @@
     "sourceSha256": "4e278d2f687b1020f5694e51003a7d6174344b51aebbdf4530de88b5c6a78ee4"
   },
   "composition": {
-    "combinations": 1727,
-    "configurations": 7760,
+    "combinations": 1745,
+    "configurations": 7825,
     "byTemplate": {
-      "BREAKFAST": 179,
-      "BREAKFAST_FRUIT": 358,
-      "BREAKFAST_PROTEIN": 112,
-      "MAIN_STAPLE": 426,
-      "MAIN_STAPLE_VEGETABLE": 426,
-      "ONE_DISH": 226
+      "BREAKFAST": 185,
+      "BREAKFAST_FRUIT": 370,
+      "BREAKFAST_PROTEIN": 113,
+      "MAIN_STAPLE": 425,
+      "MAIN_STAPLE_VEGETABLE": 425,
+      "ONE_DISH": 227
     },
     "byMealType": {
-      "BREAKFAST": 649,
-      "LUNCH": 1078,
-      "DINNER": 1078
+      "BREAKFAST": 668,
+      "LUNCH": 1077,
+      "DINNER": 1077
     },
     "byCuisine": {
       "American": 145,
       "British": 16,
       "Caribbean": 111,
-      "Chinese": 130,
-      "Filipino": 66,
+      "Chinese": 133,
+      "Filipino": 67,
       "French": 130,
       "Greek": 130,
-      "Indian": 129,
-      "Indonesian": 82,
+      "Indian": 137,
+      "Indonesian": 91,
       "Italian": 132,
       "Japanese": 91,
-      "Korean": 60,
-      "Malaysian": 104,
+      "Korean": 66,
+      "Malaysian": 107,
       "Mexican": 127,
-      "Middle Eastern": 130,
+      "Middle Eastern": 129,
       "Moroccan": 129,
-      "Nepali": 39,
+      "Nepali": 54,
       "Spanish": 127,
-      "Thai": 132,
-      "Vietnamese": 98
+      "Thai": 135,
+      "Vietnamese": 101
     },
-    "addOnsSkippedForIngredientOverlap": 84,
+    "addOnsSkippedForIngredientOverlap": 90,
     "skippedNoCommonMealType": 0,
     "limits": {
       "staplesPerMain": 2,
@@ -776,18 +776,19 @@
     }
   },
   "validation": {
-    "combinationsKept": 1673,
-    "combinationsRejected": 54,
-    "configurationsKept": 7284,
-    "configurationsDropped": 476,
+    "combinationsKept": 1692,
+    "combinationsRejected": 53,
+    "configurationsKept": 7354,
+    "configurationsDropped": 471,
     "problems": {
-      "ENERGY_OUT_OF_RANGE": 247,
-      "PRESET_INTENT_NOT_MET": 166,
-      "PRESET_INTENT_UNVERIFIED": 63
+      "ENERGY_OUT_OF_RANGE": 245,
+      "PRESET_INTENT_NOT_MET": 165,
+      "PRESET_INTENT_UNVERIFIED": 61
     },
-    "fullyKnownConfigurations": 7284,
+    "fullyKnownConfigurations": 7354,
     "sourceTiers": {
-      "FOODCOM_DERIVED": 7284
+      "FOODCOM_DERIVED": 7315,
+      "USDA_FNDDS": 39
     },
     "requiredNutrients": [
       "energy_kcal",
@@ -804,37 +805,37 @@
   },
   "coverage": {
     "static": {
-      "dishes": 697,
+      "dishes": 704,
       "dishesByCuisine": {
         "(neutral)": 11,
         "American": 56,
         "British": 5,
         "Caribbean": 48,
-        "Chinese": 46,
-        "Filipino": 38,
+        "Chinese": 47,
+        "Filipino": 39,
         "French": 49,
         "Greek": 48,
-        "Indian": 53,
-        "Indonesian": 38,
+        "Indian": 56,
+        "Indonesian": 40,
         "Italian": 47,
         "Japanese": 48,
-        "Korean": 40,
-        "Malaysian": 35,
+        "Korean": 42,
+        "Malaysian": 36,
         "Mexican": 51,
-        "Middle Eastern": 47,
+        "Middle Eastern": 48,
         "Moroccan": 51,
-        "Nepali": 18,
+        "Nepali": 22,
         "Spanish": 47,
-        "Thai": 43,
-        "Vietnamese": 41
+        "Thai": 44,
+        "Vietnamese": 42
       },
       "dishesByMealType": {
-        "BREAKFAST": 202,
+        "BREAKFAST": 208,
         "DINNER": 615,
         "LUNCH": 615
       },
       "dishesByRole": {
-        "BREAKFAST_BASE": 195,
+        "BREAKFAST_BASE": 201,
         "FRUIT": 6,
         "MAIN_DISH": 465,
         "PROTEIN_SOURCE": 1,
@@ -842,42 +843,43 @@
         "VEGETABLE": 128
       },
       "dishesByDishClass": {
-        "COMPLETE_MEAL": 359,
+        "COMPLETE_MEAL": 367,
         "COMPONENT": 99,
-        "REQUIRES_ACCOMPANIMENT": 239
+        "REQUIRES_ACCOMPANIMENT": 238
       },
       "dishesByNutritionSource": {
-        "FOODCOM_DERIVED": 675,
-        "USDA_FNDDS": 13,
+        "FOODCOM_DERIVED": 679,
+        "USDA_FNDDS": 16,
         "USDA_SR_LEGACY": 9
       },
-      "vegetarianTaggedDishes": 350,
-      "combinations": 1673,
+      "vegetarianTaggedDishes": 354,
+      "combinations": 1692,
       "combinationsByMealAndCuisine": {
         "BREAKFAST/American": 63,
         "BREAKFAST/British": 4,
         "BREAKFAST/Caribbean": 52,
-        "BREAKFAST/Chinese": 49,
-        "BREAKFAST/Filipino": 16,
+        "BREAKFAST/Chinese": 52,
+        "BREAKFAST/Filipino": 15,
         "BREAKFAST/French": 52,
         "BREAKFAST/Greek": 51,
-        "BREAKFAST/Indian": 50,
-        "BREAKFAST/Indonesian": 7,
+        "BREAKFAST/Indian": 59,
+        "BREAKFAST/Indonesian": 16,
         "BREAKFAST/Italian": 54,
         "BREAKFAST/Japanese": 41,
-        "BREAKFAST/Korean": 13,
-        "BREAKFAST/Malaysian": 29,
+        "BREAKFAST/Korean": 19,
+        "BREAKFAST/Malaysian": 32,
         "BREAKFAST/Mexican": 51,
-        "BREAKFAST/Middle Eastern": 52,
+        "BREAKFAST/Middle Eastern": 51,
         "BREAKFAST/Moroccan": 47,
+        "BREAKFAST/Nepali": 15,
         "BREAKFAST/Spanish": 50,
-        "BREAKFAST/Thai": 57,
-        "BREAKFAST/Vietnamese": 23,
+        "BREAKFAST/Thai": 60,
+        "BREAKFAST/Vietnamese": 26,
         "DINNER/American": 79,
         "DINNER/British": 12,
         "DINNER/Caribbean": 54,
         "DINNER/Chinese": 73,
-        "DINNER/Filipino": 45,
+        "DINNER/Filipino": 47,
         "DINNER/French": 75,
         "DINNER/Greek": 75,
         "DINNER/Indian": 74,
@@ -897,7 +899,7 @@
         "LUNCH/British": 12,
         "LUNCH/Caribbean": 54,
         "LUNCH/Chinese": 73,
-        "LUNCH/Filipino": 45,
+        "LUNCH/Filipino": 47,
         "LUNCH/French": 75,
         "LUNCH/Greek": 75,
         "LUNCH/Indian": 74,
@@ -923,13 +925,13 @@
         "diet": null,
         "excludedIngredients": [],
         "breakfast": {
-          "combinations": 608,
-          "distinctAnchorDishes": 179,
+          "combinations": 628,
+          "distinctAnchorDishes": 185,
           "needed": 4,
           "sufficient": true
         },
         "lunchDinner": {
-          "combinations": 1065,
+          "combinations": 1064,
           "distinctAnchorDishes": 452,
           "needed": 7,
           "sufficient": true
@@ -945,8 +947,8 @@
         "diet": "vegetarian",
         "excludedIngredients": [],
         "breakfast": {
-          "combinations": 27,
-          "distinctAnchorDishes": 8,
+          "combinations": 39,
+          "distinctAnchorDishes": 11,
           "needed": 4,
           "sufficient": true
         },
@@ -967,10 +969,10 @@
         "diet": null,
         "excludedIngredients": [],
         "breakfast": {
-          "combinations": 0,
-          "distinctAnchorDishes": 0,
+          "combinations": 15,
+          "distinctAnchorDishes": 4,
           "needed": 4,
-          "sufficient": false
+          "sufficient": true
         },
         "lunchDinner": {
           "combinations": 39,
@@ -978,7 +980,7 @@
           "needed": 7,
           "sufficient": true
         },
-        "sufficient": false
+        "sufficient": true
       },
       {
         "scenario": "Indian or Nepali, explicit beef exclusion",
@@ -992,8 +994,8 @@
           "beef"
         ],
         "breakfast": {
-          "combinations": 50,
-          "distinctAnchorDishes": 15,
+          "combinations": 59,
+          "distinctAnchorDishes": 17,
           "needed": 4,
           "sufficient": true
         },
@@ -1016,8 +1018,8 @@
           "peanut"
         ],
         "breakfast": {
-          "combinations": 31,
-          "distinctAnchorDishes": 8,
+          "combinations": 34,
+          "distinctAnchorDishes": 9,
           "needed": 4,
           "sufficient": true
         },
@@ -1040,8 +1042,8 @@
           "pork"
         ],
         "breakfast": {
-          "combinations": 35,
-          "distinctAnchorDishes": 11,
+          "combinations": 38,
+          "distinctAnchorDishes": 12,
           "needed": 4,
           "sufficient": true
         },
@@ -1082,21 +1084,21 @@
         "diet": "vegan",
         "excludedIngredients": [],
         "breakfast": {
-          "combinations": 48,
+          "combinations": 49,
           "distinctAnchorDishes": 18,
           "needed": 4,
           "sufficient": true
         },
         "lunchDinner": {
           "combinations": 136,
-          "distinctAnchorDishes": 89,
+          "distinctAnchorDishes": 88,
           "needed": 7,
           "sufficient": true
         },
         "sufficient": true
       }
     ],
-    "scenariosSufficient": 7,
+    "scenariosSufficient": 8,
     "scenariosTotal": 8,
     "method": "proxy filter on unverified diet tags and ingredient words; not the Rule Engine (Member 2 owns eligibility)",
     "repetition": {

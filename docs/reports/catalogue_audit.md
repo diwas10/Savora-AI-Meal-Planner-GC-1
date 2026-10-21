@@ -1,8 +1,9 @@
 # Catalogue audit for planning (21 October 2026)
 
-Catalogue `20261020T230903Z`: 697 dishes (675 Food.com, 22 USDA staples, vegetables and
-fruit), 1,673 meal combinations, 19 target cuisines. It replaces `20261019T012206Z`
-(186 dishes, 465 meals, 10 cuisines).
+Catalogue `20261021T073631Z`: 704 dishes (679 Food.com, 25 USDA staples, vegetables and
+fruit), 1,692 meal combinations, 19 target cuisines. It replaces `20261020T230903Z`
+(697 dishes, 1,673 meals), which replaced `20261019T012206Z` (186 dishes, 465 meals,
+10 cuisines). Section 6 lists what changed in this rebuild.
 
 The audit runs the integration pipelines' own meal selection
 (`core/pipelines/planning.py::_ranked_meals`) over the 8 proxy profiles of the coverage
@@ -41,35 +42,36 @@ This audit is not the Rule Engine and makes no clinical statement.
 
 | Profile | Breakfast anchors (need 4) | Main anchors (need 7) | Week possible |
 |---|---|---|---|
-| mixed, no restriction | 179 | 451 | yes |
-| Indian vegetarian, strict | 8 | 19 | yes |
-| **Nepali, strict** | **0** | 15 | **no**: no Nepali breakfast (deferred) |
-| Indian or Nepali, explicit beef exclusion | 15 | 38 | yes |
-| Thai, strict, peanut excluded | 8 | 10 | yes |
-| Chinese, strict, pork excluded | 11 | 22 | yes |
+| mixed, no restriction | 185 | 451 | yes |
+| Indian vegetarian, strict | 11 | 19 | yes |
+| Nepali, strict | 4 | 15 | yes (no spare breakfast; solved FEASIBLE in 135 s) |
+| Indian or Nepali, explicit beef exclusion | 17 | 38 | yes |
+| Thai, strict, peanut excluded | 9 | 10 | yes |
+| Chinese, strict, pork excluded | 12 | 22 | yes |
 | Mexican vegetarian, strict | 8 | 12 | yes |
-| vegan, mixed | 18 | 88 | yes |
+| vegan, mixed | 18 | 87 | yes |
 
-Previous catalogue, same profiles: Thai 6 / 8, Indian vegetarian 7 / 11, vegan 8 / 22.
-The Thai week would have broken (2 breakfasts) once the bad anchors were removed.
+Counts are for catalogue `20261021T073631Z` (section 6). Before it, strict Nepali had 0
+breakfasts; the 186-dish catalogue gave Thai 6 / 8, Indian vegetarian 7 / 11, vegan 8 / 22.
 
 ### Anchors by cuisine
 
 | Cuisine | Breakfast | Main |
 |---|---|---|
-| American | 18 | 34 |
-| Thai, Italian, Middle Eastern, Caribbean, Greek, French, Mexican, Spanish, Indian, Chinese, Moroccan | 15 each | 27–30 |
-| Japanese | 13 | 30 |
-| Malaysian | 8 | 30 |
-| Vietnamese | 6 | 29 |
-| Filipino | 5 | 28 |
-| Korean | **4** (no spare) | 29 |
-| Indonesian | **2** | 29 |
-| Nepali | **0** | 15 |
+| American | 18 | 33 |
+| Indian | 17 | 29 |
+| Chinese, Thai | 16 | 25–26 |
+| Italian, Middle Eastern, Caribbean, Greek, French, Mexican, Spanish, Moroccan | 15 each | 24–29 |
+| Japanese | 13 | 29 |
+| Malaysian | 9 | 26 |
+| Vietnamese | 7 | 27 |
+| Korean | 6 | 29 |
+| Filipino, Indonesian | 5 | 27 |
+| Nepali | **4** (no spare) | 15 |
 
-A **strict single-cuisine** week is not possible for Indonesian or Nepali, and has no
-spare for Korean, because Food.com has few breakfasts tagged with these cuisines. Mixed
-or preferred-cuisine profiles are unaffected.
+Every target cuisine can now fill a strict single-cuisine week. Nepali has exactly the 4
+breakfasts a week needs, so a Nepali-strict profile that also excludes one of them (for
+example eggs) cannot plan a week; that profile gets INSUFFICIENT_DATA, not a wrong plan.
 
 ## 3. Breakfast anchors still worth a look
 
@@ -78,7 +80,7 @@ kept or removed with an override:
 
 | Recipe | Name | Note |
 |---|---|---|
-| FC_109823 | drstevers filipino stir fry | likely a main; Food.com tags it breakfast |
+| FC_109823 | drstevers filipino stir fry | **resolved**: now a main only (section 6) |
 | FC_27743 | easy veggie burrito for one vegan | breakfast burritos are common; keep |
 | FC_335900 | spicy minced pork rice porridge | porridge; keep |
 
@@ -92,8 +94,19 @@ kept or removed with an override:
 
 ## 5. Remaining work (Member 1)
 
-1. Nepali breakfasts: 4 or more, as curated dishes with USDA-based nutrition, or from
-   Food.com, which has 53 recipes tagged `nepalese`. This item was deferred by the team
-   on 21 October 2026.
-2. Indonesian and Korean breakfasts: 2 or more each, the same way.
-3. Decide FC_109823.
+None of the three items from the previous audit remains (section 6). Still open, and not
+blocking: more Nepali breakfasts for a spare, and a person to confirm the
+`ai-review:claude` curation.
+
+## 6. Rebuild `20261021T073631Z` (21 October 2026)
+
+| Change | Entries | Why |
+|---|---|---|
+| New USDA staples (breakfast bases, same-food FNDDS records, ADR 0003 D1) | puri (2707714), paratha (2707715): Indian, Nepali. Rice congee with egg (2708984): Chinese, Korean, Vietnamese, Filipino, Indonesian, Malaysian, Thai | Nepali had no breakfast; congee is the everyday breakfast porridge of these cuisines |
+| Food.com overrides, breakfast base | FC_478796 alu paratha and FC_482891 indian omelet (+ Nepali), FC_459783 egg rice (Korean), FC_99028 banana pancakes (Indonesian) | tagged breakfast and common in those cuisines |
+| Food.com override, breakfast and main | FC_478798 nasi goreng | eaten at breakfast as often as later |
+| Food.com override, main only | FC_109823 drstevers filipino stir fry | a tofu stir-fry with rice, not a breakfast base |
+
+Rejected: `egg bara` (5,659 kcal per serving, broken data), `churu` (a westernised blue
+cheese soup), `egg jjim` (202% DV sodium per serving). The reasons are recorded in
+`Data/curated/classification_overrides.json` and `Data/curated/usda_staples.json`.
