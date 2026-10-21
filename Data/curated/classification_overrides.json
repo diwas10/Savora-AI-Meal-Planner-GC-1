@@ -1,6 +1,6 @@
 {
   "schemaVersion": "classification-overrides.v1",
-  "note": "Curated corrections to tag-based classification (ADR 0001 D5). curatedBy 'ai-review:claude' means the entry was chosen by AI judgement on the recipe name, tags and nutrition, at the project lead's request; it has not been confirmed by a person. Nepali entries come from a reviewed name search (momo, thukpa, sekuwa, tarkari, dal bhat, aloo dum); false positives were excluded (bara brith is Welsh, 'momo's crock pot ribs' is a person's name, nimki and spiced tea are not meals).",
+  "note": "Curated corrections to tag-based classification (ADR 0001 D5). curatedBy 'ai-review:claude' means the entry was chosen by AI judgement on the recipe name, tags and nutrition, at the project lead's request; it has not been confirmed by a person. Nepali entries come from a reviewed name search (momo, thukpa, sekuwa, tarkari, dal bhat, aloo dum); false positives were excluded (bara brith is Welsh, 'momo's crock pot ribs' is a person's name, nimki and spiced tea are not meals). Thai breakfasts (21 Oct 2026) come from a reviewed name search (khao tom, congee, roti); 'thai congee kao tome vegetarian' was excluded because its 'vegetarian' tag is wrong (chicken broth).",
   "overrides": [
     {
       "recipeId": "FC_304023",
@@ -403,6 +403,42 @@
         "Nepali"
       ],
       "rationale": "aloo dum, common to Nepal and North India",
+      "curatedBy": "ai-review:claude"
+    },
+    {
+      "recipeId": "FC_333490",
+      "roles": [
+        "BREAKFAST_BASE"
+      ],
+      "dishClass": "COMPLETE_MEAL",
+      "mealTypes": [
+        "BREAKFAST"
+      ],
+      "rationale": "khao tom (thai rice soup): rice soup with pork and ginger, the classic Thai breakfast; tags were only soups-stews",
+      "curatedBy": "ai-review:claude"
+    },
+    {
+      "recipeId": "FC_30160",
+      "roles": [
+        "BREAKFAST_BASE"
+      ],
+      "dishClass": "COMPLETE_MEAL",
+      "mealTypes": [
+        "BREAKFAST"
+      ],
+      "rationale": "kao tom gai (thai chicken and rice soup): the chicken form of khao tom, eaten for breakfast; tags were only soups-stews",
+      "curatedBy": "ai-review:claude"
+    },
+    {
+      "recipeId": "FC_457508",
+      "roles": [
+        "BREAKFAST_BASE"
+      ],
+      "dishClass": "COMPLETE_MEAL",
+      "mealTypes": [
+        "BREAKFAST"
+      ],
+      "rationale": "thai roti pancake with banana: a common Thai street breakfast; tagged desserts only",
       "curatedBy": "ai-review:claude"
     }
   ]

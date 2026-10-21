@@ -7,8 +7,8 @@ The thresholds below are PROVISIONAL (ADR 0001) and are named so they can change
 import ast
 from collections.abc import Iterable, Sequence
 
-from savora_ai.core.food_data.classification import classify
-from savora_ai.core.food_data.foodcom_cuisines import get_cuisines, normalize_tags
+from savora_ai.core.food_data.classification import catalogue_cuisines, classify
+from savora_ai.core.food_data.foodcom_cuisines import normalize_tags
 from savora_ai.core.food_data.models import (
     CatalogueRecipe,
     DvReference,
@@ -123,7 +123,7 @@ def build_recipe(
         recipe_id=f"FC_{source_id}",
         name=name.strip(),
         ingredients=ingredients,
-        cuisines=tuple(get_cuisines(tags_raw)),
+        cuisines=catalogue_cuisines(tags),
         diet_tags=tuple(sorted(tags & DIET_TAGS)),
         roles=classification.roles,
         dish_class=classification.dish_class,

@@ -42,7 +42,7 @@ def test_foodcom_portions_are_serving_multiples_without_invented_grams() -> None
     one_and_half = portions[-1]
     assert one_and_half.portion_id == "FC_7:1.5xSERVING"
     assert one_and_half.nutrients.energy_kcal == pytest.approx(600.0)  # 1.5 x 400 kcal
-    assert one_and_half.nutrients.sugars_g is None  # unknown stays unknown when scaled
+    assert one_and_half.nutrients.sugars_g == pytest.approx(3.75)  # 1.5 x 10% of 25 g
     assert standard_portion(with_portions(dal(), portions)).quantity == 1.0
 
 

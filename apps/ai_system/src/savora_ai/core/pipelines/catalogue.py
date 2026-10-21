@@ -15,7 +15,7 @@ from savora_ai.core.recommendation.ranking import PopularityScorer
 
 @dataclass(frozen=True)
 class CatalogueBundle:
-    version: str  # the export's catalogueVersion, e.g. "20261019T012206Z"
+    version: str  # the export's catalogueVersion, e.g. "20261020T230903Z"
     dishes: dict[str, CatalogueRecipe]
     combinations: dict[str, MealCombination]
     popularity: PopularityScorer = field(compare=False)

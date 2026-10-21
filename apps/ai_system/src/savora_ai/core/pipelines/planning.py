@@ -525,6 +525,15 @@ def substitute_slot(
     if missing:
         raise ValueError(f"saved options not in catalogue {bundle.version}: {missing[:3]}")
     chosen = {sid: configs[oid] for sid, oid in current.items()}
+    # Locking must never keep a meal the current profile no longer allows (new allergy,
+    # diet or cuisine policy): the caller generates a new plan instead.
+    stale = sorted(
+        sid
+        for sid, (combo, _) in chosen.items()
+        if sid != slot and not combination_allowed(combo, bundle.dishes, profile)
+    )
+    if stale:
+        raise ValueError(f"saved meals no longer fit the profile: {stale[:3]}; plan a new week")
     ranking, by_meal = _ranked_meals(bundle, profile, scorer)
     meal = MealType(slot.split("_", 1)[1])
     kind = MealType.BREAKFAST if meal is MealType.BREAKFAST else MealType.LUNCH

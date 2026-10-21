@@ -108,10 +108,13 @@ def test_swap_may_ask_for_clarification() -> None:
 
 
 def test_catalogue_bundle_and_cuisine_ids(bundle: CatalogueBundle) -> None:
-    assert bundle.version == "20261019T012206Z"
+    latest = sorted(EXPORT.glob("*_catalogue.json"))[-1].name.removesuffix("_catalogue.json")
+    assert bundle.version == latest
     assert bundle.cuisine_ids["NEPALI"] == "Nepali"
     assert bundle.cuisine_ids["MIDDLE_EASTERN"] == "Middle Eastern"
-    assert len(bundle.combinations) == 465
+    assert bundle.cuisine_ids["MALAYSIAN"] == "Malaysian"
+    combos = json.loads((EXPORT / f"{latest}_combinations.json").read_text("utf-8"))
+    assert len(bundle.combinations) == len(combos["combinations"])
 
 
 def test_screen_fails_closed_on_diet_and_matches_whole_words(bundle: CatalogueBundle) -> None:
@@ -294,4 +297,15 @@ def test_substitution_rejects_a_partial_plan(bundle: CatalogueBundle) -> None:
             slot="D1_LUNCH",
             week_id="w",
             start_date=START,
+        )
+
+
+def test_substitution_refuses_to_lock_meals_the_profile_no_longer_allows(
+    bundle: CatalogueBundle, week: WeekPlan
+) -> None:
+    current = {m.slot_id: m.option_id for m in week.meals}
+    vegan = profile(diet="VEGAN", cuisinePolicy="STRICT", cuisines=["Indian"])
+    with pytest.raises(ValueError, match="no longer fit the profile"):
+        substitute_slot(
+            vegan, bundle, current=current, slot="D2_LUNCH", week_id="w", start_date=START
         )

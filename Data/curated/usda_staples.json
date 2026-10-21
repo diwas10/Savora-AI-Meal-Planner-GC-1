@@ -20,7 +20,18 @@
         "Nepali",
         "Chinese",
         "Thai",
-        "Mexican"
+        "Mexican",
+        "Malaysian",
+        "Indonesian",
+        "Vietnamese",
+        "Korean",
+        "Japanese",
+        "Filipino",
+        "Middle Eastern",
+        "Greek",
+        "Moroccan",
+        "Spanish",
+        "Caribbean"
       ],
       "dietTags": [
         "vegan",
@@ -182,7 +193,10 @@
       ],
       "cuisines": [
         "Thai",
-        "Chinese"
+        "Chinese",
+        "Malaysian",
+        "Indonesian",
+        "Vietnamese"
       ],
       "dietTags": [
         "vegan",
@@ -336,7 +350,12 @@
       ],
       "cuisines": [
         "American",
-        "Italian"
+        "Italian",
+        "Middle Eastern",
+        "Greek",
+        "Moroccan",
+        "Spanish",
+        "French"
       ],
       "dietTags": [
         "vegetarian"
@@ -416,7 +435,10 @@
         "DINNER"
       ],
       "cuisines": [
-        "American"
+        "American",
+        "Greek",
+        "Spanish",
+        "French"
       ],
       "dietTags": [
         "vegan",

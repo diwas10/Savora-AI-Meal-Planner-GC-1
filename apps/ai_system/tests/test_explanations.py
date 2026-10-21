@@ -140,9 +140,12 @@ def test_craving_explanation_says_it_was_not_budget_checked() -> None:
     assert {"CRAVING_STANDARD_PORTION_ONLY", "RANKING_FALLBACK_MODEL_UNAVAILABLE"} <= got
     [nutrition] = [r for r in explanation.reasons if r.code == "CRAVING_STANDARD_PORTION_ONLY"]
     assert "not checked against what is left of today's targets" in nutrition.message
-    # Food.com sugar is unknown: named as unknown, never zero.
-    [unknown] = [r for r in explanation.reasons if r.code == "NUTRIENTS_UNKNOWN"]
-    assert "sugars" in unknown.message and explanation.standard_nutrients.sugars_g is None
+    # Food.com sugar is known since ADR 0001 D2 (25 g reference), so it is not listed as
+    # unknown; any nutrient that IS unknown is named, never shown as zero.
+    assert explanation.standard_nutrients.sugars_g is not None
+    for reason in explanation.reasons:
+        if reason.code == "NUTRIENTS_UNKNOWN":
+            assert "sugars" not in reason.message
 
 
 def test_generate_meal_combinations_matches_the_committed_export() -> None:
