@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Savora app icon. Colors mirror the hero tokens in src/app/globals.css (light theme). -->
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1f6b54"/>
+      <stop offset="0.55" stop-color="#2c8466"/>
+      <stop offset="1" stop-color="#d9692e"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" fill="url(#g)"/>
+  <g transform="translate(64 64) scale(6)">
+    <path d="M14 34h36a18 18 0 0 1-36 0Z" fill="#ffffff" opacity="0.96"/>
+    <path d="M33 30c0-9 6-15 15-16-1 9-6 15-15 16Z" fill="#ffffff" opacity="0.88"/>
+    <path d="M31 30c-1-6-5-10-11-11 0 6 4 10 11 11Z" fill="#ffffff" opacity="0.64"/>
+  </g>
+</svg>

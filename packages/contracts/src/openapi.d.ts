@@ -36,7 +36,7 @@ export interface components {
       explanation: components["schemas"]["RecipeExplanation"];
     };
     CravingParseMeta: {
-      parser: "TEMPLATE" | "QWEN";
+      parser: "TEMPLATE" | "QWEN" | "HYBRID";
       promptVersion: string;
       fallbackReason?: string | null;
       clarification?: string | null;
@@ -86,6 +86,8 @@ export interface components {
       slotId: string;
       expectedRevision: number;
       excludeCombinationIds?: (string)[];
+      replacementCombinationId?: string | null;
+      preferenceText?: string | null;
     };
     CuisineOptionDto: {
       id: string;
@@ -271,6 +273,34 @@ export interface components {
       password: string;
       displayName: string;
     };
+    ReplacementOption: {
+      combinationId: string;
+      rank: number;
+      cuisines: (string)[];
+      repeatsInWeek: number;
+      explanation: components["schemas"]["MealExplanation"];
+    };
+    ReplacementOptions: {
+      slotId: string;
+      mealType: components["schemas"]["MealType"];
+      currentCombinationId: string;
+      preference: components["schemas"]["CravingRequest"] | null;
+      options: (components["schemas"]["ReplacementOption"])[];
+      unknownCuisineIds: (string)[];
+      unmatchedFlavorTags: (components["schemas"]["FlavorTag"])[];
+      modelVersion: string | null;
+      fallbackReason: components["schemas"]["FallbackReason"] | null;
+      message: string;
+      safety: components["schemas"]["SafetyVerification"];
+    };
+    ReplacementOptionsDto: {
+      parse?: components["schemas"]["CravingParseMeta"] | null;
+      result: components["schemas"]["ReplacementOptions"];
+    };
+    ReplacementOptionsRequest: {
+      preferenceText?: string | null;
+      excludeCombinationIds?: (string)[];
+    };
     SafetyVerification: {
       status?: "STAND_IN_UNVERIFIED";
       kbEnvironment?: "SYNTHETIC";
@@ -312,8 +342,12 @@ export interface components {
       fromPlanId: string;
       toPlanId?: string | null;
       slotId: string;
+      replacementCombinationId?: string | null;
+      preference?: components["schemas"]["CravingRequest"] | null;
       beforeSnapshot?: components["schemas"]["PlannedMeal"] | null;
       afterSnapshot?: components["schemas"]["PlannedMeal"] | null;
+      createdAt: string;
+      updatedAt: string;
     };
     UserDto: {
       id: string;
@@ -423,6 +457,12 @@ export interface paths {
     get: {
       requestBody?: never;
       response: components["schemas"]["MealPlanDetailDto"];
+    };
+  };
+  "/api/meal-plans/{plan_id}/slots/{slot_id}/replacement-options": {
+    post: {
+      requestBody?: components["schemas"]["ReplacementOptionsRequest"];
+      response: components["schemas"]["ReplacementOptionsDto"];
     };
   };
   "/api/meal-plans/{plan_id}/substitutions": {

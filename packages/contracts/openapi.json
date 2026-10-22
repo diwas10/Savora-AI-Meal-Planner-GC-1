@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Savora API",
-    "version": "0.1.0"
+    "version": "0.2.0"
   },
   "paths": {
     "/api/auth/register": {
@@ -199,7 +199,6 @@
           "catalogue"
         ],
         "summary": "Search Dishes",
-        "description": "Return Food.com seed-eligible dishes matching query `q`.",
         "operationId": "search_dishes_api_catalogue_dishes_get",
         "parameters": [
           {
@@ -465,6 +464,69 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/MealPlanDetailDto"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/meal-plans/{plan_id}/slots/{slot_id}/replacement-options": {
+      "post": {
+        "tags": [
+          "meal-plans"
+        ],
+        "summary": "List Replacement Options",
+        "operationId": "list_replacement_options_api_meal_plans__plan_id__slots__slot_id__replacement_options_post",
+        "parameters": [
+          {
+            "name": "plan_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Plan Id"
+            }
+          },
+          {
+            "name": "slot_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^D[1-7]_(BREAKFAST|LUNCH|DINNER)$",
+              "title": "Slot Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReplacementOptionsRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReplacementOptionsDto"
                 }
               }
             }
@@ -785,7 +847,8 @@
             "type": "string",
             "enum": [
               "TEMPLATE",
-              "QWEN"
+              "QWEN",
+              "HYBRID"
             ],
             "title": "Parser"
           },
@@ -1053,6 +1116,7 @@
           "text": {
             "type": "string",
             "maxLength": 500,
+            "minLength": 1,
             "title": "Text"
           }
         },
@@ -1097,7 +1161,32 @@
               "type": "string"
             },
             "type": "array",
+            "maxItems": 50,
             "title": "Excludecombinationids"
+          },
+          "replacementCombinationId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Replacementcombinationid"
+          },
+          "preferenceText": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Preferencetext"
           }
         },
         "type": "object",
@@ -2305,6 +2394,183 @@
         ],
         "title": "RegisterRequest"
       },
+      "ReplacementOption": {
+        "properties": {
+          "combinationId": {
+            "type": "string",
+            "title": "Combinationid"
+          },
+          "rank": {
+            "type": "integer",
+            "title": "Rank"
+          },
+          "cuisines": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Cuisines"
+          },
+          "repeatsInWeek": {
+            "type": "integer",
+            "title": "Repeatsinweek"
+          },
+          "explanation": {
+            "$ref": "#/components/schemas/MealExplanation"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "combinationId",
+          "rank",
+          "cuisines",
+          "repeatsInWeek",
+          "explanation"
+        ],
+        "title": "ReplacementOption",
+        "description": "One eligible meal for a saved slot, at its STANDARD portion, before the CSP runs."
+      },
+      "ReplacementOptions": {
+        "properties": {
+          "slotId": {
+            "type": "string",
+            "pattern": "^D[1-7]_(BREAKFAST|LUNCH|DINNER)$",
+            "title": "Slotid"
+          },
+          "mealType": {
+            "$ref": "#/components/schemas/MealType"
+          },
+          "currentCombinationId": {
+            "type": "string",
+            "title": "Currentcombinationid"
+          },
+          "preference": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CravingRequest"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "options": {
+            "items": {
+              "$ref": "#/components/schemas/ReplacementOption"
+            },
+            "type": "array",
+            "title": "Options"
+          },
+          "unknownCuisineIds": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Unknowncuisineids"
+          },
+          "unmatchedFlavorTags": {
+            "items": {
+              "$ref": "#/components/schemas/FlavorTag"
+            },
+            "type": "array",
+            "title": "Unmatchedflavortags"
+          },
+          "modelVersion": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Modelversion"
+          },
+          "fallbackReason": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/FallbackReason"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "safety": {
+            "$ref": "#/components/schemas/SafetyVerification"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "slotId",
+          "mealType",
+          "currentCombinationId",
+          "preference",
+          "options",
+          "unknownCuisineIds",
+          "unmatchedFlavorTags",
+          "modelVersion",
+          "fallbackReason",
+          "message",
+          "safety"
+        ],
+        "title": "ReplacementOptions"
+      },
+      "ReplacementOptionsDto": {
+        "properties": {
+          "parse": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CravingParseMeta"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "result": {
+            "$ref": "#/components/schemas/ReplacementOptions"
+          }
+        },
+        "type": "object",
+        "required": [
+          "result"
+        ],
+        "title": "ReplacementOptionsDto"
+      },
+      "ReplacementOptionsRequest": {
+        "properties": {
+          "preferenceText": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Preferencetext"
+          },
+          "excludeCombinationIds": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 50,
+            "title": "Excludecombinationids"
+          }
+        },
+        "type": "object",
+        "title": "ReplacementOptionsRequest",
+        "description": "Optional words for what the user would like instead (\"something spicy, no rice\")."
+      },
       "SafetyVerification": {
         "properties": {
           "status": {
@@ -2544,6 +2810,27 @@
             "type": "string",
             "title": "Slotid"
           },
+          "replacementCombinationId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Replacementcombinationid"
+          },
+          "preference": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CravingRequest"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "beforeSnapshot": {
             "anyOf": [
               {
@@ -2563,6 +2850,16 @@
                 "type": "null"
               }
             ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Createdat"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updatedat"
           }
         },
         "type": "object",
@@ -2571,7 +2868,9 @@
           "status",
           "message",
           "fromPlanId",
-          "slotId"
+          "slotId",
+          "createdAt",
+          "updatedAt"
         ],
         "title": "SubstitutionDetailDto"
       },

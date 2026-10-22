@@ -1,500 +1,170 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { ArrowLeft, ArrowRight, PartyPopper } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { useForm, useWatch } from "react-hook-form";
-import { profileFormSchema, type ProfileFormValues } from "../schema/profile.schema";
-import {
-  useConfirmSeedPicksMutation,
-  useCuisinesQuery,
-  useDishSearchQuery,
-  useProfileQuery,
-  useSeedSuggestionsQuery,
-  useUpsertProfileMutation,
-} from "../service/profile.query";
+import { useForm, type FieldPath } from "react-hook-form";
+import { Wordmark } from "@/components/functional/Brand";
+import { Button } from "@/components/ui/Button";
+import { ErrorSummary } from "@/components/ui/Field";
+import { GeneratePanel } from "@/core/private/MealPlanning/components/GeneratePanel";
+import { ApiError } from "@/lib/api-request";
+import { gentle } from "@/lib/motion";
+import { profileFormSchema, toFormValues, toUpsertRequest, type ProfileFormValues } from "../schema/profile.schema";
+import { useProfileQuery, useUpsertProfileMutation } from "../service/profile.query";
+import { AboutYouSection, FoodSection, HealthSection } from "./ProfileSections";
+import { SeedPicker } from "./SeedPicker";
+import { TargetsCard } from "./TargetsCard";
 
-const CLINICAL_CONDITIONS: Array<{
-  id: "TYPE_2_DIABETES" | "HYPERTENSION" | "DYSLIPIDEMIA";
-  label: string;
-}> = [
-  { id: "TYPE_2_DIABETES", label: "Type 2 Diabetes" },
-  { id: "HYPERTENSION", label: "Hypertension" },
-  { id: "DYSLIPIDEMIA", label: "Dyslipidemia" },
+type StepId = "about" | "food" | "health" | "targets" | "seeds" | "done";
+
+const STEPS: Array<{ id: StepId; title: string; description: string; fields?: FieldPath<ProfileFormValues>[] }> = [
+  { id: "about", title: "About you", description: "Used only to estimate your daily energy and protein.", fields: ["ageYears", "sex", "heightCm", "weightKg", "activity", "goal"] },
+  { id: "food", title: "Food and culture", description: "What you eat and how strictly to follow it.", fields: ["diet", "cuisinePolicy", "cuisines", "excludedIngredients"] },
+  { id: "health", title: "Allergies and health", description: "Allergies are always applied, everywhere.", fields: ["allergies", "allergiesConfirmed", "conditions"] },
+  { id: "targets", title: "Your estimated targets", description: "Review them before Savora plans your week." },
+  { id: "seeds", title: "Dishes you like", description: "Pick 3 to 5 so recommendations start with your taste." },
+  { id: "done", title: "You're all set", description: "Generate your first 7-day plan." },
 ];
 
 export function OnboardingWizard() {
   const router = useRouter();
-  const profileQuery = useProfileQuery();
-  const cuisinesQuery = useCuisinesQuery();
-  const upsertProfileMutation = useUpsertProfileMutation();
-  const confirmSeedsMutation = useConfirmSeedPicksMutation();
+  const profile = useProfileQuery();
+  const upsert = useUpsertProfileMutation();
+  const existing = profile.data;
+  const [step, setStep] = useState<number>(() => (existing?.needsSeedPicks ? 4 : 0));
+  const [direction, setDirection] = useState(1);
+  const [serverErrors, setServerErrors] = useState<string[]>([]);
 
-  const [step, setStep] = useState<"profile" | "seeds">("profile");
-  const [selectedSeeds, setSelectedSeeds] = useState<string[]>([]);
-  const [searchTerm, setSearchTerm] = useState("");
-
-  const seedSuggestionsQuery = useSeedSuggestionsQuery(step === "seeds");
-  const dishSearchQuery = useDishSearchQuery(searchTerm);
-
-  const existing = profileQuery.data?.profile;
-  const {
-    register,
-    handleSubmit,
-    control,
-    setValue,
-    formState: { errors },
-  } = useForm<ProfileFormValues>({
+  const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
-    values: {
-      ageYears: existing?.ageYears ?? 28,
-      sex: existing?.sex ?? "FEMALE",
-      heightCm: existing?.heightCm ?? 165,
-      weightKg: existing?.weightKg ?? 62,
-      activity: existing?.activity ?? "MODERATE",
-      goal: existing?.goal ?? "MAINTAIN",
-      diet: existing?.diet ?? "NONE",
-      cuisinePolicy: existing?.cuisinePolicy ?? "MIXED",
-      cuisines: existing?.cuisines ?? ["Nepali", "Indian"],
-      excludedIngredientsText: existing?.excludedIngredients?.join(", ") ?? "",
-      allergiesText: existing?.allergies?.join(", ") ?? "",
-      allergiesConfirmed: Boolean(existing?.allergiesConfirmedAt),
-      conditions: existing?.conditions ?? [],
-    },
+    defaultValues: toFormValues(existing?.profile),
+    mode: "onTouched",
   });
 
-  const watchedCuisines = useWatch({ control, name: "cuisines" }) ?? [];
-  const watchedConditions = useWatch({ control, name: "conditions" }) ?? [];
-  const watchedAllergiesText = useWatch({ control, name: "allergiesText" }) ?? "";
-
-  const toggleCuisine = (name: string) => {
-    const next = watchedCuisines.includes(name)
-      ? watchedCuisines.filter((c) => c !== name)
-      : [...watchedCuisines, name];
-    setValue("cuisines", next, { shouldValidate: true });
+  const current = STEPS[step] ?? STEPS[0];
+  const go = (next: number) => {
+    setDirection(next > step ? 1 : -1);
+    setStep(next);
+    window.scrollTo({ top: 0 });
   };
 
-  const toggleCondition = (
-    cond: "TYPE_2_DIABETES" | "HYPERTENSION" | "DYSLIPIDEMIA",
-  ) => {
-    const next = watchedConditions.includes(cond)
-      ? watchedConditions.filter((c) => c !== cond)
-      : [...watchedConditions, cond];
-    setValue("conditions", next, { shouldValidate: true });
-  };
-
-  const onSaveProfile = async (values: ProfileFormValues) => {
-    const excludedIngredients = values.excludedIngredientsText
-      .split(",")
-      .map((s) => s.trim())
-      .filter(Boolean);
-    const allergies = values.allergiesText
-      .split(",")
-      .map((s) => s.trim())
-      .filter(Boolean);
-
-    const res = await upsertProfileMutation.mutateAsync({
-      ageYears: values.ageYears,
-      sex: values.sex,
-      heightCm: values.heightCm,
-      weightKg: values.weightKg,
-      activity: values.activity,
-      goal: values.goal,
-      diet: values.diet === "NONE" ? null : values.diet,
-      cuisinePolicy: values.cuisinePolicy,
-      cuisines: values.cuisines,
-      excludedIngredients,
-      allergies,
-      allergiesConfirmed: allergies.length > 0 ? values.allergiesConfirmed : false,
-      conditions: values.conditions,
-    });
-    setSelectedSeeds(res.profile.seedRecipeIds ?? []);
-    setStep("seeds");
-  };
-
-  const toggleSeedPick = (recipeId: string) => {
-    setSelectedSeeds((prev) => {
-      if (prev.includes(recipeId)) {
-        return prev.filter((id) => id !== recipeId);
+  const nextFromForm = async () => {
+    const ok = await form.trigger(current.fields, { shouldFocus: true });
+    if (!ok) return;
+    if (current.id !== "health") {
+      go(step + 1);
+      return;
+    }
+    setServerErrors([]);
+    try {
+      await upsert.mutateAsync(toUpsertRequest(form.getValues()));
+      go(step + 1);
+    } catch (error) {
+      if (error instanceof ApiError) {
+        setServerErrors(Object.values(error.fieldErrors).flat().length ? Object.values(error.fieldErrors).flat() : [error.message]);
+      } else {
+        setServerErrors(["We couldn't save your profile. Your answers are kept; please try again."]);
       }
-      if (prev.length >= 5) {
-        return prev;
-      }
-      return [...prev, recipeId];
-    });
+    }
   };
 
-  const onSaveSeeds = async () => {
-    await confirmSeedsMutation.mutateAsync({ recipeIds: selectedSeeds });
-    router.push("/dashboard");
-  };
+  const stepErrors = Object.entries(form.formState.errors)
+    .filter(([key]) => current.fields?.includes(key as FieldPath<ProfileFormValues>))
+    .map(([, e]) => e?.message)
+    .filter((m): m is string => Boolean(m));
 
-  if (step === "seeds") {
-    const suggestions = seedSuggestionsQuery.data?.suggestions ?? [];
-    const searchResults = dishSearchQuery.data ?? [];
-
-    return (
-      <div className="mx-auto max-w-4xl space-y-6 rounded-xl border border-neutral-200 bg-white p-6 shadow-sm">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-neutral-900">
-              Pick 3 to 5 Seed Dishes You Enjoy
-            </h1>
-            <p className="mt-1 text-sm text-neutral-600">
-              These anchor the sequence recommendation model for your weekly plan and cravings.
-            </p>
-          </div>
-          <span className="rounded-full bg-emerald-100 px-3 py-1 text-sm font-semibold text-emerald-900">
-            Selected: {selectedSeeds.length} / 5 (minimum 3)
-          </span>
-        </div>
-
-        <div
-          role="note"
-          className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-xs text-amber-950"
-        >
-          Seed suggestions are screened against your diet and ingredient exclusions using the
-          stand-in rule set ({seedSuggestionsQuery.data?.method ?? "popularity"}).
-        </div>
-
-        {confirmSeedsMutation.error instanceof Error && (
-          <div className="rounded-lg border border-red-300 bg-red-50 p-3 text-sm text-red-800">
-            {confirmSeedsMutation.error.message}
-          </div>
-        )}
-
-        <div>
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-neutral-700">
-            Recommended Shortlist (12 Rule-Screened Dishes)
-          </h2>
-          {seedSuggestionsQuery.isLoading ? (
-            <p className="mt-2 text-sm text-neutral-500">Loading seed suggestions...</p>
-          ) : (
-            <div className="mt-3 grid gap-3 sm:grid-cols-2 md:grid-cols-3">
-              {suggestions.map((item) => {
-                const active = selectedSeeds.includes(item.recipeId);
-                return (
-                  <button
-                    key={item.recipeId}
-                    type="button"
-                    onClick={() => toggleSeedPick(item.recipeId)}
-                    className={`rounded-lg border p-3 text-left transition ${
-                      active
-                        ? "border-emerald-600 bg-emerald-50 ring-2 ring-emerald-500"
-                        : "border-neutral-200 hover:border-neutral-400"
-                    }`}
-                  >
-                    <div className="font-medium text-neutral-900">{item.name}</div>
-                    <div className="mt-1 text-xs text-neutral-600">
-                      {item.cuisines.join(" · ") || "General"}
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          )}
-        </div>
-
-        <div className="border-t border-neutral-200 pt-4">
-          <label
-            htmlFor="dishSearch"
-            className="block text-sm font-semibold text-neutral-800"
-          >
-            Search Full Dish Catalogue
-          </label>
-          <input
-            id="dishSearch"
-            type="search"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search dishes by name (e.g. dal, curry, tofu)..."
-            className="mt-1.5 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm"
-          />
-          {searchResults.length > 0 && (
-            <div className="mt-3 grid max-h-60 gap-2 overflow-y-auto sm:grid-cols-2">
-              {searchResults.map((dish) => {
-                const active = selectedSeeds.includes(dish.recipeId);
-                return (
-                  <button
-                    key={dish.recipeId}
-                    type="button"
-                    onClick={() => toggleSeedPick(dish.recipeId)}
-                    className={`flex items-center justify-between rounded border px-3 py-2 text-left text-sm ${
-                      active
-                        ? "border-emerald-600 bg-emerald-50 font-semibold"
-                        : "border-neutral-200 hover:bg-neutral-50"
-                    }`}
-                  >
-                    <span>{dish.name}</span>
-                    <span className="text-xs text-neutral-500">
-                      {dish.cuisines.join(", ")}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          )}
-        </div>
-
-        <div className="flex items-center justify-between pt-4">
-          <button
-            type="button"
-            onClick={() => setStep("profile")}
-            className="rounded-lg border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50"
-          >
-            Back to Profile
-          </button>
-          <button
-            type="button"
-            disabled={
-              selectedSeeds.length < 3 ||
-              selectedSeeds.length > 5 ||
-              confirmSeedsMutation.isPending
-            }
-            onClick={onSaveSeeds}
-            className="rounded-lg bg-emerald-700 px-5 py-2.5 text-sm font-semibold text-white hover:bg-emerald-800 disabled:opacity-50"
-          >
-            {confirmSeedsMutation.isPending
-              ? "Saving Seed Picks..."
-              : "Confirm Seed Dishes & Continue"}
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  const availableCuisines = cuisinesQuery.data ?? [];
+  const targets = upsert.data ?? existing;
 
   return (
-    <form
-      onSubmit={handleSubmit(onSaveProfile)}
-      className="mx-auto max-w-3xl space-y-6 rounded-xl border border-neutral-200 bg-white p-6 shadow-sm"
-    >
-      <div>
-        <h1 className="text-2xl font-bold text-neutral-900">
-          Onboarding & Nutrition Profile
-        </h1>
-        <p className="mt-1 text-sm text-neutral-600">
-          Configure your physiology, dietary constraints, cuisines, allergies, and clinical conditions.
-        </p>
-      </div>
-
-      {upsertProfileMutation.error instanceof Error && (
-        <div className="rounded-lg border border-red-300 bg-red-50 p-3 text-sm text-red-800">
-          {upsertProfileMutation.error.message}
-        </div>
-      )}
-
-      <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
-        <div>
-          <label className="block text-sm font-medium text-neutral-800">Age (years)</label>
-          <input
-            type="number"
-            {...register("ageYears", { valueAsNumber: true })}
-            className="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm"
-          />
-          {errors.ageYears && (
-            <p className="mt-1 text-xs text-red-600">{errors.ageYears.message}</p>
+    <div className="mx-auto flex min-h-dvh w-full max-w-xl flex-col px-5 pb-10 pt-safe">
+      <header className="sticky top-0 z-10 -mx-5 bg-background/85 px-5 pb-3 pt-4 backdrop-blur-md">
+        <div className="flex h-11 items-center justify-between">
+          {step > 0 && step < 5 && current.id !== "seeds" ? (
+            <Button variant="ghost" size="icon" onClick={() => go(step - 1)} aria-label="Back">
+              <ArrowLeft className="size-5" aria-hidden />
+            </Button>
+          ) : (
+            <Wordmark />
           )}
+          <span className="text-sm font-medium tabular-nums text-muted-foreground">
+            Step {step + 1} of {STEPS.length}
+          </span>
         </div>
-
-        <div>
-          <label className="block text-sm font-medium text-neutral-800">Sex</label>
-          <select
-            {...register("sex")}
-            className="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm"
-          >
-            <option value="FEMALE">Female</option>
-            <option value="MALE">Male</option>
-          </select>
+        <div className="mt-3 h-1.5 overflow-hidden rounded-pill bg-surface-sunken" role="progressbar" aria-valuemin={1} aria-valuemax={STEPS.length} aria-valuenow={step + 1} aria-label="Onboarding progress">
+          <motion.div className="h-full rounded-pill bg-primary" initial={false} animate={{ width: `${((step + 1) / STEPS.length) * 100}%` }} transition={gentle} />
         </div>
+      </header>
 
-        <div>
-          <label className="block text-sm font-medium text-neutral-800">Height (cm)</label>
-          <input
-            type="number"
-            step="0.5"
-            {...register("heightCm", { valueAsNumber: true })}
-            className="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm"
-          />
-          {errors.heightCm && (
-            <p className="mt-1 text-xs text-red-600">{errors.heightCm.message}</p>
-          )}
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-neutral-800">Weight (kg)</label>
-          <input
-            type="number"
-            step="0.5"
-            {...register("weightKg", { valueAsNumber: true })}
-            className="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm"
-          />
-          {errors.weightKg && (
-            <p className="mt-1 text-xs text-red-600">{errors.weightKg.message}</p>
-          )}
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-neutral-800">Activity Level</label>
-          <select
-            {...register("activity")}
-            className="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm"
-          >
-            <option value="SEDENTARY">Sedentary</option>
-            <option value="LIGHT">Light</option>
-            <option value="MODERATE">Moderate</option>
-            <option value="ACTIVE">Active</option>
-            <option value="VERY_ACTIVE">Very Active</option>
-          </select>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-neutral-800">Goal</label>
-          <select
-            {...register("goal")}
-            className="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm"
-          >
-            <option value="LOSE">Lose weight</option>
-            <option value="MAINTAIN">Maintain weight</option>
-            <option value="GAIN">Gain weight</option>
-          </select>
-        </div>
-      </div>
-
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div>
-          <label className="block text-sm font-medium text-neutral-800">Dietary Pattern</label>
-          <select
-            {...register("diet")}
-            className="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm"
-          >
-            <option value="NONE">No restriction (Omnivore)</option>
-            <option value="VEGETARIAN">Vegetarian</option>
-            <option value="VEGAN">Vegan</option>
-          </select>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-neutral-800">Cuisine Policy</label>
-          <select
-            {...register("cuisinePolicy")}
-            className="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm"
-          >
-            <option value="MIXED">Mixed (variety across cuisines)</option>
-            <option value="MAJORITY">Majority preferred cuisines</option>
-            <option value="STRICT">Strict (only selected cuisines)</option>
-          </select>
-        </div>
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-neutral-800">
-          Preferred Cuisines
-        </label>
-        <div className="mt-2 flex flex-wrap gap-2">
-          {availableCuisines.map((c) => {
-            const active = watchedCuisines.includes(c.name);
-            return (
-              <button
-                key={c.id}
-                type="button"
-                onClick={() => toggleCuisine(c.name)}
-                className={`rounded-full border px-3 py-1 text-xs font-medium transition ${
-                  active
-                    ? "border-emerald-700 bg-emerald-700 text-white"
-                    : "border-neutral-300 bg-white text-neutral-700 hover:bg-neutral-100"
-                }`}
-              >
-                {c.name}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div>
-          <label className="block text-sm font-medium text-neutral-800">
-            Excluded Ingredients (comma-separated)
-          </label>
-          <input
-            type="text"
-            placeholder="e.g. mushroom, cilantro"
-            {...register("excludedIngredientsText")}
-            className="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-neutral-800">
-            Allergies (comma-separated)
-          </label>
-          <input
-            type="text"
-            placeholder="e.g. peanut, shellfish"
-            {...register("allergiesText")}
-            className="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm"
-          />
-        </div>
-      </div>
-
-      {watchedAllergiesText.trim().length > 0 && (
-        <div className="rounded-lg border border-amber-300 bg-amber-50 p-3">
-          <label className="flex items-start gap-2.5 text-sm text-amber-950">
-            <input
-              type="checkbox"
-              {...register("allergiesConfirmed")}
-              className="mt-1 h-4 w-4 rounded border-amber-400"
-            />
-            <span>
-              I explicitly confirm these allergy entries and understand that Savora GC1 uses
-              ingredient-name matching rather than a clinical allergen certification.
-            </span>
-          </label>
-          {errors.allergiesConfirmed && (
-            <p className="mt-1 text-xs font-medium text-red-600">
-              {errors.allergiesConfirmed.message}
-            </p>
-          )}
-        </div>
-      )}
-
-      <div>
-        <label className="block text-sm font-medium text-neutral-800">
-          Clinical Conditions
-        </label>
-        <div className="mt-2 flex flex-wrap gap-3">
-          {CLINICAL_CONDITIONS.map((cond) => {
-            const checked = watchedConditions.includes(cond.id);
-            return (
-              <label
-                key={cond.id}
-                className="flex items-center gap-2 rounded-lg border border-neutral-200 px-3 py-2 text-sm"
-              >
-                <input
-                  type="checkbox"
-                  checked={checked}
-                  onChange={() => toggleCondition(cond.id)}
-                />
-                <span>{cond.label}</span>
-              </label>
-            );
-          })}
-        </div>
-      </div>
-
-      <div className="flex justify-end">
-        <button
-          type="submit"
-          disabled={upsertProfileMutation.isPending}
-          className="rounded-lg bg-emerald-700 px-5 py-2.5 text-sm font-semibold text-white hover:bg-emerald-800 disabled:opacity-50"
+      <AnimatePresence mode="wait" custom={direction} initial={false}>
+        <motion.section
+          key={current.id}
+          custom={direction}
+          initial={{ opacity: 0, x: 24 * direction }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -24 * direction }}
+          transition={gentle}
+          aria-labelledby="step-title"
+          className="flex flex-1 flex-col pt-4"
         >
-          {upsertProfileMutation.isPending
-            ? "Calculating Targets..."
-            : "Save Profile & Pick Seed Dishes"}
-        </button>
-      </div>
-    </form>
+          <h1 id="step-title" className="text-[28px] font-bold leading-tight tracking-tight">
+            {current.title}
+          </h1>
+          <p className="mb-6 mt-1 text-[15px] text-muted-foreground">{current.description}</p>
+
+          {current.fields && (
+            <form
+              noValidate
+              onSubmit={(e) => {
+                e.preventDefault();
+                void nextFromForm();
+              }}
+              className="flex flex-1 flex-col gap-6"
+            >
+              {form.formState.submitCount > 0 && <ErrorSummary errors={stepErrors} />}
+              <ErrorSummary errors={serverErrors} title="We couldn't save that" />
+              {current.id === "about" && <AboutYouSection form={form} />}
+              {current.id === "food" && <FoodSection form={form} />}
+              {current.id === "health" && <HealthSection form={form} />}
+              <div className="mt-auto pt-4">
+                <Button type="submit" size="lg" block loading={upsert.isPending} icon={<ArrowRight className="size-5" aria-hidden />}>
+                  {current.id === "health" ? "Calculate my targets" : "Continue"}
+                </Button>
+              </div>
+            </form>
+          )}
+
+          {current.id === "targets" && targets && (
+            <div className="flex flex-1 flex-col gap-6">
+              <TargetsCard targets={targets.targets} profileVersion={targets.profile.version} />
+              <div className="mt-auto flex flex-col gap-2 pt-2">
+                <Button size="lg" block onClick={() => go(4)} icon={<ArrowRight className="size-5" aria-hidden />}>
+                  Looks good
+                </Button>
+                <Button variant="ghost" block onClick={() => go(0)}>
+                  Change my answers
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {current.id === "seeds" && <SeedPicker initial={existing?.profile.seedRecipeIds ?? []} onDone={() => go(5)} />}
+
+          {current.id === "done" && (
+            <div className="flex flex-col gap-6">
+              <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={gentle} className="mx-auto grid size-20 place-items-center rounded-[28px] bg-accent-soft text-accent-soft-foreground">
+                <PartyPopper className="size-10" aria-hidden />
+              </motion.div>
+              <GeneratePanel compact title="Your first week" onStarted={() => router.replace("/dashboard")} />
+              <Button variant="ghost" block onClick={() => router.replace("/dashboard")}>
+                Maybe later
+              </Button>
+            </div>
+          )}
+        </motion.section>
+      </AnimatePresence>
+    </div>
   );
 }

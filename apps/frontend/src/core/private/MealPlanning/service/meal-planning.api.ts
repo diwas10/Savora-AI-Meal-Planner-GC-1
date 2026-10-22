@@ -5,53 +5,47 @@ export type GeneratePlanRequest = Schema<"GeneratePlanRequest">;
 export type GeneratePlanAcceptedDto = Schema<"GeneratePlanAcceptedDto">;
 export type MealPlanSummaryDto = Schema<"MealPlanSummaryDto">;
 export type MealPlanDetailDto = Schema<"MealPlanDetailDto">;
+export type MealPlanSlotDto = Schema<"MealPlanSlotDto">;
+export type PlannedMeal = Schema<"PlannedMeal">;
+export type MealPlanJobStatus = Schema<"MealPlanJobStatus">;
+export type ReplacementOptionsRequest = Schema<"ReplacementOptionsRequest">;
+export type ReplacementOptionsDto = Schema<"ReplacementOptionsDto">;
+export type ReplacementOption = Schema<"ReplacementOption">;
 export type CreateSubstitutionRequest = Schema<"CreateSubstitutionRequest">;
 export type CreateSubstitutionAcceptedDto = Schema<"CreateSubstitutionAcceptedDto">;
 export type SubstitutionDetailDto = Schema<"SubstitutionDetailDto">;
 
-export async function createMealPlanApi(
-  payload: GeneratePlanRequest,
-): Promise<GeneratePlanAcceptedDto> {
-  return apiRequest<GeneratePlanAcceptedDto>({
+export function createMealPlanApi(payload: GeneratePlanRequest): Promise<GeneratePlanAcceptedDto> {
+  return apiRequest({ method: "POST", url: "/meal-plans", data: payload });
+}
+
+export function listMealPlansApi(current = false): Promise<MealPlanSummaryDto[]> {
+  return apiRequest({ method: "GET", url: "/meal-plans", params: { current } });
+}
+
+export function getMealPlanApi(planId: string): Promise<MealPlanDetailDto> {
+  return apiRequest({ method: "GET", url: `/meal-plans/${planId}` });
+}
+
+export function getReplacementOptionsApi(
+  planId: string,
+  slotId: string,
+  payload: ReplacementOptionsRequest,
+): Promise<ReplacementOptionsDto> {
+  return apiRequest({
     method: "POST",
-    url: "/meal-plans",
+    url: `/meal-plans/${planId}/slots/${slotId}/replacement-options`,
     data: payload,
   });
 }
 
-export async function listMealPlansApi(
-  current = false,
-): Promise<MealPlanSummaryDto[]> {
-  return apiRequest<MealPlanSummaryDto[]>({
-    method: "GET",
-    url: "/meal-plans",
-    params: { current },
-  });
-}
-
-export async function getMealPlanApi(planId: string): Promise<MealPlanDetailDto> {
-  return apiRequest<MealPlanDetailDto>({
-    method: "GET",
-    url: `/meal-plans/${planId}`,
-  });
-}
-
-export async function createSubstitutionApi(
+export function createSubstitutionApi(
   planId: string,
   payload: CreateSubstitutionRequest,
 ): Promise<CreateSubstitutionAcceptedDto> {
-  return apiRequest<CreateSubstitutionAcceptedDto>({
-    method: "POST",
-    url: `/meal-plans/${planId}/substitutions`,
-    data: payload,
-  });
+  return apiRequest({ method: "POST", url: `/meal-plans/${planId}/substitutions`, data: payload });
 }
 
-export async function getSubstitutionApi(
-  substitutionId: string,
-): Promise<SubstitutionDetailDto> {
-  return apiRequest<SubstitutionDetailDto>({
-    method: "GET",
-    url: `/substitutions/${substitutionId}`,
-  });
+export function getSubstitutionApi(substitutionId: string): Promise<SubstitutionDetailDto> {
+  return apiRequest({ method: "GET", url: `/substitutions/${substitutionId}` });
 }

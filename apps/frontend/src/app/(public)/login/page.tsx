@@ -1,9 +1,13 @@
+import type { Metadata } from "next";
+import { Suspense } from "react";
 import { LoginForm } from "@/core/public/Auth/components/LoginForm";
+
+export const metadata: Metadata = { title: "Sign in" };
 
 export default function LoginPage() {
   return (
-    <main className="flex min-h-screen items-center justify-center bg-neutral-50 p-6">
+    <Suspense>
       <LoginForm />
-    </main>
+    </Suspense>
   );
 }

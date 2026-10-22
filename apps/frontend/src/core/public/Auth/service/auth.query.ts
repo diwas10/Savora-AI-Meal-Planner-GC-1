@@ -32,6 +32,15 @@ export function useLoginMutation() {
   });
 }
 
+/** Clears the token and every cached user query, then the caller navigates away. */
+export function useLogout() {
+  const queryClient = useQueryClient();
+  return () => {
+    setStoredToken(null);
+    queryClient.clear();
+  };
+}
+
 export function useRegisterMutation() {
   const queryClient = useQueryClient();
   return useMutation({
