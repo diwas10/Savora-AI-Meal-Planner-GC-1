@@ -3,7 +3,7 @@ name = "savora-ai"
 version = "0.1.0"
 description = "Savora AI system: food data, nutrition, composition, ranking, rules, CSP, craving NLU, XAI."
 requires-python = ">=3.12"
-dependencies = ["pydantic>=2.9"]
+dependencies = ["pydantic>=2.9", "httpx>=0.27"]
 
 [project.optional-dependencies]
 # Optional research extras; never required by backend/CI. No model downloads happen on import.

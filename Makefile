@@ -34,4 +34,4 @@ build:
 	pnpm build
 
 contracts:
-	uv run python -c "import json; from pathlib import Path; from savora_backend.main import app; Path('packages/contracts/openapi.json').write_text(json.dumps(app.openapi(), indent=2) + '\n')"
+	uv run python -c "from savora_backend.contracts_gen import export_contracts; from savora_backend.main import app; export_contracts(openapi_spec=app.openapi())"

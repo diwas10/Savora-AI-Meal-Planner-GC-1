@@ -1,6 +1,7 @@
 # Savora — Explainable Neuro-Symbolic Meal Planning (GC1 Monorepo)
 
 Read [`AGENTS.md`](./AGENTS.md) and [`ARCHITECTURE.md`](./ARCHITECTURE.md) before making changes.
+For Member 3 (Interaction) architecture, contracts, NLU evaluation, and handoff notes, see [`docs/member3/HANDOFF.md`](./docs/member3/HANDOFF.md).
 
 ## Monorepo Layout
 
@@ -22,7 +23,7 @@ Read [`AGENTS.md`](./AGENTS.md) and [`ARCHITECTURE.md`](./ARCHITECTURE.md) befor
 │   └── ai_system/            # Importable Python AI package (savora_ai)
 ├── packages/
 │   └── contracts/            # OpenAPI schemas & generated TypeScript types (@savora/contracts)
-└── docs/                     # ADRs and evaluation notes
+└── docs/                     # ADRs, evaluation reports, and member handoff docs
 ```
 
 ## Prerequisites
@@ -36,13 +37,14 @@ Read [`AGENTS.md`](./AGENTS.md) and [`ARCHITECTURE.md`](./ARCHITECTURE.md) befor
 1. **Configure Environment Variables (Mandatory — `.env` is gitignored):**
    ```bash
    cp .env.example .env
-   # Fill in POSTGRES_HOST, POSTGRES_PASSWORD (percent-encoded), DATABASE_URL, and JWT_SECRET_KEY in .env
+   # Fill in POSTGRES_HOST, POSTGRES_PASSWORD (percent-encoded), DATABASE_URL,
+   # JWT_SECRET_KEY, and optionally QWEN_API_KEY / QWEN_BASE_URL / QWEN_MODEL_NAME in .env
    ```
 2. **Install dependencies:**
    ```bash
    make setup
    ```
-3. **Run database migrations against Supabase PostgreSQL:**
+3. **Run database migrations against PostgreSQL:**
    ```bash
    make migrate
    ```
@@ -52,14 +54,16 @@ Read [`AGENTS.md`](./AGENTS.md) and [`ARCHITECTURE.md`](./ARCHITECTURE.md) befor
 
 ## Checks
 
-- **Tests:** `make test`
+- **Fast Unit & Integration Tests:** `uv run pytest -m "not slow"`
+- **Full Test Suite (including weekly CSP solver tests):** `make test`
+- **Craving NLU Evaluation Harness:** `uv run python -m savora_ai.evals.craving_nlu`
 - **Lint (Ruff + ESLint):** `make lint`
 - **Typecheck (Pyright + TypeScript):** `make typecheck`
 - **Production Frontend Build:** `make build`
-- **Export OpenAPI Schema:** `make contracts`
+- **Export OpenAPI Schema & Generate `@savora/contracts` Types:** `make contracts`
 
 ## Package Boundaries
 
 - **Browser → Next.js (`apps/frontend`) → FastAPI (`apps/backend`) → AI (`apps/ai_system`).**
 - `savora-backend` imports `savora-ai` in-process via the `uv` workspace; `savora-ai` never imports backend ORM models, controllers, or frontend code.
-- PostgreSQL (Supabase) is the sole mandatory database for GC1.
+- PostgreSQL (Supabase) is the sole mandatory production database for GC1.

@@ -1,2 +1,4 @@
-// OpenAPI-generated TypeScript types and contract fixtures will be exported here.
-export {};
+export type { components, paths } from "./openapi";
+
+export type Schema<K extends keyof import("./openapi").components["schemas"]> =
+  import("./openapi").components["schemas"][K];
