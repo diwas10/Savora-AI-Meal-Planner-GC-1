@@ -37,8 +37,8 @@ export function NutritionSummary({
         </div>
       </div>
       <p className="mt-4 text-xs leading-relaxed text-muted-foreground">
-        Meals use their standard portions. The weekly check confirms every meal fits your
-        rules; it does not yet resize portions to reach these estimates.
+        Portions are sized toward these estimates before the weekly check, which confirms
+        every meal fits your rules. Reaching the estimates is not yet a verified rule.
       </p>
     </Card>
   );

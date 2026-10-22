@@ -75,7 +75,8 @@ class MealPlanService:
             await self._plans.create_plan(plan)
         except IntegrityError as exc:
             raise conflict(JOB_RUNNING) from exc
-        planning_profile = to_planning_profile(profile)
+        snapshot = await self._profiles.get_latest_nutrition(user_id, profile.version)
+        planning_profile = to_planning_profile(profile, snapshot)
         await self._session.commit()  # the job must see the committed row
         track_background_task(
             run_plan_week_job(

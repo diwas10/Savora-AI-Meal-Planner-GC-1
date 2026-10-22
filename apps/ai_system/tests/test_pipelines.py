@@ -239,7 +239,18 @@ def test_seed_suggestions_are_rule_safe_and_confirmable(bundle: CatalogueBundle)
 
 # --- weekly plan and substitution (sections 4.2 and 4.4) ---------------------------------
 
-PLANNER = {"diet": "VEGETARIAN", "cuisinePolicy": "STRICT", "cuisines": ["Indian"]}
+TARGETS = {
+    "energyKcalMin": 1710,
+    "energyKcalTarget": 1800,
+    "energyKcalMax": 1890,
+    "proteinGMin": 50,
+}
+PLANNER = {
+    "diet": "VEGETARIAN",
+    "cuisinePolicy": "STRICT",
+    "cuisines": ["Indian"],
+    "targets": TARGETS,
+}
 
 
 @pytest.fixture(scope="module")
@@ -281,6 +292,37 @@ def test_week_is_21_verified_allowed_meals(bundle: CatalogueBundle, week: WeekPl
     assert len(week.day_totals) == 7
     assert week.day_totals[0].totals.energy_kcal is not None
     assert week.safety.diet_checked_by == "FOODCOM_TAG"
+
+
+def test_portions_are_sized_toward_the_day_targets(week: WeekPlan) -> None:
+    # Measured on catalogue 20261021T073631Z: STANDARD portions put 0 of 7 days in the
+    # band for this profile; fitted presets put 6 (ADR 0006).
+    assert week.status is PlanStatus.FEASIBLE, week.message
+    assert any(m.preset.value != "STANDARD" for m in week.meals)
+    energy = [t.totals.energy_kcal for t in week.day_totals]
+    within = sum(e is not None and 1710 <= e <= 1890 for e in energy)
+    assert within >= 5, energy
+    assert f"{within} of 7 days are within" in week.message
+
+
+def test_fitting_keeps_standard_without_targets_and_locks_other_slots(
+    bundle: CatalogueBundle,
+) -> None:
+    from savora_ai.core.pipelines.planning import _fit_portions, _ranked_meals, _rotation, _standard
+    from savora_ai.core.pipelines.profile import DayTargets
+
+    user = profile(**PLANNER)
+    _, by_meal = _ranked_meals(bundle, user, None)
+    chosen = {}
+    for sid, combo in _rotation(by_meal).items():
+        config = _standard(combo)
+        assert config is not None
+        chosen[sid] = (combo, config)
+    assert _fit_portions(chosen, None) == chosen
+    targets = DayTargets.model_validate(TARGETS)
+    one = _fit_portions(chosen, targets, vary=("D2_LUNCH",))
+    assert [s for s in chosen if one[s] != chosen[s]] in ([], ["D2_LUNCH"])
+    assert all(one[s][0] is chosen[s][0] for s in chosen)  # the meals never change
 
 
 def test_substitution_changes_only_the_target_slot(week: WeekPlan, swapped: WeekPlan) -> None:

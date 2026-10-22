@@ -146,7 +146,8 @@ class SubstitutionService:
             await self._plans.create_substitution(sub)
         except IntegrityError as exc:
             raise conflict(JOB_RUNNING, SOURCE) from exc
-        planning_profile = to_planning_profile(profile)
+        snapshot = await self._profiles.get_latest_nutrition(user_id, profile.version)
+        planning_profile = to_planning_profile(profile, snapshot)
         await self._session.commit()  # the job must see the committed row
         track_background_task(
             run_substitute_job(

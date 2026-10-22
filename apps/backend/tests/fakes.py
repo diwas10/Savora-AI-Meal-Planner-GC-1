@@ -52,6 +52,7 @@ class FakeAiGateway:
         self.plan_status = plan_status
         self.swap_status = swap_status
         self.last_swap: dict[str, object] = {}
+        self.planned_profiles: list[PlanningProfile] = []
 
     @property
     def bundle(self) -> CatalogueBundle:
@@ -212,6 +213,7 @@ class FakeAiGateway:
         week_id: str,
         start_date: date,
     ) -> WeekPlan:
+        self.planned_profiles.append(profile)
         if self.fail_plan:
             raise RuntimeError("Simulated solver crash")
         safety = safety_verification(profile)

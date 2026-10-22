@@ -20,9 +20,9 @@ this screen is deleted; the pipeline signatures do not change.
 
 from collections.abc import Mapping, Sequence
 from enum import StrEnum
-from typing import Annotated, Literal
+from typing import Annotated, Literal, Self
 
-from pydantic import BaseModel, ConfigDict, Field, StringConstraints
+from pydantic import BaseModel, ConfigDict, Field, StringConstraints, model_validator
 from pydantic.alias_generators import to_camel
 
 from savora_ai.core.food_data.models import CatalogueRecipe
@@ -49,6 +49,24 @@ class DietPattern(StrEnum):
     VEGAN = "VEGAN"
 
 
+class DayTargets(_PipelineModel):
+    """The day's estimated targets that planning sizes portions toward (ADR 0006).
+
+    Copied from the profile version's `NutritionTargets`; general-population estimates,
+    not clinical limits."""
+
+    energy_kcal_min: float = Field(gt=0)
+    energy_kcal_target: float = Field(gt=0)
+    energy_kcal_max: float = Field(gt=0)
+    protein_g_min: float | None = Field(default=None, ge=0)
+
+    @model_validator(mode="after")
+    def check_order(self) -> Self:
+        if not self.energy_kcal_min <= self.energy_kcal_target <= self.energy_kcal_max:
+            raise ValueError("energy bounds must satisfy min <= target <= max")
+        return self
+
+
 class PlanningProfile(_PipelineModel):
     """User-confirmed facts only; never inferred from religion or ethnicity (section 1)."""
 
@@ -61,6 +79,7 @@ class PlanningProfile(_PipelineModel):
     allergies: Annotated[tuple[_Word, ...], Field(max_length=50)] = ()  # confirmed only
     conditions: tuple[HealthCondition, ...] = ()
     seed_recipe_ids: Annotated[tuple[str, ...], Field(max_length=5)] = ()  # ADR 0005 D1
+    targets: DayTargets | None = None  # None: meals keep their STANDARD portions
 
 
 class SafetyVerification(_PipelineModel):

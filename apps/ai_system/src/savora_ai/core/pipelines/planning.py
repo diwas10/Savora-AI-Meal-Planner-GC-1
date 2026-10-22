@@ -13,11 +13,14 @@
 GC1 limits, all visible in the result:
 - The KB is the stand-in (stand_in_kb.py): structural DAY/WEEK checks only, no nutrient
   or clinical constraints, so the CSP verifies a complete week rather than trading
-  portions against targets. Each slot therefore offers ONE option (the ranked meal at its
-  STANDARD portion): Member 2's solver orders a slot's options by ID, not by rank, so
-  offering more would let ID order, not the ranker, decide.
-- Energy is not a CSP constraint yet (member2_adapter assumption 3): day totals are
-  reported, never claimed to fit the targets.
+  portions against targets. Each slot therefore offers ONE option: Member 2's solver
+  orders a slot's options by ID, not by rank, so offering more would let ID order, not
+  the ranker, decide.
+- Portions are sized BEFORE the CSP (ADR 0006): when the profile carries day targets,
+  each day's three presets are chosen to bring planned energy into the band and protein
+  to its minimum (`_fit_portions`). Without targets every meal keeps STANDARD. Energy is
+  not a CSP constraint yet, so day totals are reported with how many days fit, never
+  claimed to be verified against the targets.
 
 Substitution re-solves the week with every other slot LOCKED to its saved option and the
 target slot offered the next-ranked meal the week does not already repeat (section 4.4).
@@ -31,6 +34,7 @@ from collections.abc import Callable, Iterable, Mapping, Sequence
 from dataclasses import dataclass
 from datetime import date, timedelta
 from enum import StrEnum
+from itertools import product
 from time import monotonic
 from typing import Annotated, Literal
 
@@ -56,6 +60,7 @@ from savora_ai.core.meal_composition.models import MealCombination, PortionConfi
 from savora_ai.core.pipelines.catalogue import CatalogueBundle
 from savora_ai.core.pipelines.craving import _flavored, _has_word
 from savora_ai.core.pipelines.profile import (
+    DayTargets,
     PlanningProfile,
     SafetyVerification,
     _PipelineModel,
@@ -186,17 +191,87 @@ def slot_id(day_index: int, meal: MealType) -> str:
     return f"D{day_index}_{meal.value}"
 
 
+def _measurable(config: PortionConfiguration) -> bool:
+    """Validated with a known sodium total (the one meal measurement the CSP carries;
+    unknown would make the day UNKNOWN)."""
+    return config.nutrition is not None and config.nutrition.totals.sodium_mg is not None
+
+
 def _standard(combination: MealCombination) -> PortionConfiguration | None:
-    """The STANDARD configuration, if validated with a known sodium total (the one meal
-    measurement the CSP carries; unknown would make the day UNKNOWN)."""
+    """The STANDARD configuration, if measurable."""
     for config in combination.configurations:
-        if (
-            config.preset is PortionPreset.STANDARD
-            and config.nutrition is not None
-            and config.nutrition.totals.sodium_mg is not None
-        ):
+        if config.preset is PortionPreset.STANDARD and _measurable(config):
             return config
     return None
+
+
+def _sizes(combination: MealCombination) -> list[PortionConfiguration]:
+    """STANDARD first, then every other measurable preset with known energy."""
+    standard = _standard(combination)
+    assert standard is not None  # _ranked_meals keeps only measurable meals
+    others = [
+        c
+        for c in combination.configurations
+        if c is not standard
+        and _measurable(c)
+        and c.nutrition is not None
+        and c.nutrition.totals.energy_kcal is not None
+    ]
+    return [standard, *sorted(others, key=lambda c: c.preset.value)]
+
+
+def _day_cost(configs: Sequence[PortionConfiguration], targets: DayTargets) -> tuple[float, ...]:
+    """Lower is better: kcal outside the energy band plus protein shortfall (4 kcal/g),
+    then fewer resized meals, then distance from the energy target."""
+    energy = protein = 0.0
+    protein_known = True
+    for config in configs:
+        assert config.nutrition is not None
+        totals = config.nutrition.totals
+        if totals.energy_kcal is None:  # a STANDARD with unknown energy: nothing to fit
+            return (0.0, 0.0, 0.0)
+        energy += totals.energy_kcal
+        if totals.protein_g is None:
+            protein_known = False
+        else:
+            protein += totals.protein_g
+    miss = max(0.0, targets.energy_kcal_min - energy) + max(0.0, energy - targets.energy_kcal_max)
+    if protein_known and targets.protein_g_min is not None:
+        miss += 4.0 * max(0.0, targets.protein_g_min - protein)
+    resized = sum(c.preset is not PortionPreset.STANDARD for c in configs)
+    return (round(miss, 3), float(resized), round(abs(energy - targets.energy_kcal_target), 3))
+
+
+def _fit_portions(
+    chosen: Mapping[str, tuple[MealCombination, PortionConfiguration]],
+    targets: DayTargets | None,
+    *,
+    vary: Iterable[str] | None = None,
+) -> dict[str, tuple[MealCombination, PortionConfiguration]]:
+    """Each day's presets that best fit the targets (ADR 0006); slots outside `vary` keep
+    their configuration (a swap resizes only the new meal). At most 5^3 tries per day."""
+    fitted = dict(chosen)
+    if targets is None:
+        return fitted
+    variable = set(chosen) if vary is None else set(vary)
+    for d in range(1, DAYS + 1):
+        slots = [slot_id(d, m) for m in MealType]
+        choices = [_sizes(chosen[s][0]) if s in variable else [chosen[s][1]] for s in slots]
+        best = min(product(*choices), key=lambda configs: _day_cost(configs, targets))
+        for s, config in zip(slots, best, strict=True):
+            fitted[s] = (chosen[s][0], config)
+    return fitted
+
+
+def _energy_fit(day_totals: Sequence["DayTotals"], targets: DayTargets | None) -> str:
+    if targets is None:
+        return " Meals use their standard portions (no targets on this profile version)."
+    known = [t.totals.energy_kcal for t in day_totals if t.totals.energy_kcal is not None]
+    within = sum(targets.energy_kcal_min <= e <= targets.energy_kcal_max for e in known)
+    return (
+        f" Portions were sized toward your targets: {within} of {DAYS} days are within the "
+        "estimated energy band (not yet a verified constraint)."
+    )
 
 
 def _ranked_meals(
@@ -458,7 +533,14 @@ def _solve(
                 outcome="FEASIBLE",
                 slot_id=sid,
                 search_nodes=accounting.logical_nodes,
-                constraints=("stand-in: every slot resolved; all seven days resolved",),
+                constraints=(
+                    "stand-in: every slot resolved; all seven days resolved",
+                    *(
+                        ()
+                        if profile.targets is None
+                        else ("portion sized toward the day's energy and protein targets",)
+                    ),
+                ),
             )
             meals.append(
                 PlannedMeal(
@@ -493,7 +575,8 @@ def _solve(
     return _week_plan(
         job,
         PlanStatus.FEASIBLE,
-        "21 meals verified by the weekly CSP against the stand-in rule set.",
+        "21 meals verified by the weekly CSP against the stand-in rule set."
+        + _energy_fit(totals, profile.targets),
         meals=meals,
         day_totals=totals,
         kb=kb,
@@ -571,6 +654,7 @@ def plan_week(
         config = _standard(combo)
         assert config is not None  # _ranked_meals keeps only measurable meals
         chosen[sid] = (combo, config)
+    chosen = _fit_portions(chosen, profile.targets)
     return _solve(bundle, profile, workflow, week_id, start_date, chosen, ranking, limits, clock)
 
 
@@ -819,6 +903,7 @@ def substitute_slot(
     assert config is not None
     chosen = dict(found.chosen)
     chosen[slot] = (replacement, config)
+    chosen = _fit_portions(chosen, profile.targets, vary=(slot,))  # the other 20 stay locked
     return _solve(
         bundle, profile, workflow, week_id, start_date, chosen, found.ranking, limits, clock
     )

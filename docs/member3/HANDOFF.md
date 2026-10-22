@@ -100,10 +100,15 @@ with the 125-utterance gold set.
 
 ## 7. Known limits and open team decisions
 
-1. **Stand-in KB** (`STAND_IN_UNVERIFIED`): allergies are matched on ingredient names;
-   conditions are recorded but not enforced; every result shows the safety notice.
-2. **Energy is not optimised**: the CSP checks completeness, so planned days can fall
-   below the target band; the UI says portions are not yet resized to the targets.
+1. **Stand-in KB** (`STAND_IN_UNVERIFIED`): allergies are matched on the dish name and
+   ingredient names, including common derived ingredients for the nine major allergen
+   groups plus gluten and seafood (`pipelines/allergens.py`, unreviewed; for example milk
+   blocks ghee and paneer, wheat blocks soy sauce, shellfish blocks Thai curry paste).
+   Conditions are recorded but not enforced; every result shows the safety notice.
+2. **Energy is fitted, not verified** (ADR 0006): each day's portion presets are chosen
+   toward the energy band and protein minimum before the CSP, which still checks
+   completeness only. Fitted days are mostly in band (for example 6 of 7 instead of 0 for
+   a strict Indian vegetarian week); the plan message reports the count.
 3. **Ranking**: the shipped hybrid ties popularity on the catalogue
    (`docs/reports/catalogue_ranking_evaluation.md`); choosing it, model-only weighting, or
    retraining is a Member 1 decision. Model hosting (ADR 0005 D2) is still deferred.

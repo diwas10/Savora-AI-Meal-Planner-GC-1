@@ -109,6 +109,11 @@ async def test_meal_plan_lifecycle_with_fake_gateway(db_client: httpx.AsyncClien
     assert len(detail["dayTotals"]) == 7
     assert detail["safety"]["status"] == "STAND_IN_UNVERIFIED"
     assert detail["slots"][0]["slotId"] == "D1_BREAKFAST"
+    # The profile version's targets reach the planner, which sizes portions toward them.
+    (planned,) = fake_gw.planned_profiles
+    assert planned.targets is not None
+    assert planned.targets.energy_kcal_min < planned.targets.energy_kcal_max
+    assert planned.targets.protein_g_min is not None
 
     list_resp = await db_client.get("/api/meal-plans?current=true", headers=headers)
     assert list_resp.status_code == 200

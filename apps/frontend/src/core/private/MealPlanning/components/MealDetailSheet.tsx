@@ -13,6 +13,13 @@ import { REASON_LABEL, SOURCE_LABEL, mealTitle, reasonsByKind, roleLabel } from 
 type PlannedMeal = Schema<"PlannedMeal">;
 type SafetyVerification = Schema<"SafetyVerification">;
 
+const PRESET_LABEL: Record<string, string> = {
+  HIGHER_ENERGY: "Larger portion",
+  HIGHER_PROTEIN: "More protein",
+  LOWER_CARB: "Lighter on carbs",
+  LOWER_ENERGY: "Smaller portion",
+};
+
 interface MealDetailSheetProps {
   meal: PlannedMeal | null;
   safety?: SafetyVerification | null;
@@ -48,6 +55,14 @@ export function MealDetailSheet({ meal, safety, open, onOpenChange, onSwap }: Me
           <h3 id="meal-dishes" className="mb-2 text-sm font-semibold text-muted-foreground">
             What&apos;s on the plate
           </h3>
+          {PRESET_LABEL[meal.preset] && (
+            <p className="mb-2 text-xs text-muted-foreground">
+              <Badge tone="neutral" className="mr-1.5">
+                {PRESET_LABEL[meal.preset]}
+              </Badge>
+              Sized toward your estimated daily energy and protein.
+            </p>
+          )}
           <ul className="divide-y divide-border overflow-hidden rounded-2xl bg-surface ring-1 ring-border">
             {exp.dishes.map((dish) => {
               const name = dishName(dish.name);

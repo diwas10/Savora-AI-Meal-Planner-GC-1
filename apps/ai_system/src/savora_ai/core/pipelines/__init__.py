@@ -31,6 +31,7 @@ from savora_ai.core.pipelines.planning import (
     suggest_replacements,
 )
 from savora_ai.core.pipelines.profile import (
+    DayTargets,
     DietPattern,
     PlanningProfile,
     SafetyVerification,
@@ -40,6 +41,7 @@ __all__ = [
     "CatalogueBundle",
     "CravingRecommendation",
     "CravingStatus",
+    "DayTargets",
     "DietPattern",
     "PlanStatus",
     "PlannedMeal",
