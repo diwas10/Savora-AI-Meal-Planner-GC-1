@@ -6,6 +6,7 @@
     suggest_replacements(profile, bundle, current=, slot=, preference=)
                                                        section 4.4: ranked, rule-screened options
     substitute_slot(profile, bundle, current=, slot=)  section 4.4, other slots locked
+    prove_swap(profile, bundle, saved=, slot=, ...)    Member 2's compact B1 proof of a swap
     suggest_seeds / confirm_seeds / revalidate_seeds   ADR 0005 onboarding seed dishes
 
 Pure functions: no database, network or file I/O after the catalogue is loaded. Every
@@ -36,6 +37,7 @@ from savora_ai.core.pipelines.profile import (
     PlanningProfile,
     SafetyVerification,
 )
+from savora_ai.core.pipelines.swap_proof import SwapProof, prove_swap
 
 __all__ = [
     "CatalogueBundle",
@@ -49,11 +51,13 @@ __all__ = [
     "ReplacementOption",
     "ReplacementOptions",
     "SafetyVerification",
+    "SwapProof",
     "WeekPlan",
     "confirm_seeds",
     "cuisine_id",
     "load_catalogue_export",
     "plan_week",
+    "prove_swap",
     "recommend_for_craving",
     "revalidate_seeds",
     "substitute_slot",

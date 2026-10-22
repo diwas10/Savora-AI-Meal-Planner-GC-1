@@ -333,6 +333,35 @@ def test_substitution_changes_only_the_target_slot(week: WeekPlan, swapped: Week
     assert [s for s in before if before[s] != after[s]] == ["D2_LUNCH"]
 
 
+def test_swap_is_independently_verified_by_the_compact_b1_proof(
+    bundle: CatalogueBundle, week: WeekPlan, swapped: WeekPlan
+) -> None:
+    # Member 2's compact B1 (PR #21) over our runtime resolver: both complete weeks are
+    # replayed from the server's own catalogue and the witness reconstructed independently.
+    from decimal import Decimal
+
+    from savora_ai.core.pipelines import prove_swap
+
+    new = next(m for m in swapped.meals if m.slot_id == "D2_LUNCH")
+    proof = prove_swap(
+        profile(**PLANNER),
+        bundle,
+        saved={m.slot_id: m.option_id for m in week.meals},
+        slot="D2_LUNCH",
+        replacement_option_id=new.option_id,
+        plan_id="plan-1",
+        revision=1,
+        owner_id="user-1",
+        start_date=START,
+    )
+    assert proof.status == "VALID" and proof.verified, proof.reason
+    assert proof.certificate_digest is not None and len(proof.certificate_digest) == 64
+    day2 = next(t for t in swapped.day_totals if t.day_index == 2).totals
+    energy = next(t for t in proof.changed_day_totals if t.nutrient == "energy_kcal")
+    assert day2.energy_kcal is not None and energy.value is not None
+    assert abs(Decimal(energy.value) - Decimal(str(day2.energy_kcal))) < 1
+
+
 def test_too_few_meals_is_insufficient_without_solving(bundle: CatalogueBundle) -> None:
     # British is an incidental Food.com tag, not a target cuisine: one breakfast dish.
     british = profile(cuisinePolicy="STRICT", cuisines=["British"])

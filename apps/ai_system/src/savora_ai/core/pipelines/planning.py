@@ -24,8 +24,9 @@ GC1 limits, all visible in the result:
 
 Substitution re-solves the week with every other slot LOCKED to its saved option and the
 target slot offered the next-ranked meal the week does not already repeat (section 4.4).
-It runs as a WEEKLY_PLAN context (Member 2's CSP does not admit PLANNED_SWAP yet); the
-result is still labelled PLANNED_SWAP.
+It runs as a WEEKLY_PLAN context (Member 2's weekly CSP does not admit PLANNED_SWAP); the
+result is labelled PLANNED_SWAP, and the swap job then proves it as a real PLANNED_SWAP with
+Member 2's compact B1 protocol (`swap_proof.py`, ADR 0007).
 """
 
 import hashlib
