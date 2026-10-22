@@ -1,8 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { getStoredToken, setStoredToken } from "@/lib/api-request";
+import { hasSession, setSession } from "@/lib/api-request";
 import {
   getMeApi,
   loginApi,
+  logoutApi,
   registerApi,
   type LoginRequest,
   type RegisterRequest,
@@ -16,7 +17,7 @@ export function useCurrentUserQuery(enabled = true) {
   return useQuery({
     queryKey: authKeys.me,
     queryFn: getMeApi,
-    enabled: enabled && Boolean(getStoredToken()),
+    enabled: enabled && hasSession(),
     retry: false,
   });
 }
@@ -26,18 +27,20 @@ export function useLoginMutation() {
   return useMutation({
     mutationFn: (payload: LoginRequest) => loginApi(payload),
     onSuccess: (data) => {
-      setStoredToken(data.accessToken);
+      setSession(true);
       queryClient.setQueryData(authKeys.me, data.user);
     },
   });
 }
 
-/** Clears the token and every cached user query, then the caller navigates away. */
+/** Ends the session (the server clears the cookie) and every cached user query; the
+ * caller navigates away. Local state is cleared even when the server is unreachable. */
 export function useLogout() {
   const queryClient = useQueryClient();
   return () => {
-    setStoredToken(null);
+    setSession(false);
     queryClient.clear();
+    void logoutApi().catch(() => undefined);
   };
 }
 
@@ -46,7 +49,7 @@ export function useRegisterMutation() {
   return useMutation({
     mutationFn: (payload: RegisterRequest) => registerApi(payload),
     onSuccess: (data) => {
-      setStoredToken(data.accessToken);
+      setSession(true);
       queryClient.setQueryData(authKeys.me, data.user);
     },
   });

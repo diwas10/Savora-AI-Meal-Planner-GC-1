@@ -7,7 +7,7 @@ import { useEffect } from "react";
 import { Wordmark } from "@/components/functional/Brand";
 import { LinkButton } from "@/components/ui/Button";
 import { useIsClient } from "@/hooks/useIsClient";
-import { getStoredToken } from "@/lib/api-request";
+import { hasSession } from "@/lib/api-request";
 import { fadeUp, stagger } from "@/lib/motion";
 
 const FEATURES = [
@@ -20,7 +20,7 @@ const FEATURES = [
 export function LandingView() {
   const router = useRouter();
   const isClient = useIsClient();
-  const signedIn = isClient && Boolean(getStoredToken());
+  const signedIn = isClient && hasSession();
 
   useEffect(() => {
     if (signedIn) router.replace("/dashboard");

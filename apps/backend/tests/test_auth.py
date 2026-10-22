@@ -115,6 +115,7 @@ async def test_expired_and_invalid_tokens_return_401(db_client: httpx.AsyncClien
     assert res_exp.status_code == 401
     assert res_exp.json()["success"] is False
 
+    db_client.cookies.clear()  # registration set a session cookie
     res_no_hdr = await db_client.get("/api/auth/me")
     assert res_no_hdr.status_code == 401
 
@@ -134,3 +135,34 @@ def test_alembic_upgrade_and_downgrade(tmp_path: Path, monkeypatch: pytest.Monke
     command.upgrade(cfg, "head")
     command.downgrade(cfg, "-1")
     command.upgrade(cfg, "head")
+
+
+async def test_session_cookie_login_requests_and_logout(db_client: httpx.AsyncClient) -> None:
+    reg = await db_client.post(
+        "/api/auth/register",
+        json={"email": "cookie@example.com", "password": "securepassword123", "displayName": "C"},
+    )
+    assert reg.status_code == 201
+    set_cookie = reg.headers["set-cookie"].lower()
+    assert set_cookie.startswith("savora_session=")
+    assert "httponly" in set_cookie and "samesite=lax" in set_cookie and "path=/api" in set_cookie
+    assert "secure" not in set_cookie  # development; Secure only with APP_ENV=production
+
+    me = await db_client.get("/api/auth/me")  # the client sends the cookie, no header
+    assert me.status_code == 200
+    assert me.json()["data"]["email"] == "cookie@example.com"
+
+    # A cookie-authenticated write without the client header is refused (CSRF).
+    body = {"weekStart": "2026-10-19"}
+    forged = await db_client.post("/api/meal-plans", json=body)
+    assert forged.status_code == 403
+    assert "X-Savora-Client" in forged.json()["message"]
+    sent = await db_client.post("/api/meal-plans", json=body, headers={"X-Savora-Client": "web"})
+    assert sent.status_code == 409  # authenticated; no profile yet
+
+    out = await db_client.post("/api/auth/logout")
+    assert out.status_code == 200
+    assert 'savora_session=""' in out.headers["set-cookie"] or "max-age=0" in (
+        out.headers["set-cookie"].lower()
+    )
+    assert (await db_client.get("/api/auth/me")).status_code == 401

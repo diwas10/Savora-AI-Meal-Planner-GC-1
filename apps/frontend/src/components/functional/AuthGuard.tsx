@@ -8,19 +8,19 @@ import { useOnline } from "@/hooks/useOnline";
 import { useProfileQuery } from "@/core/private/UserProfile/service/profile.query";
 import { useCurrentUserQuery } from "@/core/public/Auth/service/auth.query";
 import { useIsClient } from "@/hooks/useIsClient";
-import { ApiError, getStoredToken, setStoredToken } from "@/lib/api-request";
+import { ApiError, hasSession, setSession } from "@/lib/api-request";
 
 /**
- * Client route protection for `(protected)`: no token -> /login; an invalid token is
- * cleared; no profile (404) or too few seed dishes -> /onboarding.
+ * Client route protection for `(protected)`: no session -> /login; an expired session
+ * is cleared; no profile (404) or too few seed dishes -> /onboarding.
  */
 export function AuthGuard({ children }: { children: ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const isClient = useIsClient();
-  const token = isClient ? getStoredToken() : null;
-  const userQuery = useCurrentUserQuery(Boolean(token));
-  const profileQuery = useProfileQuery(Boolean(token));
+  const signedIn = isClient && hasSession();
+  const userQuery = useCurrentUserQuery(signedIn);
+  const profileQuery = useProfileQuery(signedIn);
   const onOnboarding = pathname.startsWith("/onboarding");
   const online = useOnline();
 
@@ -30,21 +30,21 @@ export function AuthGuard({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!isClient) return;
-    if (!token) {
+    if (!signedIn) {
       router.replace(`/login?next=${encodeURIComponent(pathname)}`);
       return;
     }
     if (userQuery.error instanceof ApiError && userQuery.error.status === 401) {
-      setStoredToken(null);
+      setSession(false);
       router.replace("/login");
       return;
     }
     if (needsOnboarding && !onOnboarding) router.replace("/onboarding");
-  }, [isClient, token, userQuery.error, needsOnboarding, onOnboarding, pathname, router]);
+  }, [isClient, signedIn, userQuery.error, needsOnboarding, onOnboarding, pathname, router]);
 
   const ready =
     isClient &&
-    token &&
+    signedIn &&
     userQuery.data &&
     (profileQuery.data !== undefined || profileQuery.isError) &&
     (onOnboarding || !needsOnboarding);
@@ -53,7 +53,7 @@ export function AuthGuard({ children }: { children: ReactNode }) {
     // Offline with nothing cached yet: say so instead of an endless splash.
     const unreachable =
       !online || (userQuery.error instanceof ApiError && userQuery.error.status === 0);
-    if (isClient && token && !userQuery.data && unreachable) {
+    if (isClient && signedIn && !userQuery.data && unreachable) {
       return (
         <div className="grid min-h-dvh place-items-center px-6">
           <ErrorState

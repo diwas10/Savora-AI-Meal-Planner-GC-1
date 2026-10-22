@@ -397,6 +397,12 @@ export interface paths {
       response: components["schemas"]["AuthResponse"];
     };
   };
+  "/api/auth/logout": {
+    post: {
+      requestBody?: never;
+      response: unknown;
+    };
+  };
   "/api/auth/me": {
     get: {
       requestBody?: never;

@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { getStoredToken } from "@/lib/api-request";
+import { hasSession } from "@/lib/api-request";
 import {
   getCuisinesApi,
   getProfileApi,
@@ -22,7 +22,7 @@ export function useProfileQuery(enabled = true) {
   return useQuery({
     queryKey: profileKeys.profile,
     queryFn: getProfileApi,
-    enabled: enabled && Boolean(getStoredToken()),
+    enabled: enabled && hasSession(),
     retry: false,
   });
 }
@@ -31,7 +31,7 @@ export function useCuisinesQuery() {
   return useQuery({
     queryKey: profileKeys.cuisines,
     queryFn: getCuisinesApi,
-    enabled: Boolean(getStoredToken()),
+    enabled: hasSession(),
   });
 }
 
@@ -50,7 +50,7 @@ export function useSeedSuggestionsQuery(enabled = true) {
   return useQuery({
     queryKey: profileKeys.seedSuggestions,
     queryFn: getSeedSuggestionsApi,
-    enabled: enabled && Boolean(getStoredToken()),
+    enabled: enabled && hasSession(),
   });
 }
 
@@ -68,6 +68,6 @@ export function useDishSearchQuery(q: string) {
   return useQuery({
     queryKey: profileKeys.dishSearch(q),
     queryFn: () => searchCatalogueDishesApi(q),
-    enabled: Boolean(getStoredToken()) && q.trim().length > 0,
+    enabled: hasSession() && q.trim().length > 0,
   });
 }

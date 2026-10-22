@@ -24,7 +24,7 @@ Member 2's Phase 7 (PR #18).
 
 | Method and path | Purpose |
 |---|---|
-| `POST /auth/register`, `POST /auth/login`, `GET /auth/me` | argon2 passwords, HS256 access token |
+| `POST /auth/register`, `POST /auth/login`, `POST /auth/logout`, `GET /auth/me` | argon2 passwords; HS256 token in an httpOnly cookie (or Bearer) |
 | `GET /profile`, `PUT /profile` | profile and versioned target snapshot; an unchanged save keeps its version |
 | `GET /catalogue/cuisines` | the 19 target cuisines (incidental tags such as British are hidden) |
 | `GET /catalogue/dishes?q=` | seed-eligible dish search (top 50) |
@@ -38,9 +38,12 @@ Member 2's Phase 7 (PR #18).
 ## 3. Decisions (spec section 2, as implemented)
 
 1. **Auth**: backend-owned email/password; argon2 and HS256. `APP_ENV=production`
-   refuses the development secret or one shorter than 32 characters. The token is kept in
-   `localStorage` (no refresh tokens in GC1); this is a known XSS exposure. A cookie-based
-   session through a Next.js proxy is the upgrade path.
+   refuses the development secret or one shorter than 32 characters. The browser session
+   is the token in an httpOnly, SameSite=Lax cookie (`savora_session`, path `/api`,
+   Secure in production) that scripts cannot read. Next.js rewrites `/api` to FastAPI
+   (`BACKEND_URL`), so the cookie is first-party. Cookie-authenticated writes must send
+   `X-Savora-Client` (CSRF); `POST /auth/logout` clears the cookie. Bearer tokens still
+   work for API clients and tests. No refresh tokens in GC1 (60-minute sessions).
 2. **Catalogue**: the versioned JSON export, loaded once into the shared AI runtime.
 3. **Jobs**: in-process tasks, state on the row, stale jobs failed at startup. A job start
    locks the profile row, and migration 0005's partial unique indexes allow one generating

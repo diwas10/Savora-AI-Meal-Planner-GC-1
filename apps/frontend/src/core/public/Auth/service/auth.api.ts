@@ -28,3 +28,7 @@ export async function getMeApi(): Promise<UserDto> {
     url: "/auth/me",
   });
 }
+
+export async function logoutApi(): Promise<void> {
+  await apiRequest<null>({ method: "POST", url: "/auth/logout" });
+}

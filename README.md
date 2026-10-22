@@ -54,8 +54,9 @@ For the app's architecture, contracts, NLU evaluation, integration status and ha
 4. **Start the development servers:**
    - Backend (`http://localhost:8000`): `make dev-backend`
    - Frontend (`http://localhost:3000`): `make dev-frontend`
-   - The frontend reads `NEXT_PUBLIC_API_URL` from `apps/frontend/.env.local`
-     (default `http://localhost:8000`).
+   - The frontend proxies `/api` to FastAPI (`BACKEND_URL`, default
+     `http://localhost:8000`, read when the frontend is built or started), so the
+     session is a first-party httpOnly cookie; no token is kept in `localStorage`.
 
 ## Install on a phone (PWA)
 
