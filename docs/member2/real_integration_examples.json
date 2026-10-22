@@ -1,0 +1,969 @@
+{
+  "status": "FICTIONAL_CONTRACT_EXAMPLES_ONLY",
+  "request_fixture": "test_planned_swap_contracts.foundation_case",
+  "optionNutrients": {
+    "schemaVersion": "daily-nutrients.v2",
+    "arithmeticPolicy": "native-decimal-3dp-no-rounding.v1",
+    "option": {
+      "schemaVersion": "meal-option-reference.v1",
+      "optionId": "week-option-0",
+      "combinationId": "week-meal",
+      "combinationVersion": "1",
+      "snapshotId": "week-meal-snapshot-0",
+      "snapshotVersion": "1",
+      "combinationDigest": "70fbd5bb6c56dafe142e7bbeaf1a6a4d0bf876d3d0c873cb594c24f3ab91b624",
+      "portionState": "FIXED",
+      "portionConfigurationId": "config-0",
+      "portionConfigurationVersion": "1"
+    },
+    "basis": "ABSOLUTE_FIXED_PORTION",
+    "referenceBasis": "PER_SERVING",
+    "massG": null,
+    "measurements": [
+      {
+        "nutrient": "energy_kcal",
+        "unit": "kcal",
+        "value": "2.001",
+        "complete": true,
+        "source": {
+          "sourceId": "fictional-catalogue",
+          "version": "1",
+          "contentDigest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+        },
+        "evidence": [
+          {
+            "evidenceId": "week-fiction",
+            "version": "1",
+            "source": "Independent fictional weekly contract fixture",
+            "locator": "urn:weekly-fiction:week-fiction",
+            "environment": "SYNTHETIC"
+          }
+        ]
+      },
+      {
+        "nutrient": "protein_g",
+        "unit": "g",
+        "value": "3.000",
+        "complete": true,
+        "source": {
+          "sourceId": "fictional-catalogue",
+          "version": "1",
+          "contentDigest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+        },
+        "evidence": [
+          {
+            "evidenceId": "week-fiction",
+            "version": "1",
+            "source": "Independent fictional weekly contract fixture",
+            "locator": "urn:weekly-fiction:week-fiction",
+            "environment": "SYNTHETIC"
+          }
+        ]
+      },
+      {
+        "nutrient": "carbs_g",
+        "unit": "g",
+        "value": "4.000",
+        "complete": true,
+        "source": {
+          "sourceId": "fictional-catalogue",
+          "version": "1",
+          "contentDigest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+        },
+        "evidence": [
+          {
+            "evidenceId": "week-fiction",
+            "version": "1",
+            "source": "Independent fictional weekly contract fixture",
+            "locator": "urn:weekly-fiction:week-fiction",
+            "environment": "SYNTHETIC"
+          }
+        ]
+      },
+      {
+        "nutrient": "fat_g",
+        "unit": "g",
+        "value": "5.000",
+        "complete": true,
+        "source": {
+          "sourceId": "fictional-catalogue",
+          "version": "1",
+          "contentDigest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+        },
+        "evidence": [
+          {
+            "evidenceId": "week-fiction",
+            "version": "1",
+            "source": "Independent fictional weekly contract fixture",
+            "locator": "urn:weekly-fiction:week-fiction",
+            "environment": "SYNTHETIC"
+          }
+        ]
+      },
+      {
+        "nutrient": "saturated_fat_g",
+        "unit": "g",
+        "value": "1.000",
+        "complete": true,
+        "source": {
+          "sourceId": "fictional-catalogue",
+          "version": "1",
+          "contentDigest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+        },
+        "evidence": [
+          {
+            "evidenceId": "week-fiction",
+            "version": "1",
+            "source": "Independent fictional weekly contract fixture",
+            "locator": "urn:weekly-fiction:week-fiction",
+            "environment": "SYNTHETIC"
+          }
+        ]
+      },
+      {
+        "nutrient": "sodium_mg",
+        "unit": "mg",
+        "value": "6.000",
+        "complete": true,
+        "source": {
+          "sourceId": "fictional-catalogue",
+          "version": "1",
+          "contentDigest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+        },
+        "evidence": [
+          {
+            "evidenceId": "week-fiction",
+            "version": "1",
+            "source": "Independent fictional weekly contract fixture",
+            "locator": "urn:weekly-fiction:week-fiction",
+            "environment": "SYNTHETIC"
+          }
+        ]
+      },
+      {
+        "nutrient": "sugars_g",
+        "unit": "g",
+        "value": null,
+        "complete": false,
+        "source": {
+          "sourceId": "fictional-catalogue",
+          "version": "1",
+          "contentDigest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+        },
+        "evidence": [
+          {
+            "evidenceId": "week-fiction",
+            "version": "1",
+            "source": "Independent fictional weekly contract fixture",
+            "locator": "urn:weekly-fiction:week-fiction",
+            "environment": "SYNTHETIC"
+          }
+        ]
+      }
+    ]
+  },
+  "valuePriorityDeclaration": {
+    "schemaVersion": "weekly-v2-value-order.v1",
+    "requestDigest": "913f6f2509b9af3d5490272a2202671f3ce61be6783b256a12dca385cbf509b3",
+    "source": {
+      "sourceId": "weekly-source",
+      "version": "1",
+      "contentDigest": "660bde7cf2a7139f6cad1948bde8fda533157a91ee1bd03809c4385ce5a890c6"
+    },
+    "slots": [
+      {
+        "canonicalIndex": 0,
+        "entries": [
+          {
+            "option": {
+              "schemaVersion": "meal-option-reference.v1",
+              "optionId": "week-option-0",
+              "combinationId": "week-meal",
+              "combinationVersion": "1",
+              "snapshotId": "week-meal-snapshot-0",
+              "snapshotVersion": "1",
+              "combinationDigest": "70fbd5bb6c56dafe142e7bbeaf1a6a4d0bf876d3d0c873cb594c24f3ab91b624",
+              "portionState": "FIXED",
+              "portionConfigurationId": "config-0",
+              "portionConfigurationVersion": "1"
+            },
+            "priority": 0
+          },
+          {
+            "option": {
+              "schemaVersion": "meal-option-reference.v1",
+              "optionId": "week-option-1",
+              "combinationId": "week-meal",
+              "combinationVersion": "1",
+              "snapshotId": "week-meal-snapshot-1",
+              "snapshotVersion": "1",
+              "combinationDigest": "9bc3d0ceaf4f95eaf35f20efa742482f17e059b9ca4436f2a955063bdca20c5c",
+              "portionState": "FIXED",
+              "portionConfigurationId": "config-1",
+              "portionConfigurationVersion": "1"
+            },
+            "priority": 1
+          }
+        ]
+      },
+      {
+        "canonicalIndex": 1,
+        "entries": [
+          {
+            "option": {
+              "schemaVersion": "meal-option-reference.v1",
+              "optionId": "week-option-0",
+              "combinationId": "week-meal",
+              "combinationVersion": "1",
+              "snapshotId": "week-meal-snapshot-0",
+              "snapshotVersion": "1",
+              "combinationDigest": "70fbd5bb6c56dafe142e7bbeaf1a6a4d0bf876d3d0c873cb594c24f3ab91b624",
+              "portionState": "FIXED",
+              "portionConfigurationId": "config-0",
+              "portionConfigurationVersion": "1"
+            },
+            "priority": 0
+          },
+          {
+            "option": {
+              "schemaVersion": "meal-option-reference.v1",
+              "optionId": "week-option-1",
+              "combinationId": "week-meal",
+              "combinationVersion": "1",
+              "snapshotId": "week-meal-snapshot-1",
+              "snapshotVersion": "1",
+              "combinationDigest": "9bc3d0ceaf4f95eaf35f20efa742482f17e059b9ca4436f2a955063bdca20c5c",
+              "portionState": "FIXED",
+              "portionConfigurationId": "config-1",
+              "portionConfigurationVersion": "1"
+            },
+            "priority": 1
+          }
+        ]
+      },
+      {
+        "canonicalIndex": 2,
+        "entries": [
+          {
+            "option": {
+              "schemaVersion": "meal-option-reference.v1",
+              "optionId": "week-option-0",
+              "combinationId": "week-meal",
+              "combinationVersion": "1",
+              "snapshotId": "week-meal-snapshot-0",
+              "snapshotVersion": "1",
+              "combinationDigest": "70fbd5bb6c56dafe142e7bbeaf1a6a4d0bf876d3d0c873cb594c24f3ab91b624",
+              "portionState": "FIXED",
+              "portionConfigurationId": "config-0",
+              "portionConfigurationVersion": "1"
+            },
+            "priority": 0
+          },
+          {
+            "option": {
+              "schemaVersion": "meal-option-reference.v1",
+              "optionId": "week-option-1",
+              "combinationId": "week-meal",
+              "combinationVersion": "1",
+              "snapshotId": "week-meal-snapshot-1",
+              "snapshotVersion": "1",
+              "combinationDigest": "9bc3d0ceaf4f95eaf35f20efa742482f17e059b9ca4436f2a955063bdca20c5c",
+              "portionState": "FIXED",
+              "portionConfigurationId": "config-1",
+              "portionConfigurationVersion": "1"
+            },
+            "priority": 1
+          }
+        ]
+      },
+      {
+        "canonicalIndex": 3,
+        "entries": [
+          {
+            "option": {
+              "schemaVersion": "meal-option-reference.v1",
+              "optionId": "week-option-0",
+              "combinationId": "week-meal",
+              "combinationVersion": "1",
+              "snapshotId": "week-meal-snapshot-0",
+              "snapshotVersion": "1",
+              "combinationDigest": "70fbd5bb6c56dafe142e7bbeaf1a6a4d0bf876d3d0c873cb594c24f3ab91b624",
+              "portionState": "FIXED",
+              "portionConfigurationId": "config-0",
+              "portionConfigurationVersion": "1"
+            },
+            "priority": 0
+          },
+          {
+            "option": {
+              "schemaVersion": "meal-option-reference.v1",
+              "optionId": "week-option-1",
+              "combinationId": "week-meal",
+              "combinationVersion": "1",
+              "snapshotId": "week-meal-snapshot-1",
+              "snapshotVersion": "1",
+              "combinationDigest": "9bc3d0ceaf4f95eaf35f20efa742482f17e059b9ca4436f2a955063bdca20c5c",
+              "portionState": "FIXED",
+              "portionConfigurationId": "config-1",
+              "portionConfigurationVersion": "1"
+            },
+            "priority": 1
+          }
+        ]
+      },
+      {
+        "canonicalIndex": 4,
+        "entries": [
+          {
+            "option": {
+              "schemaVersion": "meal-option-reference.v1",
+              "optionId": "week-option-0",
+              "combinationId": "week-meal",
+              "combinationVersion": "1",
+              "snapshotId": "week-meal-snapshot-0",
+              "snapshotVersion": "1",
+              "combinationDigest": "70fbd5bb6c56dafe142e7bbeaf1a6a4d0bf876d3d0c873cb594c24f3ab91b624",
+              "portionState": "FIXED",
+              "portionConfigurationId": "config-0",
+              "portionConfigurationVersion": "1"
+            },
+            "priority": 0
+          },
+          {
+            "option": {
+              "schemaVersion": "meal-option-reference.v1",
+              "optionId": "week-option-1",
+              "combinationId": "week-meal",
+              "combinationVersion": "1",
+              "snapshotId": "week-meal-snapshot-1",
+              "snapshotVersion": "1",
+              "combinationDigest": "9bc3d0ceaf4f95eaf35f20efa742482f17e059b9ca4436f2a955063bdca20c5c",
+              "portionState": "FIXED",
+              "portionConfigurationId": "config-1",
+              "portionConfigurationVersion": "1"
+            },
+            "priority": 1
+          }
+        ]
+      },
+      {
+        "canonicalIndex": 5,
+        "entries": [
+          {
+            "option": {
+              "schemaVersion": "meal-option-reference.v1",
+              "optionId": "week-option-0",
+              "combinationId": "week-meal",
+              "combinationVersion": "1",
+              "snapshotId": "week-meal-snapshot-0",
+              "snapshotVersion": "1",
+              "combinationDigest": "70fbd5bb6c56dafe142e7bbeaf1a6a4d0bf876d3d0c873cb594c24f3ab91b624",
+              "portionState": "FIXED",
+              "portionConfigurationId": "config-0",
+              "portionConfigurationVersion": "1"
+            },
+            "priority": 0
+          },
+          {
+            "option": {
+              "schemaVersion": "meal-option-reference.v1",
+              "optionId": "week-option-1",
+              "combinationId": "week-meal",
+              "combinationVersion": "1",
+              "snapshotId": "week-meal-snapshot-1",
+              "snapshotVersion": "1",
+              "combinationDigest": "9bc3d0ceaf4f95eaf35f20efa742482f17e059b9ca4436f2a955063bdca20c5c",
+              "portionState": "FIXED",
+              "portionConfigurationId": "config-1",
+              "portionConfigurationVersion": "1"
+            },
+            "priority": 1
+          }
+        ]
+      },
+      {
+        "canonicalIndex": 6,
+        "entries": [
+          {
+            "option": {
+              "schemaVersion": "meal-option-reference.v1",
+              "optionId": "week-option-0",
+              "combinationId": "week-meal",
+              "combinationVersion": "1",
+              "snapshotId": "week-meal-snapshot-0",
+              "snapshotVersion": "1",
+              "combinationDigest": "70fbd5bb6c56dafe142e7bbeaf1a6a4d0bf876d3d0c873cb594c24f3ab91b624",
+              "portionState": "FIXED",
+              "portionConfigurationId": "config-0",
+              "portionConfigurationVersion": "1"
+            },
+            "priority": 0
+          },
+          {
+            "option": {
+              "schemaVersion": "meal-option-reference.v1",
+              "optionId": "week-option-1",
+              "combinationId": "week-meal",
+              "combinationVersion": "1",
+              "snapshotId": "week-meal-snapshot-1",
+              "snapshotVersion": "1",
+              "combinationDigest": "9bc3d0ceaf4f95eaf35f20efa742482f17e059b9ca4436f2a955063bdca20c5c",
+              "portionState": "FIXED",
+              "portionConfigurationId": "config-1",
+              "portionConfigurationVersion": "1"
+            },
+            "priority": 1
+          }
+        ]
+      },
+      {
+        "canonicalIndex": 7,
+        "entries": [
+          {
+            "option": {
+              "schemaVersion": "meal-option-reference.v1",
+              "optionId": "week-option-0",
+              "combinationId": "week-meal",
+              "combinationVersion": "1",
+              "snapshotId": "week-meal-snapshot-0",
+              "snapshotVersion": "1",
+              "combinationDigest": "70fbd5bb6c56dafe142e7bbeaf1a6a4d0bf876d3d0c873cb594c24f3ab91b624",
+              "portionState": "FIXED",
+              "portionConfigurationId": "config-0",
+              "portionConfigurationVersion": "1"
+            },
+            "priority": 0
+          },
+          {
+            "option": {
+              "schemaVersion": "meal-option-reference.v1",
+              "optionId": "week-option-1",
+              "combinationId": "week-meal",
+              "combinationVersion": "1",
+              "snapshotId": "week-meal-snapshot-1",
+              "snapshotVersion": "1",
+              "combinationDigest": "9bc3d0ceaf4f95eaf35f20efa742482f17e059b9ca4436f2a955063bdca20c5c",
+              "portionState": "FIXED",
+              "portionConfigurationId": "config-1",
+              "portionConfigurationVersion": "1"
+            },
+            "priority": 1
+          }
+        ]
+      },
+      {
+        "canonicalIndex": 8,
+        "entries": [
+          {
+            "option": {
+              "schemaVersion": "meal-option-reference.v1",
+              "optionId": "week-option-0",
+              "combinationId": "week-meal",
+              "combinationVersion": "1",
+              "snapshotId": "week-meal-snapshot-0",
+              "snapshotVersion": "1",
+              "combinationDigest": "70fbd5bb6c56dafe142e7bbeaf1a6a4d0bf876d3d0c873cb594c24f3ab91b624",
+              "portionState": "FIXED",
+              "portionConfigurationId": "config-0",
+              "portionConfigurationVersion": "1"
+            },
+            "priority": 0
+          },
+          {
+            "option": {
+              "schemaVersion": "meal-option-reference.v1",
+              "optionId": "week-option-1",
+              "combinationId": "week-meal",
+              "combinationVersion": "1",
+              "snapshotId": "week-meal-snapshot-1",
+              "snapshotVersion": "1",
+              "combinationDigest": "9bc3d0ceaf4f95eaf35f20efa742482f17e059b9ca4436f2a955063bdca20c5c",
+              "portionState": "FIXED",
+              "portionConfigurationId": "config-1",
+              "portionConfigurationVersion": "1"
+            },
+            "priority": 1
+          }
+        ]
+      },
+      {
+        "canonicalIndex": 9,
+        "entries": [
+          {
+            "option": {
+              "schemaVersion": "meal-option-reference.v1",
+              "optionId": "week-option-0",
+              "combinationId": "week-meal",
+              "combinationVersion": "1",
+              "snapshotId": "week-meal-snapshot-0",
+              "snapshotVersion": "1",
+              "combinationDigest": "70fbd5bb6c56dafe142e7bbeaf1a6a4d0bf876d3d0c873cb594c24f3ab91b624",
+              "portionState": "FIXED",
+              "portionConfigurationId": "config-0",
+              "portionConfigurationVersion": "1"
+            },
+            "priority": 0
+          },
+          {
+            "option": {
+              "schemaVersion": "meal-option-reference.v1",
+              "optionId": "week-option-1",
+              "combinationId": "week-meal",
+              "combinationVersion": "1",
+              "snapshotId": "week-meal-snapshot-1",
+              "snapshotVersion": "1",
+              "combinationDigest": "9bc3d0ceaf4f95eaf35f20efa742482f17e059b9ca4436f2a955063bdca20c5c",
+              "portionState": "FIXED",
+              "portionConfigurationId": "config-1",
+              "portionConfigurationVersion": "1"
+            },
+            "priority": 1
+          }
+        ]
+      },
+      {
+        "canonicalIndex": 10,
+        "entries": [
+          {
+            "option": {
+              "schemaVersion": "meal-option-reference.v1",
+              "optionId": "week-option-0",
+              "combinationId": "week-meal",
+              "combinationVersion": "1",
+              "snapshotId": "week-meal-snapshot-0",
+              "snapshotVersion": "1",
+              "combinationDigest": "70fbd5bb6c56dafe142e7bbeaf1a6a4d0bf876d3d0c873cb594c24f3ab91b624",
+              "portionState": "FIXED",
+              "portionConfigurationId": "config-0",
+              "portionConfigurationVersion": "1"
+            },
+            "priority": 0
+          },
+          {
+            "option": {
+              "schemaVersion": "meal-option-reference.v1",
+              "optionId": "week-option-1",
+              "combinationId": "week-meal",
+              "combinationVersion": "1",
+              "snapshotId": "week-meal-snapshot-1",
+              "snapshotVersion": "1",
+              "combinationDigest": "9bc3d0ceaf4f95eaf35f20efa742482f17e059b9ca4436f2a955063bdca20c5c",
+              "portionState": "FIXED",
+              "portionConfigurationId": "config-1",
+              "portionConfigurationVersion": "1"
+            },
+            "priority": 1
+          }
+        ]
+      },
+      {
+        "canonicalIndex": 11,
+        "entries": [
+          {
+            "option": {
+              "schemaVersion": "meal-option-reference.v1",
+              "optionId": "week-option-0",
+              "combinationId": "week-meal",
+              "combinationVersion": "1",
+              "snapshotId": "week-meal-snapshot-0",
+              "snapshotVersion": "1",
+              "combinationDigest": "70fbd5bb6c56dafe142e7bbeaf1a6a4d0bf876d3d0c873cb594c24f3ab91b624",
+              "portionState": "FIXED",
+              "portionConfigurationId": "config-0",
+              "portionConfigurationVersion": "1"
+            },
+            "priority": 0
+          },
+          {
+            "option": {
+              "schemaVersion": "meal-option-reference.v1",
+              "optionId": "week-option-1",
+              "combinationId": "week-meal",
+              "combinationVersion": "1",
+              "snapshotId": "week-meal-snapshot-1",
+              "snapshotVersion": "1",
+              "combinationDigest": "9bc3d0ceaf4f95eaf35f20efa742482f17e059b9ca4436f2a955063bdca20c5c",
+              "portionState": "FIXED",
+              "portionConfigurationId": "config-1",
+              "portionConfigurationVersion": "1"
+            },
+            "priority": 1
+          }
+        ]
+      },
+      {
+        "canonicalIndex": 12,
+        "entries": [
+          {
+            "option": {
+              "schemaVersion": "meal-option-reference.v1",
+              "optionId": "week-option-0",
+              "combinationId": "week-meal",
+              "combinationVersion": "1",
+              "snapshotId": "week-meal-snapshot-0",
+              "snapshotVersion": "1",
+              "combinationDigest": "70fbd5bb6c56dafe142e7bbeaf1a6a4d0bf876d3d0c873cb594c24f3ab91b624",
+              "portionState": "FIXED",
+              "portionConfigurationId": "config-0",
+              "portionConfigurationVersion": "1"
+            },
+            "priority": 0
+          },
+          {
+            "option": {
+              "schemaVersion": "meal-option-reference.v1",
+              "optionId": "week-option-1",
+              "combinationId": "week-meal",
+              "combinationVersion": "1",
+              "snapshotId": "week-meal-snapshot-1",
+              "snapshotVersion": "1",
+              "combinationDigest": "9bc3d0ceaf4f95eaf35f20efa742482f17e059b9ca4436f2a955063bdca20c5c",
+              "portionState": "FIXED",
+              "portionConfigurationId": "config-1",
+              "portionConfigurationVersion": "1"
+            },
+            "priority": 1
+          }
+        ]
+      },
+      {
+        "canonicalIndex": 13,
+        "entries": [
+          {
+            "option": {
+              "schemaVersion": "meal-option-reference.v1",
+              "optionId": "week-option-0",
+              "combinationId": "week-meal",
+              "combinationVersion": "1",
+              "snapshotId": "week-meal-snapshot-0",
+              "snapshotVersion": "1",
+              "combinationDigest": "70fbd5bb6c56dafe142e7bbeaf1a6a4d0bf876d3d0c873cb594c24f3ab91b624",
+              "portionState": "FIXED",
+              "portionConfigurationId": "config-0",
+              "portionConfigurationVersion": "1"
+            },
+            "priority": 0
+          },
+          {
+            "option": {
+              "schemaVersion": "meal-option-reference.v1",
+              "optionId": "week-option-1",
+              "combinationId": "week-meal",
+              "combinationVersion": "1",
+              "snapshotId": "week-meal-snapshot-1",
+              "snapshotVersion": "1",
+              "combinationDigest": "9bc3d0ceaf4f95eaf35f20efa742482f17e059b9ca4436f2a955063bdca20c5c",
+              "portionState": "FIXED",
+              "portionConfigurationId": "config-1",
+              "portionConfigurationVersion": "1"
+            },
+            "priority": 1
+          }
+        ]
+      },
+      {
+        "canonicalIndex": 14,
+        "entries": [
+          {
+            "option": {
+              "schemaVersion": "meal-option-reference.v1",
+              "optionId": "week-option-0",
+              "combinationId": "week-meal",
+              "combinationVersion": "1",
+              "snapshotId": "week-meal-snapshot-0",
+              "snapshotVersion": "1",
+              "combinationDigest": "70fbd5bb6c56dafe142e7bbeaf1a6a4d0bf876d3d0c873cb594c24f3ab91b624",
+              "portionState": "FIXED",
+              "portionConfigurationId": "config-0",
+              "portionConfigurationVersion": "1"
+            },
+            "priority": 0
+          },
+          {
+            "option": {
+              "schemaVersion": "meal-option-reference.v1",
+              "optionId": "week-option-1",
+              "combinationId": "week-meal",
+              "combinationVersion": "1",
+              "snapshotId": "week-meal-snapshot-1",
+              "snapshotVersion": "1",
+              "combinationDigest": "9bc3d0ceaf4f95eaf35f20efa742482f17e059b9ca4436f2a955063bdca20c5c",
+              "portionState": "FIXED",
+              "portionConfigurationId": "config-1",
+              "portionConfigurationVersion": "1"
+            },
+            "priority": 1
+          }
+        ]
+      },
+      {
+        "canonicalIndex": 15,
+        "entries": [
+          {
+            "option": {
+              "schemaVersion": "meal-option-reference.v1",
+              "optionId": "week-option-0",
+              "combinationId": "week-meal",
+              "combinationVersion": "1",
+              "snapshotId": "week-meal-snapshot-0",
+              "snapshotVersion": "1",
+              "combinationDigest": "70fbd5bb6c56dafe142e7bbeaf1a6a4d0bf876d3d0c873cb594c24f3ab91b624",
+              "portionState": "FIXED",
+              "portionConfigurationId": "config-0",
+              "portionConfigurationVersion": "1"
+            },
+            "priority": 0
+          },
+          {
+            "option": {
+              "schemaVersion": "meal-option-reference.v1",
+              "optionId": "week-option-1",
+              "combinationId": "week-meal",
+              "combinationVersion": "1",
+              "snapshotId": "week-meal-snapshot-1",
+              "snapshotVersion": "1",
+              "combinationDigest": "9bc3d0ceaf4f95eaf35f20efa742482f17e059b9ca4436f2a955063bdca20c5c",
+              "portionState": "FIXED",
+              "portionConfigurationId": "config-1",
+              "portionConfigurationVersion": "1"
+            },
+            "priority": 1
+          }
+        ]
+      },
+      {
+        "canonicalIndex": 16,
+        "entries": [
+          {
+            "option": {
+              "schemaVersion": "meal-option-reference.v1",
+              "optionId": "week-option-0",
+              "combinationId": "week-meal",
+              "combinationVersion": "1",
+              "snapshotId": "week-meal-snapshot-0",
+              "snapshotVersion": "1",
+              "combinationDigest": "70fbd5bb6c56dafe142e7bbeaf1a6a4d0bf876d3d0c873cb594c24f3ab91b624",
+              "portionState": "FIXED",
+              "portionConfigurationId": "config-0",
+              "portionConfigurationVersion": "1"
+            },
+            "priority": 0
+          },
+          {
+            "option": {
+              "schemaVersion": "meal-option-reference.v1",
+              "optionId": "week-option-1",
+              "combinationId": "week-meal",
+              "combinationVersion": "1",
+              "snapshotId": "week-meal-snapshot-1",
+              "snapshotVersion": "1",
+              "combinationDigest": "9bc3d0ceaf4f95eaf35f20efa742482f17e059b9ca4436f2a955063bdca20c5c",
+              "portionState": "FIXED",
+              "portionConfigurationId": "config-1",
+              "portionConfigurationVersion": "1"
+            },
+            "priority": 1
+          }
+        ]
+      },
+      {
+        "canonicalIndex": 17,
+        "entries": [
+          {
+            "option": {
+              "schemaVersion": "meal-option-reference.v1",
+              "optionId": "week-option-0",
+              "combinationId": "week-meal",
+              "combinationVersion": "1",
+              "snapshotId": "week-meal-snapshot-0",
+              "snapshotVersion": "1",
+              "combinationDigest": "70fbd5bb6c56dafe142e7bbeaf1a6a4d0bf876d3d0c873cb594c24f3ab91b624",
+              "portionState": "FIXED",
+              "portionConfigurationId": "config-0",
+              "portionConfigurationVersion": "1"
+            },
+            "priority": 0
+          },
+          {
+            "option": {
+              "schemaVersion": "meal-option-reference.v1",
+              "optionId": "week-option-1",
+              "combinationId": "week-meal",
+              "combinationVersion": "1",
+              "snapshotId": "week-meal-snapshot-1",
+              "snapshotVersion": "1",
+              "combinationDigest": "9bc3d0ceaf4f95eaf35f20efa742482f17e059b9ca4436f2a955063bdca20c5c",
+              "portionState": "FIXED",
+              "portionConfigurationId": "config-1",
+              "portionConfigurationVersion": "1"
+            },
+            "priority": 1
+          }
+        ]
+      },
+      {
+        "canonicalIndex": 18,
+        "entries": [
+          {
+            "option": {
+              "schemaVersion": "meal-option-reference.v1",
+              "optionId": "week-option-0",
+              "combinationId": "week-meal",
+              "combinationVersion": "1",
+              "snapshotId": "week-meal-snapshot-0",
+              "snapshotVersion": "1",
+              "combinationDigest": "70fbd5bb6c56dafe142e7bbeaf1a6a4d0bf876d3d0c873cb594c24f3ab91b624",
+              "portionState": "FIXED",
+              "portionConfigurationId": "config-0",
+              "portionConfigurationVersion": "1"
+            },
+            "priority": 0
+          },
+          {
+            "option": {
+              "schemaVersion": "meal-option-reference.v1",
+              "optionId": "week-option-1",
+              "combinationId": "week-meal",
+              "combinationVersion": "1",
+              "snapshotId": "week-meal-snapshot-1",
+              "snapshotVersion": "1",
+              "combinationDigest": "9bc3d0ceaf4f95eaf35f20efa742482f17e059b9ca4436f2a955063bdca20c5c",
+              "portionState": "FIXED",
+              "portionConfigurationId": "config-1",
+              "portionConfigurationVersion": "1"
+            },
+            "priority": 1
+          }
+        ]
+      },
+      {
+        "canonicalIndex": 19,
+        "entries": [
+          {
+            "option": {
+              "schemaVersion": "meal-option-reference.v1",
+              "optionId": "week-option-0",
+              "combinationId": "week-meal",
+              "combinationVersion": "1",
+              "snapshotId": "week-meal-snapshot-0",
+              "snapshotVersion": "1",
+              "combinationDigest": "70fbd5bb6c56dafe142e7bbeaf1a6a4d0bf876d3d0c873cb594c24f3ab91b624",
+              "portionState": "FIXED",
+              "portionConfigurationId": "config-0",
+              "portionConfigurationVersion": "1"
+            },
+            "priority": 0
+          },
+          {
+            "option": {
+              "schemaVersion": "meal-option-reference.v1",
+              "optionId": "week-option-1",
+              "combinationId": "week-meal",
+              "combinationVersion": "1",
+              "snapshotId": "week-meal-snapshot-1",
+              "snapshotVersion": "1",
+              "combinationDigest": "9bc3d0ceaf4f95eaf35f20efa742482f17e059b9ca4436f2a955063bdca20c5c",
+              "portionState": "FIXED",
+              "portionConfigurationId": "config-1",
+              "portionConfigurationVersion": "1"
+            },
+            "priority": 1
+          }
+        ]
+      },
+      {
+        "canonicalIndex": 20,
+        "entries": [
+          {
+            "option": {
+              "schemaVersion": "meal-option-reference.v1",
+              "optionId": "week-option-0",
+              "combinationId": "week-meal",
+              "combinationVersion": "1",
+              "snapshotId": "week-meal-snapshot-0",
+              "snapshotVersion": "1",
+              "combinationDigest": "70fbd5bb6c56dafe142e7bbeaf1a6a4d0bf876d3d0c873cb594c24f3ab91b624",
+              "portionState": "FIXED",
+              "portionConfigurationId": "config-0",
+              "portionConfigurationVersion": "1"
+            },
+            "priority": 0
+          },
+          {
+            "option": {
+              "schemaVersion": "meal-option-reference.v1",
+              "optionId": "week-option-1",
+              "combinationId": "week-meal",
+              "combinationVersion": "1",
+              "snapshotId": "week-meal-snapshot-1",
+              "snapshotVersion": "1",
+              "combinationDigest": "9bc3d0ceaf4f95eaf35f20efa742482f17e059b9ca4436f2a955063bdca20c5c",
+              "portionState": "FIXED",
+              "portionConfigurationId": "config-1",
+              "portionConfigurationVersion": "1"
+            },
+            "priority": 1
+          }
+        ]
+      }
+    ],
+    "tieBreak": "OPTION_ID_ASC",
+    "direction": "HIGHER_PRIORITY_FIRST"
+  },
+  "dailyTargetBands": [
+    {
+      "schemaVersion": "daily-nutrient-band.v2",
+      "bandId": "day-1",
+      "scope": "DAY",
+      "dayIndex": 1,
+      "nutrient": "energy_kcal",
+      "unit": "kcal",
+      "lower": "6.003",
+      "upper": "6.003",
+      "lowerInclusive": true,
+      "upperInclusive": true,
+      "purpose": "GENERAL_TARGET",
+      "source": {
+        "sourceId": "targets",
+        "version": "1",
+        "contentDigest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      },
+      "evidence": [
+        {
+          "evidenceId": "week-fiction",
+          "version": "1",
+          "source": "Independent fictional weekly contract fixture",
+          "locator": "urn:weekly-fiction:week-fiction",
+          "environment": "SYNTHETIC"
+        }
+      ]
+    },
+    {
+      "schemaVersion": "daily-nutrient-band.v2",
+      "bandId": "fictional-protein-day-1",
+      "scope": "DAY",
+      "dayIndex": 1,
+      "nutrient": "protein_g",
+      "unit": "g",
+      "lower": "9.000",
+      "upper": null,
+      "lowerInclusive": true,
+      "upperInclusive": true,
+      "purpose": "GENERAL_TARGET",
+      "source": {
+        "sourceId": "targets",
+        "version": "1",
+        "contentDigest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      },
+      "evidence": [
+        {
+          "evidenceId": "week-fiction",
+          "version": "1",
+          "source": "Independent fictional weekly contract fixture",
+          "locator": "urn:weekly-fiction:week-fiction",
+          "environment": "SYNTHETIC"
+        }
+      ]
+    }
+  ]
+}

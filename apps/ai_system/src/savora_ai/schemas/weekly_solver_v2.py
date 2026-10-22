@@ -49,9 +49,13 @@ class WeeklyPreparationAccountingV2(_V2Model):
 
 
 class ComputedWeeklySolveResultV2(_V2Model):
-    schema_version: Literal["computed-weekly-solve-result.v2"] = "computed-weekly-solve-result.v2"
+    schema_version: Literal[
+        "computed-weekly-solve-result.v2", "computed-weekly-nutrient-solve-result.v1"
+    ] = "computed-weekly-solve-result.v2"
     search_policy_version: Literal[
         "synthetic-chronological-weekly-search.v2",
+        "synthetic-priority-weekly-search.v2",
+        "synthetic-nutrient-priority-weekly-search.v2",
         "synthetic-forward-checking-weekly-search.v2",
         "synthetic-incremental-weekly-search.v2",
         "synthetic-incremental-forward-checking-weekly-search.v2",
@@ -85,7 +89,15 @@ class ComputedWeeklySolveResultV2(_V2Model):
     @model_validator(mode="after")
     def independently_check(self, info: ValidationInfo) -> Self:
         from savora_ai.core.reasoning.weekly_proof_v2 import check_weekly_proof_v2
+        from savora_ai.schemas.weekly_search_v2 import WeeklyNutrientSearchStrategyV2
 
+        expected_schema = (
+            "computed-weekly-nutrient-solve-result.v1"
+            if isinstance(self.certificate.identity.strategy, WeeklyNutrientSearchStrategyV2)
+            else "computed-weekly-solve-result.v2"
+        )
+        if self.schema_version != expected_schema:
+            raise ValueError("weekly result protocol does not match native constraint inventory")
         clock = info.context.get("v2_clock") if type(info.context) is dict else None
         checked = check_weekly_proof_v2(
             self.manifest,
@@ -101,7 +113,11 @@ class ComputedWeeklySolveResultV2(_V2Model):
             preparation_cache_entries=self.preparation_cache_entries,
         )
         expected: dict[str, Any] = dict(
-            search_policy_version=self.certificate.identity.strategy.policy.value,
+            search_policy_version=(
+                self.certificate.identity.strategy.policy
+                if isinstance(self.certificate.identity.strategy.policy, str)
+                else self.certificate.identity.strategy.policy.value
+            ),
             outcome=checked.outcome,
             witness=checked.witness,
             verification_complete=checked.complete,
