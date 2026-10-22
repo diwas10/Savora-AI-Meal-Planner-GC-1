@@ -1,83 +1,113 @@
-# Member 3 (Interaction) — GC1 Handoff & Architecture Summary
+# Savora GC1 app: handoff (22 October 2026)
 
-## 1. Scope Implemented (Slices S0 – S10)
+The GC1 app is complete end to end: onboarding, versioned targets, a verified 7-day plan,
+saved-plan swaps with the other 20 meals locked, standalone craving discovery with local
+Qwen, and an installable PWA. This document replaces the Member 3 slice handoff of PR #17;
+it covers that work, the completion on `feat/m1-app-completion`, and the integration of
+Member 2's Phase 7 (PR #18).
 
-Member 3 owns the user-facing interaction layer, backend persistence and API contracts, onboarding and profile management, Qwen/template Craving NLU, and the end-to-end craving, weekly meal-planning, and slot-substitution flows:
+## 1. What is built
 
-| Slice | Branch | Summary |
+| Area | Where | Notes |
 |---|---|---|
-| **S0** | `feat/m3-backend-foundations` | FastAPI foundations (`Settings`, `CamelModel`, `TransformRoute` central response envelopes, `RuntimeException`/`ValidationException`, `RequestContextProvider`, SQLAlchemy 2 async/sync session adapter, `/api/health`). |
-| **S1** | `feat/m3-auth-users` | Argon2 (`pwdlib`) + HS256 JWT (`pyjwt`) authentication (`POST /api/auth/register`, `POST /api/auth/login`, `GET /api/auth/me`) and Alembic migration `0001_create_users`. |
-| **S2** | `feat/m3-profile-targets` | `user_profiles` and immutable `user_nutrition_profiles` snapshots (`GET /api/profile`, `PUT /api/profile`, `GET /api/catalogue/cuisines`), calling `calculate_nutrition_targets` and `revalidate_seeds`, plus Alembic migration `0002_create_profiles_and_targets`. |
-| **S3** | `feat/m3-seed-dishes` | Onboarding seed dish endpoints (`GET /api/onboarding/seed-suggestions`, `PUT /api/onboarding/seed-picks`, `GET /api/catalogue/dishes?q=`) backed by `suggest_seeds` and `confirm_seeds` (ADR 0005). |
-| **S4** | `feat/m3-ai-runtime` | Startup `AiRuntime` loader (`load_catalogue_export`, `load_manifest`, `load_scorer` with fail-closed `ModelIntegrityError` handling), `PipelineAiGateway` (`asyncio.to_thread`), and contract-true `FakeAiGateway`. |
-| **S5** | `feat/m3-craving-nlu` | `craving_v1.md` prompt, `QwenClient` (`HttpxQwenClient`, `FakeQwenClient`), `TemplateParser` and `QwenParser` with strict `CravingRequest.model_validate_json` validation, alias normalization, allergy guardrails, 125-utterance gold evaluation set (`craving_nlu_gold.jsonl`), and evaluation harness (`savora_ai.evals.craving_nlu`). |
-| **S6** | `feat/m3-craving-endpoint` | `POST /api/cravings` returning `RECOMMENDATIONS` (via `recommend_for_craving`) or `SWAP_SUGGESTED` (when `intent == SWAP_MEAL`), with zero craving history persisted. |
-| **S7** | `feat/m3-weekly-plans` | `meal_plans` and `meal_plan_slots` tables (`0003_create_meal_plans`), in-process background job runner, startup stale-job recovery (`mark_stale_generating_jobs_failed`), and `POST /api/meal-plans`, `GET /api/meal-plans`, `GET /api/meal-plans/{id}`. |
-| **S8** | `feat/m3-substitutions` | `meal_plan_substitutions` table (`0004_create_substitutions`), revision and profile-version concurrency checks, background `substitute_slot` job creating a new `meal_plans` revision with the 20 locked slots copied verbatim, and `POST /api/meal-plans/{id}/substitutions`, `GET /api/substitutions/{id}`. |
-| **S9** | `feat/m3-contracts-frontend` | Exported `packages/contracts/openapi.json`, generated TypeScript declarations in `packages/contracts/src/openapi.d.ts`, and built the Next.js App Router frontend (`/login`, `/register`, `/onboarding`, `/profile`, `/dashboard`, `/craving`) with `SafetyNotice`, TanStack Query, React Hook Form + Zod, and central `apiRequest`. |
-| **S10** | `feat/m3-e2e-handoff` | Full backend E2E integration test (`apps/backend/tests/test_e2e.py`), updated `README.md`, and this handoff document. |
+| Backend foundations | `apps/backend/src/savora_backend/{config,database,exceptions,interceptors,contexts,decorators}` | envelopes via `TransformRoute`, global handlers, `CamelModel`, request context |
+| Layered modules | `core/<module>/{entity,dto,repository,service,controller}.py` | users, auth, nutrition_profiles, catalogue, onboarding, cravings, meal_plans, substitutions |
+| Migrations | `apps/backend/alembic/versions/0001`–`0005` | up/down verified on PostgreSQL 16; `alembic check` reports no drift |
+| AI runtime | `savora_backend/ai/{runtime,gateway}.py` | catalogue, Transformer (or labelled popularity fallback) and NLU parser built once |
+| Craving NLU | `savora_ai/core/craving_nlu/`, `providers/qwen.py`, `prompts/craving_v2.md` | local Ollama Qwen, schema-constrained, grounded, merged with the template parse |
+| Swap options | `savora_ai/core/pipelines/planning.py::suggest_replacements` | ranked, rule-screened alternatives for one slot, optional preference words |
+| Weekly CSP | `planning.py::_solve` | Member 2's `solve_weekly_plan_v2` (Phase 7) |
+| Frontend PWA | `apps/frontend` | built to `.agents/designs/DESIGN_SYSTEM.md` and `SCREENS.md` |
+| Contracts | `packages/contracts` | regenerated with `make contracts` |
 
----
+## 2. API (all under `/api`, enveloped, auth required except register/login)
 
-## 2. Key Architectural Decisions (Section 2)
-
-1. **Authentication:** The FastAPI backend owns email/password auth using Argon2 hashing (`pwdlib`) and HS256 access tokens (`pyjwt`), configured via `JWT_SECRET_KEY`, `JWT_ALGORITHM`, and `ACCESS_TOKEN_EXPIRE_MINUTES` in `.env`. No Supabase Auth or refresh tokens are used in GC1.
-2. **Catalogue Storage:** The recipe and meal-combination catalogue stays in the versioned JSON export (`Data/catalogue`), loaded once at startup into `CatalogueBundle`. PostgreSQL stores catalogue IDs, versions, and immutable `PlannedMeal` JSONB snapshots rather than duplicating recipe tables.
-3. **Asynchronous Background Jobs:** Because Member 2's weekly CSP solver takes ~2–3 minutes per full week, weekly plan generation (`POST /api/meal-plans`) and slot substitution (`POST /api/meal-plans/{id}/substitutions`) run in-process via `asyncio.create_task` + `asyncio.to_thread` with job status persisted on the `meal_plans` / `meal_plan_substitutions` rows (`202 Accepted` + client polling). On server startup, any rows left in `GENERATING` are marked `FAILED` with `"server restarted"`.
-4. **Qwen Craving NLU & Deterministic Fallback:** Hosted OpenAI-compatible chat completions are called via `httpx` (`QWEN_API_KEY`, `QWEN_BASE_URL`, `QWEN_MODEL_NAME`, `temperature=0`). When `QWEN_API_KEY` is unset, on timeout (`QWEN_TIMEOUT`), or when model output fails `CravingRequest.model_validate_json` (`QWEN_INVALID_SCHEMA`), `parse_craving` falls back deterministically to `TemplateParser` and records the parser and `fallbackReason` in `CravingParseMeta`.
-5. **Onboarding Seed Dishes:** Confirmed seed dishes (3–5 picks) are stored on `user_profiles.seed_recipe_ids` (ADR 0005 D1) and revalidated automatically via `revalidate_seeds` whenever a user updates their profile.
-
----
-
-## 3. API & Contract Surface
-
-All `/api/*` endpoints are wrapped by `TransformRoute` and central exception handlers into the standard envelope:
-- **Success:** `{ "success": true, "source": "...", "data": ..., "message": "...", "status": 200 }`
-- **Error:** `{ "success": false, "source": "...", "message": "...", "status": 4xx, "description"?: { "<field>": ["..."] } }`
-
-| Method & Path | Purpose |
+| Method and path | Purpose |
 |---|---|
-| `GET /api/health` | Health probe |
-| `POST /api/auth/register` | Register user & return JWT access token |
-| `POST /api/auth/login` | Authenticate user & return JWT access token |
-| `GET /api/auth/me` | Return authenticated `UserDto` |
-| `GET /api/profile` | Return current `UserProfileDto`, latest `NutritionTargets`, and `needsSeedPicks` |
-| `PUT /api/profile` | Upsert profile, increment `version`, snapshot `NutritionTargets`, revalidate `seedRecipeIds` |
-| `GET /api/catalogue/cuisines` | List canonical `{id, name}` catalogue cuisines |
-| `GET /api/catalogue/dishes?q=` | Search seed-eligible catalogue dishes by substring |
-| `GET /api/onboarding/seed-suggestions` | Return 12 rule-screened seed dish suggestions for the current profile |
-| `PUT /api/onboarding/seed-picks` | Confirm 3–5 seed dish IDs via `confirm_seeds` |
-| `POST /api/cravings` | Parse natural-language craving and return `RECOMMENDATIONS` or `SWAP_SUGGESTED` |
-| `POST /api/meal-plans` | Start async 21-slot weekly meal plan job (`202 Accepted`) |
-| `GET /api/meal-plans` | List user's meal plans (`?current=true` filters to active revision) |
-| `GET /api/meal-plans/{plan_id}` | Poll job status or retrieve full 21-slot plan, `dayTotals`, `safety`, and `search` |
-| `POST /api/meal-plans/{plan_id}/substitutions` | Start async single-slot substitution job (`202 Accepted`) |
-| `GET /api/substitutions/{substitution_id}` | Poll substitution status and inspect `beforeSnapshot` / `afterSnapshot` |
+| `POST /auth/register`, `POST /auth/login`, `GET /auth/me` | argon2 passwords, HS256 access token |
+| `GET /profile`, `PUT /profile` | profile and versioned target snapshot; an unchanged save keeps its version |
+| `GET /catalogue/cuisines` | the 19 target cuisines (incidental tags such as British are hidden) |
+| `GET /catalogue/dishes?q=` | seed-eligible dish search (top 50) |
+| `GET /onboarding/seed-suggestions`, `PUT /onboarding/seed-picks` | ADR 0005 seed dishes (3–5) |
+| `POST /cravings` | NLU, then retrieval → rules → ranking; nothing stored |
+| `POST /meal-plans` (202), `GET /meal-plans`, `GET /meal-plans/{id}` | background generation with polling; every plan kept |
+| `POST /meal-plans/{id}/slots/{slotId}/replacement-options` | ranked eligible meals for one slot; optional `preferenceText` |
+| `POST /meal-plans/{id}/substitutions` (202) | the chosen option (`replacementCombinationId`) or words; locked-week validation in the background |
+| `GET /substitutions/{id}` | swap status, before/after snapshots, parsed preference |
 
----
+## 3. Decisions (spec section 2, as implemented)
 
-## 4. Craving NLU Evaluation Summary
+1. **Auth**: backend-owned email/password; argon2 and HS256. `APP_ENV=production`
+   refuses the development secret or one shorter than 32 characters. The token is kept in
+   `localStorage` (no refresh tokens in GC1); this is a known XSS exposure. A cookie-based
+   session through a Next.js proxy is the upgrade path.
+2. **Catalogue**: the versioned JSON export, loaded once into the shared AI runtime.
+3. **Jobs**: in-process tasks, state on the row, stale jobs failed at startup. A job start
+   locks the profile row, and migration 0005's partial unique indexes allow one generating
+   plan and one generating swap per user. A failure shows a fixed message; details are logged.
+4. **Qwen**: local Ollama `qwen3:0.6b`, `format` = the `CravingRequest` schema, thinking
+   off, temperature 0. Steps: strict schema check → `ground()` → strict validation → merge
+   with the template parse (`HYBRID`). Any failure falls back to the template parser with a
+   recorded reason (`QWEN_UNAVAILABLE`, `QWEN_TIMEOUT`, `QWEN_INVALID_SCHEMA`, ...).
+   `QWEN_PROVIDER=openai` supports a hosted endpoint; `none` disables the model.
+5. **Swaps** (section 4.4, SCREENS.md): words → validated preference → ranked eligible
+   options → the user picks one → the week is re-solved by Member 2's CSP with the other 20
+   options locked → a new plan revision with before/after snapshots. The parsed preference
+   is stored on the substitution; the raw text never is.
+6. **No craving history**: Discover's chat lives only in the screen's memory.
 
-Generated via `uv run python -m savora_ai.evals.craving_nlu` (full artifacts in [`docs/eval/craving_nlu.json`](../eval/craving_nlu.json) and [`docs/reports/craving_nlu_report.md`](../reports/craving_nlu_report.md)):
+## 4. Craving NLU evaluation (`docs/reports/craving_nlu_report.md`)
 
-- **Gold dataset:** `apps/ai_system/src/savora_ai/evals/craving_nlu_gold.jsonl` (125 stratified utterances covering `CRAVING_RECOMMEND`, `SWAP_MEAL`, multi-cuisine/flavor/exclusion combinations, and `requiresClarification` cases).
-- **`TemplateParser` (Measured on 125 gold utterances):**
-  - Schema Validity Rate: `1.0000` (100%)
-  - Intent Accuracy: `1.0000` (100%)
-  - Slot Micro-F1: `1.0000` (Precision `1.0000`, Recall `1.0000`)
-  - Clarification F1: `1.0000`
-  - Latency: `p50 = 0.146 ms`, `p95 = 0.298 ms`
-- **`QwenParser`:**
-  - Reported as `NOT_RUN_NO_API_KEY` when `QWEN_API_KEY` is not set in `.env`. Run `uv run python -m savora_ai.evals.craving_nlu` with `QWEN_API_KEY` configured to populate live Qwen metrics alongside the template baseline.
+Measured with qwen3:0.6b on an Apple M3 Pro. The independent set (58 utterances, written
+for the model-size study) is the fairer estimate; the template parser was written together
+with the 125-utterance gold set.
 
-> **Recommendation on PR #11:** Earlier exploratory notebook work in PR #11 is superseded by the production `savora_ai.core.craving_nlu` module, prompt `craving_v1.md`, and 125-sample evaluation harness in Slice S5 (`feat/m3-craving-nlu`). We recommend closing PR #11 in favor of S5.
+| Independent set | Template | Qwen (grounded) | Hybrid (production) |
+|---|---|---|---|
+| Exact match | 0.845 | 0.638 | **0.931** |
+| Slot micro-F1 | 0.938 | 0.889 | **0.964** |
+| Clarification precision | 0.538 | 0.500 | **0.875** |
+| Latency p50 | 0.2 ms | 368 ms | about 370 ms |
 
----
+## 5. Member 2 Phase 7 integration (PR #18)
 
-## 5. Known GC1 Limitations & Safety Transparency (Section 10)
+- **Weekly search v2 is in use.** `solve_weekly_plan_v2` with incremental forward
+  checking and preparation reuse returns the same verified witness as v1 on a strict Indian
+  vegetarian week in **50 s instead of 175 s**: the rule filter runs once per week rather
+  than once per option. Each result is rechecked by Member 2's independent verifier.
+- **PLANNED_SWAP validation is not integrated yet (needs Member 2).** `validate_swap`
+  admits at most 1 MiB of authority material ("the strict 1 MiB admission envelope is
+  unchanged"). A real saved week is about 1.9 MB: the request with its embedded sources
+  (408 KB), the same sources again in the saved snapshot (394 KB), 32 recipe candidates
+  (292 KB) and 21 slot payloads with their recipes (about 770 KB). An adapter that builds
+  the full material was written and reached admission; it is not committed. Options for the
+  team: raise the envelope for real catalogues, or reference the sources once instead of
+  embedding them twice. Until then swaps are validated by the v2 weekly CSP over the locked
+  week, which checks the same DAY and WEEK rules but not the swap-specific lock proof.
 
-1. **Stand-in Knowledge Base (`STAND_IN_UNVERIFIED`):** Member 2's production clinical/allergen knowledge base is not yet integrated. Every craving, weekly plan, and substitution response carries `SafetyVerification` (`status: "STAND_IN_UNVERIFIED"`), and the Next.js UI renders `SafetyNotice` prominently on every result view. Results are never described as `"safe for you"`.
-2. **Weekly CSP Solve Time:** Full 21-slot weekly CSP verification takes ~2–3 minutes. The backend and frontend handle this asynchronously with non-blocking background jobs and automatic polling.
-3. **Standalone Craving Portion & Remaining Targets:** Standalone craving discovery ranks individual recipes at their standard 1-serving portion without running the meal composer or daily CSP, and displays the fixed notice `"Not checked against today's remaining targets"`.
-4. **Popularity Fallback Transparency:** When `Data/models/sasrec_content.pt` is absent, pipelines fall back to `popularity-fallback-v1` (`fallbackReason: "MODEL_UNAVAILABLE"`), and the UI surfaces a `"Ranked by popularity"` badge.
+## 6. Verification performed
+
+- Python: ruff, ruff format, pyright and the full pytest suite (results in the PR).
+- PostgreSQL 16: migrations up, down and up; `alembic check` clean; the opt-in journey test
+  `apps/backend/tests/test_postgres.py` (JSONB, `TEXT[]`, two concurrent plan requests →
+  exactly one 202 and one 409, options, swap, revisions).
+- Frontend: `pnpm lint`, `pnpm typecheck`, `pnpm build`.
+- Browser (Microsoft Edge via Playwright, 390×844, real backend, real pipelines, local
+  Qwen): register → onboarding → targets → seed dishes → plan generated (52 s) → Home →
+  meal detail → My Plan → swap with words and a chosen option (50 s) → Discover chat →
+  swap hand-off → Profile; desktop and dark mode. PWA: manifest, icons and service worker
+  active; offline, visited pages show saved plans and unvisited pages show `/offline`.
+
+## 7. Known limits and open team decisions
+
+1. **Stand-in KB** (`STAND_IN_UNVERIFIED`): allergies are matched on ingredient names;
+   conditions are recorded but not enforced; every result shows the safety notice.
+2. **Energy is not optimised**: the CSP checks completeness, so planned days can fall
+   below the target band; the UI says portions are not yet resized to the targets.
+3. **Ranking**: the shipped hybrid ties popularity on the catalogue
+   (`docs/reports/catalogue_ranking_evaluation.md`); choosing it, model-only weighting, or
+   retraining is a Member 1 decision. Model hosting (ADR 0005 D2) is still deferred.
+4. **Strict single-cuisine weeks**: every target cuisine works; Nepali has exactly the 4
+   breakfasts a week needs (no spare), so strict vegan Nepali returns INSUFFICIENT_DATA.
+5. **Curation** marked `ai-review:claude` in `Data/curated/` awaits a person's review.
+6. **PLANNED_SWAP** proof integration waits on Member 2 (section 5).

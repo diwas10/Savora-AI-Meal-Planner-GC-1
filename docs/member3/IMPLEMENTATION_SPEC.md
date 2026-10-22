@@ -1,5 +1,9 @@
 # Member 3 implementation spec: Savora app integration (paste into your coding agent)
 
+> **Status (22 October 2026): implemented.** Slices S0–S10 landed in PR #17 and were
+> completed on `feat/m1-app-completion`. What was built, deviations and open decisions:
+> [`HANDOFF.md`](HANDOFF.md). This spec is kept as the historical brief.
+
 > **How to use.** Pull `main` once the Member 1 integration PR is merged. Open the repository
 > root in your coding agent and paste this whole file as the task. The agent works through
 > slices S0 to S10 in order, runs every check, commits each slice locally and stops before
