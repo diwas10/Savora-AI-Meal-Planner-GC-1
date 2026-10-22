@@ -3,6 +3,8 @@
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, type ReactNode } from "react";
 import { BrandMark } from "@/components/functional/Brand";
+import { ErrorState } from "@/components/ui/States";
+import { useOnline } from "@/hooks/useOnline";
 import { useProfileQuery } from "@/core/private/UserProfile/service/profile.query";
 import { useCurrentUserQuery } from "@/core/public/Auth/service/auth.query";
 import { useIsClient } from "@/hooks/useIsClient";
@@ -20,6 +22,7 @@ export function AuthGuard({ children }: { children: ReactNode }) {
   const userQuery = useCurrentUserQuery(Boolean(token));
   const profileQuery = useProfileQuery(Boolean(token));
   const onOnboarding = pathname.startsWith("/onboarding");
+  const online = useOnline();
 
   // "No profile yet" is data (null), not an error, so the query never flips back to
   // pending when another screen subscribes to it.
@@ -46,7 +49,26 @@ export function AuthGuard({ children }: { children: ReactNode }) {
     (profileQuery.data !== undefined || profileQuery.isError) &&
     (onOnboarding || !needsOnboarding);
 
-  if (!ready) return <SplashScreen />;
+  if (!ready) {
+    // Offline with nothing cached yet: say so instead of an endless splash.
+    const unreachable =
+      !online || (userQuery.error instanceof ApiError && userQuery.error.status === 0);
+    if (isClient && token && !userQuery.data && unreachable) {
+      return (
+        <div className="grid min-h-dvh place-items-center px-6">
+          <ErrorState
+            offline
+            message="Open Savora once while online and your saved plans will be available offline too."
+            onRetry={() => {
+              void userQuery.refetch();
+              void profileQuery.refetch();
+            }}
+          />
+        </div>
+      );
+    }
+    return <SplashScreen />;
+  }
   return <>{children}</>;
 }
 

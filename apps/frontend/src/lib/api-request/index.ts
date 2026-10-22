@@ -2,6 +2,8 @@ import axios, { AxiosError, type AxiosRequestConfig } from "axios";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 const TOKEN_STORAGE_KEY = "savora_access_token";
+/** localStorage key of the persisted query cache (cleared on logout). */
+export const QUERY_CACHE_KEY = "savora_query_cache";
 
 export interface SuccessEnvelope<T> {
   success: true;
@@ -51,6 +53,7 @@ export function setStoredToken(token: string | null): void {
   }
   if (token === null) {
     window.localStorage.removeItem(TOKEN_STORAGE_KEY);
+    window.localStorage.removeItem(QUERY_CACHE_KEY);
   } else {
     window.localStorage.setItem(TOKEN_STORAGE_KEY, token);
   }
@@ -85,6 +88,10 @@ function toApiError(error: unknown): ApiError {
         data.source ?? "api",
         data.description ?? {},
       );
+    }
+    if (!error.response) {
+      // No response at all: offline or the server is unreachable (status 0).
+      return new ApiError("Can't reach Savora. Check your connection and try again.", 0);
     }
     return new ApiError(error.message || "Network request failed", status);
   }

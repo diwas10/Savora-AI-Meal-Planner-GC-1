@@ -6,16 +6,27 @@
  *   and swaps are personal and need a live connection (DESIGN_SYSTEM: generation and AI
  *   inference require connectivity).
  */
-const VERSION = "savora-v1";
+const VERSION = "savora-v4";
 const SHELL = `${VERSION}-shell`;
 const RUNTIME = `${VERSION}-runtime`;
-const PRECACHE = ["/offline", "/manifest.webmanifest", "/icons/icon-192.png", "/icons/icon-512.png"];
+const PRECACHE = ["/manifest.webmanifest", "/icons/icon-192.png", "/icons/icon-512.png"];
+
+/** The offline page plus every build asset it loads, so it renders with no network. */
+async function precacheOfflinePage(cache) {
+  const response = await fetch("/offline", { cache: "reload" });
+  if (!response.ok) throw new Error(`offline page: ${response.status}`);
+  const html = await response.clone().text();
+  await cache.put("/offline", response);
+  const assets = new Set();
+  for (const match of html.matchAll(/(?:src|href)="(\/_next\/static\/[^"]+)"/g)) assets.add(match[1]);
+  await cache.addAll([...assets]);
+}
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches
       .open(SHELL)
-      .then((cache) => cache.addAll(PRECACHE))
+      .then((cache) => Promise.all([cache.addAll(PRECACHE), precacheOfflinePage(cache)]))
       .then(() => self.skipWaiting()),
   );
 });
@@ -42,7 +53,7 @@ self.addEventListener("fetch", (event) => {
   if (isStatic(url)) {
     // Hashed build assets never change: cache first.
     event.respondWith(
-      caches.match(request).then(
+      caches.match(request, { ignoreVary: true }).then(
         (hit) =>
           hit ||
           fetch(request).then((response) => {
@@ -67,7 +78,15 @@ self.addEventListener("fetch", (event) => {
           }
           return response;
         })
-        .catch(async () => (await caches.match(request)) || (await caches.match("/offline")) || Response.error()),
+        // Next.js pages vary on router headers; match the stored page regardless. A page
+        // never visited redirects to /offline: serving that HTML under another URL would
+        // make the Next.js router fetch the missing route and show its error screen.
+        .catch(async () => {
+          const cached = await caches.match(request, { ignoreVary: true });
+          if (cached) return cached;
+          if (url.pathname === "/offline") return Response.error();
+          return Response.redirect("/offline", 302);
+        }),
     );
   }
 });
