@@ -7,7 +7,7 @@
       -> Transformer: rank_combinations, history = the profile's seed dishes
       -> one meal per slot: best-ranked anchors rotated over the week, so an anchor dish
          repeats at most twice (MAX_REPEATS_PER_WEEK)
-      -> Rule Engine + weekly CSP: Member 2's solve_weekly_plan over the 21 slots
+      -> Rule Engine + weekly CSP: Member 2's solve_weekly_plan_v2 over the 21 slots
       -> explanation per meal; per-day nutrient totals
 
 GC1 limits, all visible in the result:
@@ -63,7 +63,7 @@ from savora_ai.core.pipelines.profile import (
     safety_verification,
 )
 from savora_ai.core.pipelines.stand_in_kb import build_stand_in_knowledge, stand_in_context
-from savora_ai.core.reasoning.weekly import solve_weekly_plan
+from savora_ai.core.reasoning.weekly_search_v2 import solve_weekly_plan_v2
 from savora_ai.core.recommendation.ranking import (
     CombinationRanking,
     FallbackReason,
@@ -85,9 +85,14 @@ from savora_ai.schemas.weekly import (
     WeekDayReference,
     WeeklyDayDomain,
     WeeklyPlanningRequest,
-    WeeklySearchLimits,
     WeeklySourceReference,
     WeeklySourceSnapshot,
+)
+from savora_ai.schemas.weekly_search_v2 import (
+    WeeklySearchLimitsV2,
+    WeeklySearchStrategyV2,
+    WeeklyStrategyPolicyV2,
+    WeeklyWorkV2,
 )
 
 DAYS = 7
@@ -95,6 +100,32 @@ SLOT_ID = r"^D[1-7]_(BREAKFAST|LUNCH|DINNER)$"
 _SlotId = Annotated[str, StringConstraints(pattern=SLOT_ID)]
 _NUTRIENTS = tuple(NutrientVector.model_fields)
 _Workflow = Literal["WEEKLY_PLAN", "PLANNED_SWAP"]
+
+# Member 2's weekly search v2 (Phase 7): independently verified FIRST_FEASIBLE with known
+# failure forward checking, incremental evaluation and preparation reuse. On a strict
+# Indian vegetarian week it returns the same witness as v1 in 50 s instead of 175 s.
+STRATEGY = WeeklySearchStrategyV2(
+    policy=WeeklyStrategyPolicyV2.INCREMENTAL_FORWARD_CHECKING,
+    variable_order="CHRONOLOGICAL",
+    value_order="OPTION_ID_ASC",
+    propagation="KNOWN_FAILURE_FORWARD_CHECK",
+)
+_WORK = 1_000_000  # one option per slot: the ceilings bound runaway work, not normal runs
+DEFAULT_LIMITS = WeeklySearchLimitsV2(
+    max_nodes=10_000,
+    max_reserved_work=WeeklyWorkV2(
+        candidate_preparations=_WORK,
+        combination_preparations=_WORK,
+        predicate_obligations=_WORK,
+        day_assessments=_WORK,
+        week_assessments=_WORK,
+        heuristic_evaluations=_WORK,
+        proof_verification_steps=_WORK,
+    ),
+    max_proof_records=8192,
+    max_proof_bytes=1_048_576,
+    max_cache_entries=1,
+)
 
 
 class PlanStatus(StrEnum):
@@ -239,7 +270,7 @@ def _solve(
     start: date,
     chosen: Mapping[str, tuple[MealCombination, PortionConfiguration]],
     ranking: CombinationRanking,
-    limits: WeeklySearchLimits | None,
+    limits: WeeklySearchLimitsV2 | None,
     clock: Callable[[], float],
 ) -> WeekPlan:
     """Member 2's weekly CSP over one option per slot; maps the witness to `PlannedMeal`s."""
@@ -334,21 +365,28 @@ def _solve(
             ),
         )
     )
-    result = solve_weekly_plan(
+    result = solve_weekly_plan_v2(
         request,
         candidates=tuple(candidates[i] for i in dish_ids),
         knowledge=knowledge,
         context=context,
         sources=weekly,
-        limits=limits,
+        strategy=STRATEGY,
+        limits=limits or DEFAULT_LIMITS,
         clock=clock,
+        reuse_preparation=True,  # one rule-filter pass per week, not one per option
+        preparation_cache_entries=1,
     )
-    stats = result.certificate.statistics
+    accounting = result.certificate.accounting
     search = SearchSummary(
         outcome=result.outcome,
-        nodes=stats.nodes,
-        exhaustive=stats.exhaustive,
-        diagnostics=tuple(f"{d.stage}:{d.code}: {d.message}" for d in result.diagnostics),
+        nodes=accounting.logical_nodes,
+        exhaustive=result.certificate.exhaustive,
+        diagnostics=(
+            ()
+            if result.termination is None
+            else (f"search:TERMINATED: {result.termination} budget reached",)
+        ),
         seconds=round(clock() - started, 3),
     )
     job = _Job(bundle, profile, workflow, week_id, start, ranking)
@@ -375,7 +413,7 @@ def _solve(
             planning = PlanningOutcome(
                 outcome="FEASIBLE",
                 slot_id=sid,
-                search_nodes=stats.nodes,
+                search_nodes=accounting.logical_nodes,
                 constraints=("stand-in: every slot resolved; all seven days resolved",),
             )
             meals.append(
@@ -466,7 +504,7 @@ def plan_week(
     week_id: str,
     start_date: date,
     scorer: SequenceScorer | None = None,
-    limits: WeeklySearchLimits | None = None,
+    limits: WeeklySearchLimitsV2 | None = None,
     clock: Callable[[], float] = monotonic,
 ) -> WeekPlan:
     """A new 21-slot plan for the profile; store it only when `status` is FEASIBLE."""
@@ -689,7 +727,7 @@ def substitute_slot(
     replacement_combination_id: str | None = None,
     preference: CravingRequest | None = None,
     scorer: SequenceScorer | None = None,
-    limits: WeeklySearchLimits | None = None,
+    limits: WeeklySearchLimitsV2 | None = None,
     clock: Callable[[], float] = monotonic,
 ) -> WeekPlan:
     """Replace one saved slot; every other slot stays LOCKED to its saved option.
