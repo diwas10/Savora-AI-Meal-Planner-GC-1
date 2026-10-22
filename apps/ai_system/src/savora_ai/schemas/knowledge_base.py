@@ -20,12 +20,18 @@ from savora_ai.schemas.knowledge import (
     EvidenceReference,
     RuleDefinition,
     RuleDomain,
+    RuleEnvironment,
     RuleLifecycle,
     RuleReference,
     RuleScope,
     RuleSeverity,
     _ContractModel,
     _NonBlank,
+)
+from savora_ai.schemas.workflow_policy import (
+    REGISTERED_SWAP_EXTENSIONS,
+    WORKFLOW_POLICY_V2,
+    WorkflowPolicyVersion,
 )
 
 
@@ -139,9 +145,7 @@ class _KnowledgeContent(_ContractModel):
 
     schema_version: Literal["knowledge-base.v1"] = "knowledge-base.v1"
     semantic_policy_version: Literal["knowledge-base-integrity.v1"] = "knowledge-base-integrity.v1"
-    workflow_policy_version: Literal["synthetic-workflow-scopes.v1"] = (
-        "synthetic-workflow-scopes.v1"
-    )
+    workflow_policy_version: WorkflowPolicyVersion = "synthetic-workflow-scopes.v1"
     kb_id: _OpaqueId
     version: _NonBlank
     environment: _Environment
@@ -244,6 +248,31 @@ class _KnowledgeContent(_ContractModel):
     def _validate_catalogue(
         self, definitions: dict[tuple[str, str], RuleDefinition], active: set[tuple[str, str]]
     ) -> None:
+        # V1 deliberately ignores the registry, retaining exact legacy equality.
+        extensions = {}
+        if self.workflow_policy_version == WORKFLOW_POLICY_V2:
+            if self.environment is not RuleEnvironment.SYNTHETIC:
+                raise ValueError("registered workflow policy is synthetic only")
+            for registration in REGISTERED_SWAP_EXTENSIONS:
+                identity = registration.rule_id, registration.version
+                rule = definitions.get(identity)
+                if (
+                    identity not in active
+                    or rule is None
+                    or rule.scope is not registration.scope
+                    or rule.severity is not RuleSeverity.ABSOLUTE
+                ):
+                    raise ValueError("required registered workflow extension is missing or altered")
+                encoded = json.dumps(
+                    _canonical_value(rule.model_dump(mode="json", by_alias=True)),
+                    sort_keys=True,
+                    ensure_ascii=True,
+                    allow_nan=False,
+                    separators=(",", ":"),
+                ).encode("utf-8")
+                if hashlib.sha256(encoded).hexdigest() != registration.definition_digest:
+                    raise ValueError("registered workflow extension definition digest mismatch")
+                extensions[identity] = registration
         required_cells = {
             (workflow, scope)
             for workflow, scopes in _SYNTHETIC_WORKFLOW_SCOPES.items()
@@ -266,6 +295,10 @@ class _KnowledgeContent(_ContractModel):
                 for identity in active
                 if definitions[identity].severity is RuleSeverity.ABSOLUTE
                 and definitions[identity].scope is entry.scope
+                and (
+                    identity not in extensions
+                    or entry.workflow.value in extensions[identity].workflows
+                )
             }
             actual = {_reference_key(item) for item in entry.rule_references}
             for identity in actual:

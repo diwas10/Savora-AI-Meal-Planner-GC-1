@@ -159,6 +159,29 @@ def _assess_week(
     RuleStatus,
     RuleStatus,
 ]:
+    return _evaluate_week(program, trial, options, assessed_days=assessed_days)
+
+
+def _evaluate_week(
+    program: _WeekProgram,
+    trial: WeeklyTrial,
+    options: tuple[DailyOptionDecision, ...],
+    *,
+    assessed_days: tuple[tuple[WeekDayReference, str, DailyAssignmentEvaluation], ...]
+    | None = None,
+    aggregates: tuple[int | None, bool, int | None, bool] | None = None,
+) -> tuple[
+    tuple[tuple[WeekDayReference, str, DailyAssignmentEvaluation], ...],
+    tuple[WeekFact, ...],
+    RuleTrace,
+    RuleStatus,
+    RuleStatus,
+]:
+    """Retain all contributors/evidence/rules; replace only private aggregate arithmetic.
+
+    The independent checker calls _assess_week and therefore always recomputes
+    authoritative quantities, completeness and canonical per-slot recipe counts.
+    """
     manifest = program.manifest
     request = manifest.request
     _bind_trial(request, trial)
@@ -218,19 +241,22 @@ def _assess_week(
         for c, o in zip(selected_choices, selected, strict=True)
         if o.measurements
     )
-    quantity_complete = len(contributions) == 21 and all(
-        o.measurements and o.measurements[0].complete and o.measurements[0].value is not None
-        for o in selected
-    )
-    total = (
-        sum(
-            o.measurements[0].value
+    if aggregates is None:
+        quantity_complete = len(contributions) == 21 and all(
+            o.measurements and o.measurements[0].complete and o.measurements[0].value is not None
             for o in selected
-            if o.measurements and o.measurements[0].value is not None
         )
-        if quantity_complete
-        else None
-    )
+        total = (
+            sum(
+                o.measurements[0].value
+                for o in selected
+                if o.measurements and o.measurements[0].value is not None
+            )
+            if quantity_complete
+            else None
+        )
+    else:
+        total, quantity_complete, _, _ = aggregates
     occurrences = tuple(
         WeekRecipeOccurrence(
             day=c.day,
@@ -242,16 +268,20 @@ def _assess_week(
         )
         for c, o in zip(selected_choices, selected, strict=True)
     )
-    count_complete = all(
-        all(
-            p.status is RuleStatus.PASS
-            for p in decisions[o.reference.option_id].combination.prerequisites
-            if p.name in ("CANDIDATE_MEMBERSHIP", "COMPOSITION_COMPLETENESS", "SOURCE_AUTHORITY")
+    if aggregates is None:
+        count_complete = all(
+            all(
+                p.status is RuleStatus.PASS
+                for p in decisions[o.reference.option_id].combination.prerequisites
+                if p.name
+                in ("CANDIDATE_MEMBERSHIP", "COMPOSITION_COMPLETENESS", "SOURCE_AUTHORITY")
+            )
+            for o in selected
         )
-        for o in selected
-    )
-    counts = Counter(recipe for occurrence in occurrences for recipe in occurrence.recipe_ids)
-    maximum = max(counts.values(), default=0) if count_complete else None
+        counts = Counter(recipe for occurrence in occurrences for recipe in occurrence.recipe_ids)
+        maximum = max(counts.values(), default=0) if count_complete else None
+    else:
+        _, _, maximum, count_complete = aggregates
     complete = all(record[2].status is RuleStatus.PASS for record in day_records)
     binding = dict(
         request_digest=request.content_digest,

@@ -219,6 +219,7 @@ def build_expected_check_manifest(
     candidate, context = request.candidate, request.context
     checks = _mandatory_checks(kb, context)
     body = _ManifestContent(
+        workflow_policy_version=kb.workflow_policy_version,
         attribute_policy_version=(
             "synthetic-attributes.v5-week"
             if any(name in _WEEK_ATTRIBUTES for rule in checks for name in rule.required_facts)

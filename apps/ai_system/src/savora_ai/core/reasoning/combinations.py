@@ -9,6 +9,7 @@ from savora_ai.core.reasoning.facts import _validated_fact_index
 from savora_ai.core.reasoning.filtering import _FilterRequest, filter_candidates
 from savora_ai.core.reasoning.kb import build_knowledge_snapshot
 from savora_ai.core.reasoning.manifest import _descriptors_for, _mandatory_checks, _reject
+from savora_ai.core.reasoning.preparation import _PreparedRecipePool
 from savora_ai.schemas.candidates import CandidateRecipeFacts, RuleContext, _content_digest
 from savora_ai.schemas.combination_evaluation import (
     CombinationEligibilityResult,
@@ -226,6 +227,28 @@ def evaluate_combination(
     Omitted upstream combination authority remains UNKNOWN. Structural contradictions
     raise ValidationError. UNASSIGNED quantities are not optimized or asserted valid.
     """
+    return _evaluate_prepared_combination(
+        combination,
+        candidates=candidates,
+        knowledge=knowledge,
+        context=context,
+        trusted_combination=trusted_combination,
+        prepared=None,
+    )
+
+
+def _evaluate_prepared_combination(
+    combination: CombinationFacts,
+    *,
+    candidates: tuple[CandidateRecipeFacts, ...],
+    knowledge: KnowledgeBaseSnapshot,
+    context: RuleContext,
+    trusted_combination: CombinationFacts | None,
+    prepared: _PreparedRecipePool | None,
+) -> CombinationEligibilityResult:
+    """Shared fully validating worker. A prepared pool is private, never a DTO input."""
+    if prepared is not None and type(prepared) is not _PreparedRecipePool:
+        raise ValueError("prepared state must be locally computed from original data")
     request = _CombinationRequest.model_validate(
         dict(
             combination=combination,
@@ -247,8 +270,16 @@ def evaluate_combination(
             _reject(str(error))
     deferred = tuple(rule for rule in mandatory if rule.scope in (RuleScope.DAY, RuleScope.WEEK))
     # Validate the entire pool; unrelated recipe decisions do not gate this combination.
-    all_recipes = filter_candidates(
-        request.candidates, knowledge=knowledge, context=request.context
+    all_recipes = (
+        filter_candidates(request.candidates, knowledge=knowledge, context=request.context)
+        if prepared is None
+        else _PreparedRecipePool.recipes_for(
+            prepared,
+            candidates=request.candidates,
+            knowledge=knowledge,
+            context=request.context,
+            source=request.trusted_combination,
+        )
     )
     ids = {component.recipe_snapshot.recipe_id for component in request.combination.components}
     recipes = FilterCandidatesResult.model_validate(
