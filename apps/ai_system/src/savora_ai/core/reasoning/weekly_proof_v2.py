@@ -90,6 +90,7 @@ from savora_ai.schemas.daily_solver import (
 from savora_ai.schemas.filtering import _evidence_union
 from savora_ai.schemas.knowledge import RuleReference, RuleScope
 from savora_ai.schemas.knowledge_base import KnowledgeBaseSnapshot
+from savora_ai.schemas.nutrients_v2 import WeeklyNutrientContractV2
 from savora_ai.schemas.reasoning import ApplicabilityStatus, RuleStatus
 from savora_ai.schemas.weekly import (
     ExpectedWeekCheckManifest,
@@ -205,10 +206,12 @@ def _admit(
 def _material(
     manifest: ExpectedWeekCheckManifest,
     candidates: tuple[CandidateRecipeFacts, ...],
-    strategy: v2.WeeklySearchStrategyV2,
+    strategy: v2.WeeklyExecutableStrategyV2,
     limits: v2.WeeklySearchLimitsV2,
 ) -> dict[str, Any]:
     if strategy.policy not in (
+        "synthetic-priority-weekly-search.v2",
+        "synthetic-nutrient-priority-weekly-search.v2",
         v2.WeeklyStrategyPolicyV2.CHRONOLOGICAL,
         v2.WeeklyStrategyPolicyV2.FORWARD_CHECKING,
         v2.WeeklyStrategyPolicyV2.INCREMENTAL,
@@ -223,6 +226,10 @@ def _material(
             "only chronological, reverse and static original-domain MRV v2 policies execute"
         )
     request = manifest.request
+    if isinstance(strategy, (v2.WeeklyPrioritySearchStrategyV2, v2.WeeklyNutrientSearchStrategyV2)):
+        strategy.declaration.bind(request)
+    if isinstance(strategy, v2.WeeklyNutrientSearchStrategyV2):
+        strategy.nutrient_contract.bind(request)
     context = request.source.daily_source.context
     domains = tuple(
         v2.WeeklyOriginalDomainV2(
@@ -296,6 +303,10 @@ def _material(
         or strategy.variable_order == "STATIC_MRV_ORIGINAL_DOMAINS"
     ):
         material["proof_policy_version"] = "synthetic-weekly-ordered-coverage.v2"
+    if isinstance(strategy, (v2.WeeklyPrioritySearchStrategyV2, v2.WeeklyNutrientSearchStrategyV2)):
+        material["proof_policy_version"] = "synthetic-weekly-priority-coverage.v2"
+    if isinstance(strategy, v2.WeeklyNutrientSearchStrategyV2):
+        material["proof_policy_version"] = "synthetic-weekly-nutrient-priority-coverage.v2"
     return material
 
 
@@ -332,7 +343,11 @@ def _scope(
 
 
 def _rest(
-    domains: tuple[v2.WeeklyOriginalDomainV2, ...], rank: int, *, reverse: bool = False
+    domains: tuple[v2.WeeklyOriginalDomainV2, ...],
+    rank: int,
+    *,
+    reverse: bool = False,
+    orders: tuple[tuple[int, ...], ...] | None = None,
 ) -> tuple[v2.WeeklyFrontierBranchV2, ...]:
     """Compact suffix partition, independent of the executor's mutable DFS cursors."""
     sizes = tuple(len(d.options) for d in domains)
@@ -342,13 +357,20 @@ def _rest(
         scopes = [_scope(domains, ())]
     else:
         ranks = tuple((rank // prod(sizes[i + 1 :])) % sizes[i] for i in range(21))
-        digits = tuple(sizes[i] - 1 - p if reverse else p for i, p in enumerate(ranks))
+        digits = tuple(
+            orders[i][p] if orders is not None else sizes[i] - 1 - p if reverse else p
+            for i, p in enumerate(ranks)
+        )
         scopes = [_scope(domains, digits)]
         scopes.extend(
             _scope(
                 domains,
                 digits[:i],
-                tuple(range(digits[i])) if reverse else tuple(range(digits[i] + 1, sizes[i])),
+                tuple(sorted(orders[i][ranks[i] + 1 :]))
+                if orders is not None
+                else tuple(range(digits[i]))
+                if reverse
+                else tuple(range(digits[i] + 1, sizes[i])),
             )
             for i in reversed(range(21))
             if ranks[i] + 1 < sizes[i]
@@ -360,7 +382,16 @@ def _rest(
 
 
 def _all_obligations(material: dict[str, Any]) -> tuple[v2.WeeklyObligationV2, ...]:
+    strategy = material["identity"].strategy
     return (
+        *(
+            tuple(
+                v2.WeeklyNutrientObligationV2(band_id=b.band_id, scope=b.scope)
+                for b in strategy.nutrient_contract.bands
+            )
+            if isinstance(strategy, v2.WeeklyNutrientSearchStrategyV2)
+            else ()
+        ),
         *material["rule_obligations"],
         *(
             v2.WeeklyPrerequisiteObligationV2(prerequisite=p)
@@ -584,6 +615,24 @@ def _day(
     )
 
 
+def _nutrient_leaf_cost(strategy) -> dict[str, int]:
+    if not isinstance(strategy, v2.WeeklyNutrientSearchStrategyV2):
+        return {}
+    return dict(
+        heuristic_evaluations=sum(
+            3 if b.scope == "DAY" else 21 for b in strategy.nutrient_contract.bands
+        )
+    )
+
+
+def _nutrient_band_count(strategy) -> int:
+    return (
+        len(strategy.nutrient_contract.bands)
+        if isinstance(strategy, v2.WeeklyNutrientSearchStrategyV2)
+        else 0
+    )
+
+
 def _leaf(
     program: Any,
     domains: tuple[v2.WeeklyOriginalDomainV2, ...],
@@ -592,6 +641,7 @@ def _leaf(
     days: tuple[DailyAssignmentEvaluation, ...],
     *,
     incremental: "_IncrementalState | None" = None,
+    nutrient_contract: "WeeklyNutrientContractV2 | None" = None,
 ) -> tuple[RuleStatus, str, WeeklyWitness | None, tuple[v2.WeeklyObligationV2, ...]]:
     manifest = program.manifest
     request = manifest.request
@@ -670,6 +720,25 @@ def _leaf(
             unresolved.append(v2.WeeklyPrerequisiteObligationV2(prerequisite="FIXED_CONFIGURATION"))
         if source_option.suitability is None or not source_option.suitability.complete:
             unresolved.append(v2.WeeklyPrerequisiteObligationV2(prerequisite="SLOT_SUITABILITY"))
+    if nutrient_contract is not None:
+        from savora_ai.core.reasoning.nutrients_v2 import evaluate_weekly_nutrients
+
+        nutrient_assessment = evaluate_weekly_nutrients(request, trial, contract=nutrient_contract)
+        digest = _digest((digest, nutrient_assessment))
+        statuses = (status, nutrient_assessment.status)
+        status = (
+            RuleStatus.FAIL
+            if RuleStatus.FAIL in statuses
+            else RuleStatus.UNKNOWN
+            if RuleStatus.UNKNOWN in statuses
+            else RuleStatus.PASS
+        )
+        bands = {b.band_id: b for b in nutrient_contract.bands}
+        unresolved.extend(
+            v2.WeeklyNutrientObligationV2(band_id=a.band_id, scope=bands[a.band_id].scope)
+            for a in nutrient_assessment.assessments
+            if a.status is RuleStatus.UNKNOWN
+        )
     unique = tuple({o.model_dump_json(): o for o in unresolved}.values())
     if status is not RuleStatus.PASS:
         return status, digest, None, unique
@@ -768,13 +837,27 @@ def check_weekly_proof_v2(
     # Independently derive selection order from full original domain cardinalities;
     # never import the executor's ordering helper or trust event selection claims.
     strategy = certificate.identity.strategy
-    ordered = (
+    priority = isinstance(
+        strategy, (v2.WeeklyPrioritySearchStrategyV2, v2.WeeklyNutrientSearchStrategyV2)
+    )
+    ordered = priority or (
         strategy.value_order == "OPTION_ID_DESC"
         or strategy.variable_order == "STATIC_MRV_ORIGINAL_DOMAINS"
     )
     reverse = strategy.value_order == "OPTION_ID_DESC"
+    priority_indexes = None
+
+    def value_rank(depth: int, index: int) -> int:
+        if priority_indexes is not None:
+            return priority_indexes[depth].index(index)
+        return sizes[depth] - 1 - index if reverse else index
+
     expected_proof_policy = (
-        "synthetic-weekly-ordered-coverage.v2"
+        "synthetic-weekly-nutrient-priority-coverage.v2"
+        if isinstance(strategy, v2.WeeklyNutrientSearchStrategyV2)
+        else "synthetic-weekly-priority-coverage.v2"
+        if priority
+        else "synthetic-weekly-ordered-coverage.v2"
         if ordered
         else "synthetic-weekly-coverage-declarations.v2"
     )
@@ -921,15 +1004,13 @@ def check_weekly_proof_v2(
         path = tuple(c.original_domain_index for c in scope.path)
         if tuple(c.slot.canonical_index for c in scope.path) != tuple(selection[: len(path)]):
             raise ValueError("v2 path differs from independently selected original-domain order")
-        start = sum((sizes[i] - 1 - p if reverse else p) * weights[i] for i, p in enumerate(path))
+        start = sum(value_rank(i, p) * weights[i] for i, p in enumerate(path))
         width = prod(sizes[len(path) :])
         if scope.extent == "SLOT_ALTERNATIVES":
             if scope.decision_slot != domains[len(path)].slot:
                 raise ValueError("unary exclusion is not at the independently selected decision")
             original_index = scope.original_domain_indexes[0]
-            start += (
-                sizes[len(path)] - 1 - original_index if reverse else original_index
-            ) * weights[len(path)]
+            start += (value_rank(len(path), original_index)) * weights[len(path)]
             width = weights[len(path)]
         if start != covered or width <= 0:
             raise ValueError("v2 terminal cover has a gap, overlap or noncanonical interval")
@@ -962,6 +1043,23 @@ def check_weekly_proof_v2(
     decisions: dict[str, DailyOptionDecision] = {}
     preparation: _PreparedRecipePool | None = None
     ordering_ready = not ordered or permit(dict(heuristic_evaluations=21 + sum(sizes)))
+    if priority and ordering_ready:
+        priority_indexes = (
+            tuple(
+                tuple(
+                    index
+                    for _, _, index in sorted(
+                        (-entry.priority, entry.option.option_id, index)
+                        for index, entry in enumerate(slot.entries)
+                    )
+                )
+                for slot in strategy.declaration.slots
+            )
+            if isinstance(
+                strategy, (v2.WeeklyPrioritySearchStrategyV2, v2.WeeklyNutrientSearchStrategyV2)
+            )
+            else None
+        )
     if ordering_ready and strategy.variable_order == "STATIC_MRV_ORIGINAL_DOMAINS":
         selection = sorted(selection, key=lambda index: (len(canonical[index].options), index))
         domains = tuple(canonical[index] for index in selection)
@@ -1042,7 +1140,9 @@ def check_weekly_proof_v2(
                             tasks.extend(
                                 ("choose", (*path, i), day_records)
                                 for i in (
-                                    range(sizes[len(path)])
+                                    reversed(priority_indexes[len(path)])
+                                    if priority_indexes is not None
+                                    else range(sizes[len(path)])
                                     if reverse
                                     else reversed(range(sizes[len(path)]))
                                 )
@@ -1091,7 +1191,9 @@ def check_weekly_proof_v2(
                         if not permit(
                             dict(
                                 week_assessments=1,
-                                predicate_obligations=len(manifest.required_checks),
+                                predicate_obligations=len(manifest.required_checks)
+                                + _nutrient_band_count(strategy),
+                                **_nutrient_leaf_cost(strategy),
                                 **(
                                     _incremental_week_cost(manifest, domains, path)
                                     if incremental
@@ -1102,7 +1204,16 @@ def check_weekly_proof_v2(
                         ):
                             break
                         status, digest, witness, missing = _leaf(
-                            program, domains, path, decisions, day_records
+                            program,
+                            domains,
+                            path,
+                            decisions,
+                            day_records,
+                            nutrient_contract=(
+                                strategy.nutrient_contract
+                                if isinstance(strategy, v2.WeeklyNutrientSearchStrategyV2)
+                                else None
+                            ),
                         )
                         consume(
                             _payload(material, "COMPLETED_LEAF", scope, digest, status), missing
@@ -1135,7 +1246,13 @@ def check_weekly_proof_v2(
     # and early FEASIBLE: terminal intervals plus a canonical unexplored suffix.
     expected_frontier = (
         *branches,
-        *(_rest(domains, covered, reverse=True) if reverse else _rest(domains, covered)),
+        *(
+            _rest(domains, covered, orders=priority_indexes)
+            if priority_indexes is not None
+            else _rest(domains, covered, reverse=True)
+            if reverse
+            else _rest(domains, covered)
+        ),
     )
     if certificate.frontier != expected_frontier or covered > total:
         raise ValueError("v2 frontier is not the exact original-domain partition")
@@ -1149,18 +1266,17 @@ def check_weekly_proof_v2(
                 "frontier selected slots differ from independently reconstructed order"
             )
         lower = sum(
-            (sizes[i] - 1 - c.original_domain_index if reverse else c.original_domain_index)
-            * weights[i]
-            for i, c in enumerate(prefix)
+            value_rank(i, c.original_domain_index) * weights[i] for i, c in enumerate(prefix)
         )
         width = prod(sizes[len(prefix) :])
         if branch.scope.extent == "SLOT_ALTERNATIVES":
             indexes = branch.scope.original_domain_indexes
-            if indexes != tuple(range(indexes[0], indexes[-1] + 1)):
+            ranks = sorted(value_rank(len(prefix), index) for index in indexes)
+            if ranks != list(range(ranks[0], ranks[-1] + 1)):
                 raise ValueError("frontier alternative interval contains holes")
             if branch.scope.decision_slot != domains[len(prefix)].slot:
                 raise ValueError("frontier decision slot differs from independent selection")
-            first_rank = sizes[len(prefix)] - 1 - indexes[-1] if reverse else indexes[0]
+            first_rank = ranks[0]
             lower += first_rank * weights[len(prefix)]
             width = len(indexes) * weights[len(prefix)]
         if lower != cursor or width <= 0:

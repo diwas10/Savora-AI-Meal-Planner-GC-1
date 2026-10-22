@@ -15,6 +15,7 @@ from savora_ai.core.reasoning.weekly_ordering import (
     _day_completed,
     _ordered_domains,
     _ordering_cost,
+    _priority_indexes,
 )
 from savora_ai.core.reasoning.weekly_proof_v2 import (
     _admit,
@@ -28,6 +29,8 @@ from savora_ai.core.reasoning.weekly_proof_v2 import (
     _incremental_week_cost,
     _leaf,
     _material,
+    _nutrient_band_count,
+    _nutrient_leaf_cost,
     _payload,
     _preparation_session,
     _prepared_option,
@@ -53,6 +56,7 @@ def verify_weekly_plan_v2(
     knowledge: KnowledgeBaseSnapshot,
     context: RuleContext,
     sources: WeeklySourceSnapshot,
+    expected_strategy: v2.WeeklyNutrientSearchStrategyV2 | None = None,
 ) -> ComputedWeeklySolveResultV2:
     """Recheck a result against independently selected original input records.
 
@@ -62,6 +66,18 @@ def verify_weekly_plan_v2(
     """
     manifest, pool = _admit(request, candidates, knowledge, context, sources)
     checked = ComputedWeeklySolveResultV2.model_validate(result)
+    actual_strategy = checked.certificate.identity.strategy
+    if isinstance(actual_strategy, v2.WeeklyNutrientSearchStrategyV2):
+        if (
+            expected_strategy is None
+            or v2.WeeklyNutrientSearchStrategyV2.model_validate(expected_strategy)
+            != actual_strategy
+        ):
+            raise ValueError(
+                "nutrient result requires independently selected target/measurement strategy"
+            )
+    elif expected_strategy is not None:
+        raise ValueError("expected nutrient strategy differs from result protocol")
     if checked.manifest != manifest or checked.candidates != pool:
         raise ValueError("v2 result differs from independently selected original material")
     return checked
@@ -74,7 +90,7 @@ def solve_weekly_plan_v2(
     knowledge: KnowledgeBaseSnapshot,
     context: RuleContext,
     sources: WeeklySourceSnapshot,
-    strategy: v2.WeeklySearchStrategyV2,
+    strategy: v2.WeeklyExecutableStrategyV2,
     limits: v2.WeeklySearchLimitsV2,
     clock: Callable[[], float] = monotonic,
     reuse_preparation: bool = False,
@@ -111,7 +127,13 @@ def solve_weekly_plan_v2(
     ):
         raise ValueError("preparation reuse requires exact bool and zero/one capacity")
     now()
-    strategy = v2.WeeklySearchStrategyV2.model_validate(strategy)
+    strategy = (
+        v2.WeeklyNutrientSearchStrategyV2.model_validate(strategy)
+        if isinstance(strategy, v2.WeeklyNutrientSearchStrategyV2)
+        else v2.WeeklyPrioritySearchStrategyV2.model_validate(strategy)
+        if isinstance(strategy, v2.WeeklyPrioritySearchStrategyV2)
+        else v2.WeeklySearchStrategyV2.model_validate(strategy)
+    )
     limits = v2.WeeklySearchLimitsV2.model_validate(limits)
     manifest, pool = _admit(request, candidates, knowledge, context, sources)
     material = _material(manifest, pool, strategy, limits)
@@ -127,7 +149,10 @@ def solve_weekly_plan_v2(
         v2.WeeklyStrategyPolicyV2.STATIC_MRV_INCREMENTAL,
         v2.WeeklyStrategyPolicyV2.STATIC_MRV_INCREMENTAL_FORWARD_CHECKING,
     )
-    ordered = strategy.policy in ORDERED_POLICIES
+    priority = isinstance(
+        strategy, (v2.WeeklyPrioritySearchStrategyV2, v2.WeeklyNutrientSearchStrategyV2)
+    )
+    ordered = priority or strategy.policy in ORDERED_POLICIES
     reverse = strategy.value_order == "OPTION_ID_DESC"
     accounting_policy = (
         "synthetic-weekly-ordered-work-reservation.v2"
@@ -140,6 +165,7 @@ def solve_weekly_plan_v2(
     )
     domains = material["original_domains"]
     sizes = tuple(len(d.options) for d in domains)
+    priority_indexes = None
     used = {field: 0 for field in v2.WeeklyWorkV2.model_fields}
     steps = nodes = backtracks = checkpoints = record_reservations = byte_reservations = written = 0
     events: list[v2.WeeklyProofEventV2] = []
@@ -276,7 +302,13 @@ def solve_weekly_plan_v2(
                     return
                 record_reservations -= 1
                 byte_reservations -= _charge(template)
-        for index in reversed(range(sizes[depth])) if reverse else range(sizes[depth]):
+        for index in (
+            priority_indexes[depth]
+            if priority_indexes is not None
+            else reversed(range(sizes[depth]))
+            if reverse
+            else range(sizes[depth])
+        ):
             ref = domains[depth].options[index]
             chosen = (*path, index)
             decision = decisions[ref.option_id]
@@ -321,7 +353,9 @@ def solve_weekly_plan_v2(
                     if not reserve(
                         dict(
                             week_assessments=1,
-                            predicate_obligations=len(manifest.required_checks),
+                            predicate_obligations=len(manifest.required_checks)
+                            + _nutrient_band_count(strategy),
+                            **_nutrient_leaf_cost(strategy),
                             **(
                                 _incremental_week_cost(manifest, domains, chosen)
                                 if incremental
@@ -332,7 +366,17 @@ def solve_weekly_plan_v2(
                     ):
                         return
                     status, digest, _, missing = _leaf(
-                        program, domains, chosen, decisions, assessed, incremental=aggregate_state
+                        program,
+                        domains,
+                        chosen,
+                        decisions,
+                        assessed,
+                        incremental=aggregate_state,
+                        nutrient_contract=(
+                            strategy.nutrient_contract
+                            if isinstance(strategy, v2.WeeklyNutrientSearchStrategyV2)
+                            else None
+                        ),
                     )
                     emit(_payload(material, "COMPLETED_LEAF", scope, digest, status), missing)
                     found = status is RuleStatus.PASS
@@ -346,6 +390,8 @@ def solve_weekly_plan_v2(
                     aggregate_state.pop(frame)
 
     ordering_ready = not ordered or reserve(_ordering_cost(domains))
+    if priority and ordering_ready:
+        priority_indexes = _priority_indexes(domains, strategy)
     if ordered and ordering_ready:
         domains = _ordered_domains(domains, strategy)
         sizes = tuple(len(d.options) for d in domains)
@@ -400,7 +446,13 @@ def solve_weekly_plan_v2(
         events=tuple(events),
         frontier=(
             *frontier,
-            *(_rest(domains, covered, reverse=True) if reverse else _rest(domains, covered)),
+            *(
+                _rest(domains, covered, orders=priority_indexes)
+                if priority_indexes is not None
+                else _rest(domains, covered, reverse=True)
+                if reverse
+                else _rest(domains, covered)
+            ),
         ),
         accounting=snapshot(),
     )
@@ -410,6 +462,11 @@ def solve_weekly_plan_v2(
     preparation = None  # No execution cache is retained during independent verification.
     return ComputedWeeklySolveResultV2.model_validate(
         dict(
+            schema_version=(
+                "computed-weekly-nutrient-solve-result.v1"
+                if isinstance(strategy, v2.WeeklyNutrientSearchStrategyV2)
+                else "computed-weekly-solve-result.v2"
+            ),
             manifest=manifest,
             candidates=pool,
             certificate=certificate,

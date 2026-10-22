@@ -8,7 +8,7 @@ must match separately selected PLANNED_SWAP material. No predicate executes here
 import hashlib
 import json
 from enum import StrEnum
-from typing import Annotated, Any, Literal, Self, get_args, get_origin
+from typing import Annotated, Any, ClassVar, Literal, Self, get_args, get_origin
 
 from pydantic import Field, TypeAdapter, model_validator
 
@@ -22,6 +22,7 @@ from savora_ai.schemas.candidates import (
     _content_digest,
 )
 from savora_ai.schemas.combinations import PortionState, RecipeSnapshotReference
+from savora_ai.schemas.compact_swap_canonical import canonical_material
 from savora_ai.schemas.daily import (
     DailyMealOption,
     MealOptionReference,
@@ -44,6 +45,10 @@ from savora_ai.schemas.knowledge_base import (
     KnowledgeBaseSnapshot,
     KnowledgeWorkflow,
     _ContentDigest,
+)
+from savora_ai.schemas.swap_envelope_policy import (
+    swap_structural_bytes,
+    swap_uses_canonical_material,
 )
 from savora_ai.schemas.weekly import (
     WeekDayReference,
@@ -79,6 +84,8 @@ class SwapBoundaryError(ValueError):
 
 
 class _SwapModel(_DailyModel):
+    _fixed_output_ceiling: ClassVar[bool] = False
+
     @classmethod
     def _validate_alias_keys(cls, value: object) -> None:
         super()._validate_alias_keys(value)
@@ -101,8 +108,12 @@ class _SwapModel(_DailyModel):
     def bounded_synthetic(self) -> Self:
         if any(e.environment is not RuleEnvironment.SYNTHETIC for e in _evidence_union(self)):
             raise ValueError("swap contracts are synthetic only")
-        if len(self.model_dump_json(by_alias=True).encode()) > 1_048_576:
-            raise ValueError("swap structural envelope exceeds 1 MiB")
+        ceiling = 1_048_576 if self._fixed_output_ceiling else swap_structural_bytes()
+        if len(self.model_dump_json(by_alias=True).encode()) > ceiling:
+            if not self._fixed_output_ceiling and swap_uses_canonical_material():
+                canonical_material(self)
+            else:
+                raise ValueError(f"swap structural envelope exceeds {ceiling // 1_048_576} MiB")
         return self
 
 
@@ -760,6 +771,7 @@ class _ResultPlanContent(_SwapModel):
 
 
 class SwapPlanSnapshot(_ResultPlanContent, _SwapSnapshot):
+    _fixed_output_ceiling = True
     _body_type = _ResultPlanContent
 
     @property

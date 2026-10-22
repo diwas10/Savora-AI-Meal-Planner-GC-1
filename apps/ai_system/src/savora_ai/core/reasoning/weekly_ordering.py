@@ -32,3 +32,19 @@ def _ordering_cost(domains):
 def _day_completed(domains, path):
     day = domains[len(path) - 1].slot.day.day_index
     return sum(d.slot.day.day_index == day for d in domains[: len(path)]) == 3
+
+
+def _priority_indexes(domains, strategy):
+    """Execution traversal uses original indices, with deterministic canonical ties."""
+    return tuple(
+        tuple(
+            sorted(
+                range(len(domain.options)),
+                key=lambda i: (
+                    -strategy.declaration.slots[domain.slot.canonical_index].entries[i].priority,
+                    domain.options[i].option_id,
+                ),
+            )
+        )
+        for domain in domains
+    )

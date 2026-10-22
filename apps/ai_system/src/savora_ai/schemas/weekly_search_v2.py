@@ -60,6 +60,7 @@ from savora_ai.schemas.knowledge import (
     _NonBlank,
 )
 from savora_ai.schemas.knowledge_base import _ContentDigest
+from savora_ai.schemas.nutrients_v2 import WeeklyNutrientContractV2
 from savora_ai.schemas.reasoning import ApplicabilityStatus, FactObservation, RuleStatus
 from savora_ai.schemas.weekly import (
     WeekDayReference,
@@ -178,6 +179,99 @@ class WeeklySearchStrategyV2(_V2Model):
         return self
 
 
+class WeeklyOptionPriorityV1(_V2Model):
+    option: MealOptionReference
+    priority: Annotated[int, Field(ge=-1_000_000_000, le=1_000_000_000)]
+
+
+class WeeklySlotValueOrderV1(_V2Model):
+    canonical_index: _SlotIndex
+    entries: Annotated[tuple[WeeklyOptionPriorityV1, ...], Field(max_length=50)]
+
+    @model_validator(mode="after")
+    def unique_options(self) -> Self:
+        ids = tuple(e.option.option_id for e in self.entries)
+        if ids != tuple(sorted(set(ids))):
+            raise ValueError("priority entries require unique canonical option IDs")
+        return self
+
+
+class WeeklyValueOrderV1(_V2Model):
+    """Integrity-bound order, never an eligibility assertion or permission."""
+
+    schema_version: Literal["weekly-v2-value-order.v1"] = "weekly-v2-value-order.v1"
+    request_digest: _ContentDigest
+    source: WeeklySourceReference
+    slots: Annotated[tuple[WeeklySlotValueOrderV1, ...], Field(min_length=21, max_length=21)]
+    tie_break: Literal["OPTION_ID_ASC"] = "OPTION_ID_ASC"
+    direction: Literal["HIGHER_PRIORITY_FIRST"] = "HIGHER_PRIORITY_FIRST"
+
+    @model_validator(mode="after")
+    def canonical_slots(self) -> Self:
+        if tuple(s.canonical_index for s in self.slots) != tuple(range(21)):
+            raise ValueError("value order must cover every canonical slot exactly once")
+        return self
+
+    def bind(self, request: WeeklyPlanningRequest) -> None:
+        if self.request_digest != request.content_digest or self.source != request.expected_source:
+            raise ValueError("value order differs from exact weekly request/source")
+        for day in request.days:
+            for domain in day.domains:
+                index = 3 * (day.day.day_index - 1) + tuple(MealSlot).index(domain.slot)
+                if tuple(e.option for e in self.slots[index].entries) != tuple(
+                    sorted(domain.options, key=lambda o: o.option_id)
+                ):
+                    raise ValueError(
+                        "value order must bind exact complete option domain identities"
+                    )
+
+
+class WeeklyPrioritySearchStrategyV2(_V2Model):
+    """Explicit new route; historical strategy declarations and wire remain unchanged."""
+
+    schema_version: Literal["weekly-priority-search-strategy.v2"] = (
+        "weekly-priority-search-strategy.v2"
+    )
+    policy: Literal["synthetic-priority-weekly-search.v2"] = "synthetic-priority-weekly-search.v2"
+    support: Literal["DECLARED_ONLY"] = "DECLARED_ONLY"
+    criterion: Literal["FIRST_FEASIBLE"] = "FIRST_FEASIBLE"
+    variable_order: Literal["CHRONOLOGICAL"] = "CHRONOLOGICAL"
+    value_order: Literal["DECLARED_PRIORITY"] = "DECLARED_PRIORITY"
+    propagation: Literal["NONE"] = "NONE"
+    variable_tie_break: Literal["CANONICAL_SLOT_INDEX"] = "CANONICAL_SLOT_INDEX"
+    original_domain_policy: Literal["synthetic-weekly-original-domains.v2"] = (
+        "synthetic-weekly-original-domains.v2"
+    )
+    declaration: WeeklyValueOrderV1
+
+
+class WeeklyNutrientSearchStrategyV2(_V2Model):
+    """Explicit new route; historical strategy declarations and wire remain unchanged."""
+
+    schema_version: Literal["weekly-nutrient-search-strategy.v2"] = (
+        "weekly-nutrient-search-strategy.v2"
+    )
+    policy: Literal["synthetic-nutrient-priority-weekly-search.v2"] = (
+        "synthetic-nutrient-priority-weekly-search.v2"
+    )
+    support: Literal["DECLARED_ONLY"] = "DECLARED_ONLY"
+    criterion: Literal["FIRST_FEASIBLE"] = "FIRST_FEASIBLE"
+    variable_order: Literal["CHRONOLOGICAL"] = "CHRONOLOGICAL"
+    value_order: Literal["DECLARED_PRIORITY"] = "DECLARED_PRIORITY"
+    propagation: Literal["NONE"] = "NONE"
+    variable_tie_break: Literal["CANONICAL_SLOT_INDEX"] = "CANONICAL_SLOT_INDEX"
+    original_domain_policy: Literal["synthetic-weekly-original-domains.v2"] = (
+        "synthetic-weekly-original-domains.v2"
+    )
+    declaration: WeeklyValueOrderV1
+    nutrient_contract: WeeklyNutrientContractV2
+
+
+WeeklyExecutableStrategyV2 = (
+    WeeklySearchStrategyV2 | WeeklyPrioritySearchStrategyV2 | WeeklyNutrientSearchStrategyV2
+)
+
+
 class WeeklySearchIdentityV2(_V2Model):
     """Repeated event binding. Manifest/candidate digest authority is DEFERRED.
 
@@ -207,7 +301,7 @@ class WeeklySearchIdentityV2(_V2Model):
     kb_id: _OpaqueId
     kb_version: _NonBlank
     kb_digest: _ContentDigest
-    strategy: WeeklySearchStrategyV2
+    strategy: WeeklyExecutableStrategyV2
 
 
 class WeeklySlotIdentityV2(_V2Model):
@@ -302,6 +396,12 @@ class WeeklyPrerequisiteObligationV2(_V2Model):
         return self
 
 
+class WeeklyNutrientObligationV2(_V2Model):
+    kind: Literal["NUTRIENT_BAND"] = "NUTRIENT_BAND"
+    band_id: _OpaqueId
+    scope: Literal["DAY", "WEEK"]
+
+
 def _declared_kind(value: object) -> str | None:
     # Fixed schema dispatch: wrapped _ContractModel variants cannot use Pydantic's
     # field-inferred discriminator. Do not invoke hostile mapping overrides.
@@ -312,7 +412,8 @@ def _declared_kind(value: object) -> str | None:
 
 WeeklyObligationV2 = Annotated[
     Annotated[WeeklyRuleObligationV2, Tag("RULE")]
-    | Annotated[WeeklyPrerequisiteObligationV2, Tag("PREREQUISITE")],
+    | Annotated[WeeklyPrerequisiteObligationV2, Tag("PREREQUISITE")]
+    | Annotated[WeeklyNutrientObligationV2, Tag("NUTRIENT_BAND")],
     Discriminator(_declared_kind),
 ]
 _Obligations = Annotated[tuple[WeeklyObligationV2, ...], Field(min_length=1, max_length=256)]
@@ -665,7 +766,10 @@ class WeeklySearchCertificateV2(_V2Model):
 
     schema_version: Literal["weekly-coverage.v2"] = "weekly-coverage.v2"
     proof_policy_version: Literal[
-        "synthetic-weekly-coverage-declarations.v2", "synthetic-weekly-ordered-coverage.v2"
+        "synthetic-weekly-coverage-declarations.v2",
+        "synthetic-weekly-ordered-coverage.v2",
+        "synthetic-weekly-priority-coverage.v2",
+        "synthetic-weekly-nutrient-priority-coverage.v2",
     ] = "synthetic-weekly-coverage-declarations.v2"
     verification_state: Literal["NOT_VERIFIED"] = "NOT_VERIFIED"
     semantic_validation: Literal["DEFERRED_TO_PHASE_7_2A"] = "DEFERRED_TO_PHASE_7_2A"
@@ -884,6 +988,13 @@ class WeeklySearchCertificateV2(_V2Model):
 
     def _validate_obligations(self, obligations: tuple[WeeklyObligationV2, ...]) -> None:
         for obligation in obligations:
+            if isinstance(obligation, WeeklyNutrientObligationV2):
+                strategy = self.identity.strategy
+                if not isinstance(strategy, WeeklyNutrientSearchStrategyV2) or not any(
+                    b.band_id == obligation.band_id and b.scope == obligation.scope
+                    for b in strategy.nutrient_contract.bands
+                ):
+                    raise ValueError("event names a foreign nutrient obligation")
             if (
                 isinstance(obligation, WeeklyRuleObligationV2)
                 and obligation not in self.rule_obligations

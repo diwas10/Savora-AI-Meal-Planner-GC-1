@@ -1,0 +1,159 @@
+{
+  "$defs": {
+    "CompactNutrientTotal": {
+      "additionalProperties": false,
+      "properties": {
+        "nutrient": {
+          "enum": [
+            "energy_kcal",
+            "protein_g",
+            "carbs_g",
+            "fat_g",
+            "saturated_fat_g",
+            "sodium_mg",
+            "sugars_g"
+          ],
+          "title": "Nutrient",
+          "type": "string"
+        },
+        "unit": {
+          "enum": [
+            "kcal",
+            "g",
+            "mg"
+          ],
+          "title": "Unit",
+          "type": "string"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "pattern": "^(0|[1-9][0-9]{0,11})(\\.[0-9]{1,3})?$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Value"
+        },
+        "complete": {
+          "title": "Complete",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "nutrient",
+        "unit",
+        "value",
+        "complete"
+      ],
+      "title": "CompactNutrientTotal",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": {
+      "const": "compact-planned-swap-result.v1",
+      "default": "compact-planned-swap-result.v1",
+      "title": "Schemaversion",
+      "type": "string"
+    },
+    "inputDigest": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Inputdigest",
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "VALID",
+        "REJECTED",
+        "INSUFFICIENT_DATA",
+        "TIMEOUT",
+        "ADMISSION_FAILED"
+      ],
+      "title": "Status",
+      "type": "string"
+    },
+    "reason": {
+      "title": "Reason",
+      "type": "string"
+    },
+    "replacementCombinationId": {
+      "anyOf": [
+        {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Replacementcombinationid"
+    },
+    "replacementPortionPreset": {
+      "anyOf": [
+        {
+          "enum": [
+            "STANDARD",
+            "HIGHER_PROTEIN",
+            "LOWER_CARB",
+            "LOWER_ENERGY",
+            "HIGHER_ENERGY"
+          ],
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Replacementportionpreset"
+    },
+    "changedDayTotals": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/CompactNutrientTotal"
+      },
+      "maxItems": 7,
+      "title": "Changeddaytotals",
+      "type": "array"
+    },
+    "certificateDigest": {
+      "anyOf": [
+        {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Certificatedigest"
+    },
+    "reconstructedBytes": {
+      "default": 0,
+      "maximum": 4194304,
+      "minimum": 0,
+      "title": "Reconstructedbytes",
+      "type": "integer"
+    },
+    "verificationComplete": {
+      "default": false,
+      "title": "Verificationcomplete",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "inputDigest",
+    "status",
+    "reason"
+  ],
+  "title": "CompactSwapResult",
+  "type": "object"
+}

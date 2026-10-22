@@ -281,14 +281,23 @@ def _schedule(inputs: _Inputs) -> _Schedule:
     )
 
 
-def _assess_option(inputs: _Inputs, phase: str, option: DailyMealOption) -> SwapOptionAssessment:
+def _assess_option(
+    inputs: _Inputs, phase: str, option: DailyMealOption, *, component_recipes_only: bool = False
+) -> SwapOptionAssessment:
+    candidates = (
+        inputs.saved_plan.snapshot.original_candidates if phase == "ORIGINAL" else inputs.candidates
+    )
+    if component_recipes_only:
+        # Compact admission already validates the entire independent inventory.
+        # Unrelated recipe decisions never gate a combination (see combinations.py).
+        # Retain every referenced component, including hidden ingredient coverage.
+        ids = {p.recipe_snapshot.recipe_id for p in option.combination.components}
+        candidates = tuple(c for c in candidates if c.recipe_id in ids)
     return SwapOptionAssessment(
         option=option.reference,
         combination=evaluate_combination(
             option.combination,
-            candidates=inputs.saved_plan.snapshot.original_candidates
-            if phase == "ORIGINAL"
-            else inputs.candidates,
+            candidates=candidates,
             knowledge=inputs.knowledge,
             context=_phase_context(inputs, phase),
             trusted_combination=option.combination,
@@ -500,13 +509,21 @@ def _proposed(inputs: _Inputs) -> SwapPlanSnapshot:
 
 
 def _execute_phase(
-    inputs: _Inputs, phase: Literal["ORIGINAL", "RESULT"], meter: _Meter
+    inputs: _Inputs,
+    phase: Literal["ORIGINAL", "RESULT"],
+    meter: _Meter,
+    *,
+    phase_type: type[SwapPhaseAssessment] | None = None,
+    component_recipes_only: bool = False,
 ) -> SwapPhaseAssessment:
+    phase_type = SwapPhaseAssessment if phase_type is None else phase_type
     selected = _selected(inputs, phase)
     options = []
     for option in _unique(selected):
         meter.start(_option_cost(inputs, phase, option))
-        options.append(_assess_option(inputs, phase, option))
+        options.append(
+            _assess_option(inputs, phase, option, component_recipes_only=component_recipes_only)
+        )
         meter.checkpoint()
     assessments = tuple(options)
     slots = _slot_states(inputs, selected, assessments)
@@ -530,6 +547,4 @@ def _execute_phase(
         inputs, phase, "WEEK", 0, selected, tuple(d.status for d in days), assessments
     )
     meter.checkpoint()
-    return SwapPhaseAssessment(
-        phase=phase, options=assessments, slots=slots, days=tuple(days), week=week
-    )
+    return phase_type(phase=phase, options=assessments, slots=slots, days=tuple(days), week=week)
