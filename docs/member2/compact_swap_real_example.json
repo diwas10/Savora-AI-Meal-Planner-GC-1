@@ -1,0 +1,637 @@
+{
+  "status": "REAL_SOURCES_FICTIONAL_AUTHORITY_STAND_IN_KB_ONLY",
+  "catalogueVersion": "20261021T073631Z",
+  "sourceFiles": {
+    "20261021T073631Z_build_report.json": "9ba456568028126a7c43579631d4407c2d50cce37b859f08ae4c0bfaaa65fa6a",
+    "20261021T073631Z_catalogue.json": "1d4160ffd02a5ef8e35e3152aea8f095a21cd43c48a1d32fd00e5f3772007f64",
+    "20261021T073631Z_combinations.json": "134f15d5ba85bf0c12740e6da918449e18ce40f3b29f352a70ecef4fe6a827f8"
+  },
+  "examples": {
+    "b1": {
+      "input": {
+        "schemaVersion": "compact-planned-swap-input.v1",
+        "policy": "synthetic-compact-fixed-swap.v1",
+        "mode": "B1",
+        "savedPlan": {
+          "planId": "real-envelope-plan",
+          "revision": 1,
+          "ownerId": "fictional-owner",
+          "profileId": "compact-real-fixture-profile",
+          "profileVersion": "1",
+          "snapshotDigest": "fbf8265f40f88b8326d1440a8cf4977543f80602cc5e8ac066076c0ec707d5ef",
+          "targetSnapshotDigest": "1c44aec9295c64ffa3775074c22daf9798d94458f61498ebd31db4c21b7d55e4",
+          "kbId": "gc1-stand-in-kb",
+          "kbVersion": "1",
+          "kbDigest": "cb4ab3c80c06d5b0837ec4875d0502c1b1415b9ab2fee4b566e792ef6a70a524",
+          "certificateDigest": null
+        },
+        "authority": {
+          "recordId": "compact-real-request",
+          "version": "1",
+          "contentDigest": "00f9b15e0c7bac35a30daa634f721c959c9495f4a3930a112f6eb807c6f68327"
+        },
+        "catalogueVersion": "20261021T073631Z",
+        "sources": [
+          {
+            "catalogueVersion": "20261021T073631Z",
+            "combinationId": "C_BREAKFAST_FRUIT__FC_125970__USDA_2709215",
+            "contentDigest": "840a16c0f6fd90d1cce63a7ae396500e786fec6bd3764c7cbab13083c96f2bbd"
+          },
+          {
+            "catalogueVersion": "20261021T073631Z",
+            "combinationId": "C_BREAKFAST_FRUIT__FC_128959__USDA_2709171",
+            "contentDigest": "64ce59fdb5eb8569bdd3e4933da8598686bf141be3a1cb07bf5e14632e548d65"
+          },
+          {
+            "catalogueVersion": "20261021T073631Z",
+            "combinationId": "C_BREAKFAST_FRUIT__FC_21075__USDA_2709215",
+            "contentDigest": "02f168594d9edcf3bcb1bd6bb10f8fd9aa8b4195ae4a8b4dad604fa3b11c3b95"
+          },
+          {
+            "catalogueVersion": "20261021T073631Z",
+            "combinationId": "C_BREAKFAST_FRUIT__FC_27028__USDA_2709246",
+            "contentDigest": "69c45c83d14dc2fb191b069a7eb938edf5b04ca01743311416945ed7e2c92661"
+          },
+          {
+            "catalogueVersion": "20261021T073631Z",
+            "combinationId": "C_BREAKFAST_FRUIT__FC_44199__USDA_2709171",
+            "contentDigest": "34e59a65e4f50a83fd72065753bb41278e980cd34fa32b5f9996201f54542fd7"
+          },
+          {
+            "catalogueVersion": "20261021T073631Z",
+            "combinationId": "C_BREAKFAST_FRUIT__FC_67013__USDA_2709215",
+            "contentDigest": "38567fb7b54826512dcda182e1f274262bd9ea00fd4e5faa49501bb877f1c530"
+          },
+          {
+            "catalogueVersion": "20261021T073631Z",
+            "combinationId": "C_BREAKFAST_PROTEIN__FC_15866__USDA_2707154",
+            "contentDigest": "622db9d1a1c3605af42b5d08b1081dd7e8f3da99cc5f549d9b18627ae6480d66"
+          },
+          {
+            "catalogueVersion": "20261021T073631Z",
+            "combinationId": "C_MAIN_STAPLE_VEGETABLE__FC_105886__USDA_169757__FC_82641",
+            "contentDigest": "211938f9ec6f64506f910ebde79952c125301f56be1657f60c9dc04d86b77487"
+          },
+          {
+            "catalogueVersion": "20261021T073631Z",
+            "combinationId": "C_MAIN_STAPLE_VEGETABLE__FC_235680__USDA_169704__FC_82641",
+            "contentDigest": "ea0237387ea4864dfd73bad38633e2171045cabbf33ddf1330d1647916e4e2a3"
+          },
+          {
+            "catalogueVersion": "20261021T073631Z",
+            "combinationId": "C_MAIN_STAPLE_VEGETABLE__FC_253519__USDA_169704__FC_91128",
+            "contentDigest": "176d5b990830ee1838c5e556bb752c00d921f3687730907ec13bfa5f52386c92"
+          },
+          {
+            "catalogueVersion": "20261021T073631Z",
+            "combinationId": "C_MAIN_STAPLE_VEGETABLE__FC_327998__USDA_169757__FC_91128",
+            "contentDigest": "a018758c490348d69da30782730287909c281bdaa7fff7da803211667355133b"
+          },
+          {
+            "catalogueVersion": "20261021T073631Z",
+            "combinationId": "C_MAIN_STAPLE_VEGETABLE__FC_341245__USDA_169704__FC_81284",
+            "contentDigest": "1b22399484c8ac81a18f9fff50719b1db1f04cb5e3b27666077890ccfdbce01a"
+          },
+          {
+            "catalogueVersion": "20261021T073631Z",
+            "combinationId": "C_MAIN_STAPLE_VEGETABLE__FC_36696__USDA_169757__FC_91128",
+            "contentDigest": "cc227829c0a55a925dcd1d9a738e3b1b635ba88f1ee7c8227b438098ebcd4fc3"
+          },
+          {
+            "catalogueVersion": "20261021T073631Z",
+            "combinationId": "C_MAIN_STAPLE_VEGETABLE__FC_416178__USDA_2707713__FC_57972",
+            "contentDigest": "f61fdc27dfd159cbbc190c21079ebbb7dc734bbc5207a0ac1dc2c42e2ad441dd"
+          },
+          {
+            "catalogueVersion": "20261021T073631Z",
+            "combinationId": "C_MAIN_STAPLE_VEGETABLE__FC_47552__USDA_169704__FC_91128",
+            "contentDigest": "bbf24caa2e33ed06100579ffaaad9195f7138c01b0a02eac9ad8c016a5d88d65"
+          },
+          {
+            "catalogueVersion": "20261021T073631Z",
+            "combinationId": "C_MAIN_STAPLE__FC_195571__USDA_169757",
+            "contentDigest": "3fb78f6d1525ab736f15efe85adb9f60a6cd598691c24f9fceaeb43dd032b822"
+          },
+          {
+            "catalogueVersion": "20261021T073631Z",
+            "combinationId": "C_ONE_DISH__FC_15656",
+            "contentDigest": "55e7d7f7e29b8dca59a6d3d52eeccfd37f602ce63c5d4687cf85e9f905c12907"
+          },
+          {
+            "catalogueVersion": "20261021T073631Z",
+            "combinationId": "C_ONE_DISH__FC_171217",
+            "contentDigest": "f52ab9386842d842052b8867a249a76878926dd8d8029fd6f2a2edb62f76815e"
+          },
+          {
+            "catalogueVersion": "20261021T073631Z",
+            "combinationId": "C_ONE_DISH__FC_195593",
+            "contentDigest": "11e50889bee1f0e37764ae0a26dd36b64798e23b00b3d18af8495e0cb18f9a52"
+          },
+          {
+            "catalogueVersion": "20261021T073631Z",
+            "combinationId": "C_ONE_DISH__FC_25360",
+            "contentDigest": "f3c581e20276b65ec1588ee92d27c0319dd35f5e4f33839b80e383fdd246e5db"
+          },
+          {
+            "catalogueVersion": "20261021T073631Z",
+            "combinationId": "C_ONE_DISH__FC_48540",
+            "contentDigest": "3e7d56762dfba125cbc4fe48eac07c9d6363355e8bc47620e30c9e360f21b92b"
+          }
+        ],
+        "slots": [
+          {
+            "slotId": "D1_BREAKFAST",
+            "combinationId": "C_BREAKFAST_FRUIT__FC_67013__USDA_2709215",
+            "portionPreset": "STANDARD"
+          },
+          {
+            "slotId": "D1_LUNCH",
+            "combinationId": "C_ONE_DISH__FC_25360",
+            "portionPreset": "STANDARD"
+          },
+          {
+            "slotId": "D1_DINNER",
+            "combinationId": "C_ONE_DISH__FC_195593",
+            "portionPreset": "STANDARD"
+          },
+          {
+            "slotId": "D2_BREAKFAST",
+            "combinationId": "C_BREAKFAST_FRUIT__FC_128959__USDA_2709171",
+            "portionPreset": "STANDARD"
+          },
+          {
+            "slotId": "D2_LUNCH",
+            "combinationId": "C_ONE_DISH__FC_15656",
+            "portionPreset": "STANDARD"
+          },
+          {
+            "slotId": "D2_DINNER",
+            "combinationId": "C_ONE_DISH__FC_171217",
+            "portionPreset": "STANDARD"
+          },
+          {
+            "slotId": "D3_BREAKFAST",
+            "combinationId": "C_BREAKFAST_FRUIT__FC_27028__USDA_2709246",
+            "portionPreset": "STANDARD"
+          },
+          {
+            "slotId": "D3_LUNCH",
+            "combinationId": "C_ONE_DISH__FC_48540",
+            "portionPreset": "STANDARD"
+          },
+          {
+            "slotId": "D3_DINNER",
+            "combinationId": "C_MAIN_STAPLE_VEGETABLE__FC_47552__USDA_169704__FC_91128",
+            "portionPreset": "STANDARD"
+          },
+          {
+            "slotId": "D4_BREAKFAST",
+            "combinationId": "C_BREAKFAST_PROTEIN__FC_15866__USDA_2707154",
+            "portionPreset": "STANDARD"
+          },
+          {
+            "slotId": "D4_LUNCH",
+            "combinationId": "C_MAIN_STAPLE_VEGETABLE__FC_341245__USDA_169704__FC_81284",
+            "portionPreset": "STANDARD"
+          },
+          {
+            "slotId": "D4_DINNER",
+            "combinationId": "C_MAIN_STAPLE__FC_195571__USDA_169757",
+            "portionPreset": "STANDARD"
+          },
+          {
+            "slotId": "D5_BREAKFAST",
+            "combinationId": "C_BREAKFAST_FRUIT__FC_21075__USDA_2709215",
+            "portionPreset": "STANDARD"
+          },
+          {
+            "slotId": "D5_LUNCH",
+            "combinationId": "C_MAIN_STAPLE_VEGETABLE__FC_235680__USDA_169704__FC_82641",
+            "portionPreset": "STANDARD"
+          },
+          {
+            "slotId": "D5_DINNER",
+            "combinationId": "C_MAIN_STAPLE_VEGETABLE__FC_416178__USDA_2707713__FC_57972",
+            "portionPreset": "STANDARD"
+          },
+          {
+            "slotId": "D6_BREAKFAST",
+            "combinationId": "C_BREAKFAST_FRUIT__FC_44199__USDA_2709171",
+            "portionPreset": "STANDARD"
+          },
+          {
+            "slotId": "D6_LUNCH",
+            "combinationId": "C_MAIN_STAPLE_VEGETABLE__FC_327998__USDA_169757__FC_91128",
+            "portionPreset": "STANDARD"
+          },
+          {
+            "slotId": "D6_DINNER",
+            "combinationId": "C_MAIN_STAPLE_VEGETABLE__FC_36696__USDA_169757__FC_91128",
+            "portionPreset": "STANDARD"
+          },
+          {
+            "slotId": "D7_BREAKFAST",
+            "combinationId": "C_BREAKFAST_FRUIT__FC_125970__USDA_2709215",
+            "portionPreset": "STANDARD"
+          },
+          {
+            "slotId": "D7_LUNCH",
+            "combinationId": "C_MAIN_STAPLE_VEGETABLE__FC_105886__USDA_169757__FC_82641",
+            "portionPreset": "STANDARD"
+          },
+          {
+            "slotId": "D7_DINNER",
+            "combinationId": "C_MAIN_STAPLE_VEGETABLE__FC_253519__USDA_169704__FC_91128",
+            "portionPreset": "STANDARD"
+          }
+        ],
+        "targetSlotId": "D1_BREAKFAST",
+        "replacement": {
+          "combinationId": "C_BREAKFAST_FRUIT__FC_67013__USDA_2709215",
+          "portionPreset": "HIGHER_PROTEIN"
+        },
+        "ranking": null,
+        "candidates": []
+      },
+      "expectedResult": {
+        "schemaVersion": "compact-planned-swap-result.v1",
+        "inputDigest": "95ca3f124ef27b6cff9a44ed99afc970f6e30f6f85250e423f339f0ec79d7c00",
+        "status": "VALID",
+        "reason": "COMPLETE_PASS",
+        "replacementCombinationId": "C_BREAKFAST_FRUIT__FC_67013__USDA_2709215",
+        "replacementPortionPreset": "HIGHER_PROTEIN",
+        "changedDayTotals": [
+          {
+            "nutrient": "energy_kcal",
+            "unit": "kcal",
+            "value": "1388.775",
+            "complete": true
+          },
+          {
+            "nutrient": "protein_g",
+            "unit": "g",
+            "value": "35.670",
+            "complete": true
+          },
+          {
+            "nutrient": "carbs_g",
+            "unit": "g",
+            "value": "191.050",
+            "complete": true
+          },
+          {
+            "nutrient": "fat_g",
+            "unit": "g",
+            "value": "51.825",
+            "complete": true
+          },
+          {
+            "nutrient": "saturated_fat_g",
+            "unit": "g",
+            "value": "12.128",
+            "complete": true
+          },
+          {
+            "nutrient": "sodium_mg",
+            "unit": "mg",
+            "value": "2898.000",
+            "complete": true
+          },
+          {
+            "nutrient": "sugars_g",
+            "unit": "g",
+            "value": "28.455",
+            "complete": true
+          }
+        ],
+        "certificateDigest": "5a62831b3ef38d7a581326e8abfabe052b186267888135588939c35db1fc2db5",
+        "reconstructedBytes": 956568,
+        "verificationComplete": true
+      },
+      "independentVerification": {
+        "schemaVersion": "compact-planned-swap-verification.v1",
+        "accepted": true,
+        "complete": true,
+        "reason": "VERIFIED"
+      },
+      "inputBytes": 7161,
+      "outputBytes": 945
+    },
+    "b2": {
+      "input": {
+        "schemaVersion": "compact-planned-swap-input.v1",
+        "policy": "synthetic-compact-fixed-swap.v1",
+        "mode": "B2",
+        "savedPlan": {
+          "planId": "real-envelope-plan",
+          "revision": 1,
+          "ownerId": "fictional-owner",
+          "profileId": "compact-real-fixture-profile",
+          "profileVersion": "1",
+          "snapshotDigest": "fbf8265f40f88b8326d1440a8cf4977543f80602cc5e8ac066076c0ec707d5ef",
+          "targetSnapshotDigest": "1c44aec9295c64ffa3775074c22daf9798d94458f61498ebd31db4c21b7d55e4",
+          "kbId": "gc1-stand-in-kb",
+          "kbVersion": "1",
+          "kbDigest": "cb4ab3c80c06d5b0837ec4875d0502c1b1415b9ab2fee4b566e792ef6a70a524",
+          "certificateDigest": null
+        },
+        "authority": {
+          "recordId": "compact-real-request",
+          "version": "1",
+          "contentDigest": "00f9b15e0c7bac35a30daa634f721c959c9495f4a3930a112f6eb807c6f68327"
+        },
+        "catalogueVersion": "20261021T073631Z",
+        "sources": [
+          {
+            "catalogueVersion": "20261021T073631Z",
+            "combinationId": "C_BREAKFAST_FRUIT__FC_125970__USDA_2709215",
+            "contentDigest": "840a16c0f6fd90d1cce63a7ae396500e786fec6bd3764c7cbab13083c96f2bbd"
+          },
+          {
+            "catalogueVersion": "20261021T073631Z",
+            "combinationId": "C_BREAKFAST_FRUIT__FC_128959__USDA_2709171",
+            "contentDigest": "64ce59fdb5eb8569bdd3e4933da8598686bf141be3a1cb07bf5e14632e548d65"
+          },
+          {
+            "catalogueVersion": "20261021T073631Z",
+            "combinationId": "C_BREAKFAST_FRUIT__FC_21075__USDA_2709215",
+            "contentDigest": "02f168594d9edcf3bcb1bd6bb10f8fd9aa8b4195ae4a8b4dad604fa3b11c3b95"
+          },
+          {
+            "catalogueVersion": "20261021T073631Z",
+            "combinationId": "C_BREAKFAST_FRUIT__FC_27028__USDA_2709246",
+            "contentDigest": "69c45c83d14dc2fb191b069a7eb938edf5b04ca01743311416945ed7e2c92661"
+          },
+          {
+            "catalogueVersion": "20261021T073631Z",
+            "combinationId": "C_BREAKFAST_FRUIT__FC_44199__USDA_2709171",
+            "contentDigest": "34e59a65e4f50a83fd72065753bb41278e980cd34fa32b5f9996201f54542fd7"
+          },
+          {
+            "catalogueVersion": "20261021T073631Z",
+            "combinationId": "C_BREAKFAST_FRUIT__FC_67013__USDA_2709215",
+            "contentDigest": "38567fb7b54826512dcda182e1f274262bd9ea00fd4e5faa49501bb877f1c530"
+          },
+          {
+            "catalogueVersion": "20261021T073631Z",
+            "combinationId": "C_BREAKFAST_PROTEIN__FC_15866__USDA_2707154",
+            "contentDigest": "622db9d1a1c3605af42b5d08b1081dd7e8f3da99cc5f549d9b18627ae6480d66"
+          },
+          {
+            "catalogueVersion": "20261021T073631Z",
+            "combinationId": "C_MAIN_STAPLE_VEGETABLE__FC_105886__USDA_169757__FC_82641",
+            "contentDigest": "211938f9ec6f64506f910ebde79952c125301f56be1657f60c9dc04d86b77487"
+          },
+          {
+            "catalogueVersion": "20261021T073631Z",
+            "combinationId": "C_MAIN_STAPLE_VEGETABLE__FC_235680__USDA_169704__FC_82641",
+            "contentDigest": "ea0237387ea4864dfd73bad38633e2171045cabbf33ddf1330d1647916e4e2a3"
+          },
+          {
+            "catalogueVersion": "20261021T073631Z",
+            "combinationId": "C_MAIN_STAPLE_VEGETABLE__FC_253519__USDA_169704__FC_91128",
+            "contentDigest": "176d5b990830ee1838c5e556bb752c00d921f3687730907ec13bfa5f52386c92"
+          },
+          {
+            "catalogueVersion": "20261021T073631Z",
+            "combinationId": "C_MAIN_STAPLE_VEGETABLE__FC_327998__USDA_169757__FC_91128",
+            "contentDigest": "a018758c490348d69da30782730287909c281bdaa7fff7da803211667355133b"
+          },
+          {
+            "catalogueVersion": "20261021T073631Z",
+            "combinationId": "C_MAIN_STAPLE_VEGETABLE__FC_341245__USDA_169704__FC_81284",
+            "contentDigest": "1b22399484c8ac81a18f9fff50719b1db1f04cb5e3b27666077890ccfdbce01a"
+          },
+          {
+            "catalogueVersion": "20261021T073631Z",
+            "combinationId": "C_MAIN_STAPLE_VEGETABLE__FC_36696__USDA_169757__FC_91128",
+            "contentDigest": "cc227829c0a55a925dcd1d9a738e3b1b635ba88f1ee7c8227b438098ebcd4fc3"
+          },
+          {
+            "catalogueVersion": "20261021T073631Z",
+            "combinationId": "C_MAIN_STAPLE_VEGETABLE__FC_416178__USDA_2707713__FC_57972",
+            "contentDigest": "f61fdc27dfd159cbbc190c21079ebbb7dc734bbc5207a0ac1dc2c42e2ad441dd"
+          },
+          {
+            "catalogueVersion": "20261021T073631Z",
+            "combinationId": "C_MAIN_STAPLE_VEGETABLE__FC_47552__USDA_169704__FC_91128",
+            "contentDigest": "bbf24caa2e33ed06100579ffaaad9195f7138c01b0a02eac9ad8c016a5d88d65"
+          },
+          {
+            "catalogueVersion": "20261021T073631Z",
+            "combinationId": "C_MAIN_STAPLE__FC_195571__USDA_169757",
+            "contentDigest": "3fb78f6d1525ab736f15efe85adb9f60a6cd598691c24f9fceaeb43dd032b822"
+          },
+          {
+            "catalogueVersion": "20261021T073631Z",
+            "combinationId": "C_ONE_DISH__FC_15656",
+            "contentDigest": "55e7d7f7e29b8dca59a6d3d52eeccfd37f602ce63c5d4687cf85e9f905c12907"
+          },
+          {
+            "catalogueVersion": "20261021T073631Z",
+            "combinationId": "C_ONE_DISH__FC_171217",
+            "contentDigest": "f52ab9386842d842052b8867a249a76878926dd8d8029fd6f2a2edb62f76815e"
+          },
+          {
+            "catalogueVersion": "20261021T073631Z",
+            "combinationId": "C_ONE_DISH__FC_195593",
+            "contentDigest": "11e50889bee1f0e37764ae0a26dd36b64798e23b00b3d18af8495e0cb18f9a52"
+          },
+          {
+            "catalogueVersion": "20261021T073631Z",
+            "combinationId": "C_ONE_DISH__FC_25360",
+            "contentDigest": "f3c581e20276b65ec1588ee92d27c0319dd35f5e4f33839b80e383fdd246e5db"
+          },
+          {
+            "catalogueVersion": "20261021T073631Z",
+            "combinationId": "C_ONE_DISH__FC_48540",
+            "contentDigest": "3e7d56762dfba125cbc4fe48eac07c9d6363355e8bc47620e30c9e360f21b92b"
+          }
+        ],
+        "slots": [
+          {
+            "slotId": "D1_BREAKFAST",
+            "combinationId": "C_BREAKFAST_FRUIT__FC_67013__USDA_2709215",
+            "portionPreset": "STANDARD"
+          },
+          {
+            "slotId": "D1_LUNCH",
+            "combinationId": "C_ONE_DISH__FC_25360",
+            "portionPreset": "STANDARD"
+          },
+          {
+            "slotId": "D1_DINNER",
+            "combinationId": "C_ONE_DISH__FC_195593",
+            "portionPreset": "STANDARD"
+          },
+          {
+            "slotId": "D2_BREAKFAST",
+            "combinationId": "C_BREAKFAST_FRUIT__FC_128959__USDA_2709171",
+            "portionPreset": "STANDARD"
+          },
+          {
+            "slotId": "D2_LUNCH",
+            "combinationId": "C_ONE_DISH__FC_15656",
+            "portionPreset": "STANDARD"
+          },
+          {
+            "slotId": "D2_DINNER",
+            "combinationId": "C_ONE_DISH__FC_171217",
+            "portionPreset": "STANDARD"
+          },
+          {
+            "slotId": "D3_BREAKFAST",
+            "combinationId": "C_BREAKFAST_FRUIT__FC_27028__USDA_2709246",
+            "portionPreset": "STANDARD"
+          },
+          {
+            "slotId": "D3_LUNCH",
+            "combinationId": "C_ONE_DISH__FC_48540",
+            "portionPreset": "STANDARD"
+          },
+          {
+            "slotId": "D3_DINNER",
+            "combinationId": "C_MAIN_STAPLE_VEGETABLE__FC_47552__USDA_169704__FC_91128",
+            "portionPreset": "STANDARD"
+          },
+          {
+            "slotId": "D4_BREAKFAST",
+            "combinationId": "C_BREAKFAST_PROTEIN__FC_15866__USDA_2707154",
+            "portionPreset": "STANDARD"
+          },
+          {
+            "slotId": "D4_LUNCH",
+            "combinationId": "C_MAIN_STAPLE_VEGETABLE__FC_341245__USDA_169704__FC_81284",
+            "portionPreset": "STANDARD"
+          },
+          {
+            "slotId": "D4_DINNER",
+            "combinationId": "C_MAIN_STAPLE__FC_195571__USDA_169757",
+            "portionPreset": "STANDARD"
+          },
+          {
+            "slotId": "D5_BREAKFAST",
+            "combinationId": "C_BREAKFAST_FRUIT__FC_21075__USDA_2709215",
+            "portionPreset": "STANDARD"
+          },
+          {
+            "slotId": "D5_LUNCH",
+            "combinationId": "C_MAIN_STAPLE_VEGETABLE__FC_235680__USDA_169704__FC_82641",
+            "portionPreset": "STANDARD"
+          },
+          {
+            "slotId": "D5_DINNER",
+            "combinationId": "C_MAIN_STAPLE_VEGETABLE__FC_416178__USDA_2707713__FC_57972",
+            "portionPreset": "STANDARD"
+          },
+          {
+            "slotId": "D6_BREAKFAST",
+            "combinationId": "C_BREAKFAST_FRUIT__FC_44199__USDA_2709171",
+            "portionPreset": "STANDARD"
+          },
+          {
+            "slotId": "D6_LUNCH",
+            "combinationId": "C_MAIN_STAPLE_VEGETABLE__FC_327998__USDA_169757__FC_91128",
+            "portionPreset": "STANDARD"
+          },
+          {
+            "slotId": "D6_DINNER",
+            "combinationId": "C_MAIN_STAPLE_VEGETABLE__FC_36696__USDA_169757__FC_91128",
+            "portionPreset": "STANDARD"
+          },
+          {
+            "slotId": "D7_BREAKFAST",
+            "combinationId": "C_BREAKFAST_FRUIT__FC_125970__USDA_2709215",
+            "portionPreset": "STANDARD"
+          },
+          {
+            "slotId": "D7_LUNCH",
+            "combinationId": "C_MAIN_STAPLE_VEGETABLE__FC_105886__USDA_169757__FC_82641",
+            "portionPreset": "STANDARD"
+          },
+          {
+            "slotId": "D7_DINNER",
+            "combinationId": "C_MAIN_STAPLE_VEGETABLE__FC_253519__USDA_169704__FC_91128",
+            "portionPreset": "STANDARD"
+          }
+        ],
+        "targetSlotId": "D1_BREAKFAST",
+        "replacement": null,
+        "ranking": {
+          "recordId": "compact-real-ranking",
+          "version": "1",
+          "contentDigest": "02d1720ad53da756a9798cdd38665fc6d650a10af9ea5532433dd4e3f55e7211"
+        },
+        "candidates": [
+          {
+            "candidateId": "C_BREAKFAST_FRUIT__FC_67013__USDA_2709215:HIGHER_PROTEIN",
+            "priority": 0
+          }
+        ]
+      },
+      "expectedResult": {
+        "schemaVersion": "compact-planned-swap-result.v1",
+        "inputDigest": "d1d0dc6dc574861a52a1540f56de597dabfb9c368c1807d7f81865d7006a2fba",
+        "status": "VALID",
+        "reason": "COMPLETE_PASS",
+        "replacementCombinationId": "C_BREAKFAST_FRUIT__FC_67013__USDA_2709215",
+        "replacementPortionPreset": "HIGHER_PROTEIN",
+        "changedDayTotals": [
+          {
+            "nutrient": "energy_kcal",
+            "unit": "kcal",
+            "value": "1388.775",
+            "complete": true
+          },
+          {
+            "nutrient": "protein_g",
+            "unit": "g",
+            "value": "35.670",
+            "complete": true
+          },
+          {
+            "nutrient": "carbs_g",
+            "unit": "g",
+            "value": "191.050",
+            "complete": true
+          },
+          {
+            "nutrient": "fat_g",
+            "unit": "g",
+            "value": "51.825",
+            "complete": true
+          },
+          {
+            "nutrient": "saturated_fat_g",
+            "unit": "g",
+            "value": "12.128",
+            "complete": true
+          },
+          {
+            "nutrient": "sodium_mg",
+            "unit": "mg",
+            "value": "2898.000",
+            "complete": true
+          },
+          {
+            "nutrient": "sugars_g",
+            "unit": "g",
+            "value": "28.455",
+            "complete": true
+          }
+        ],
+        "certificateDigest": "1cea320749fa76830addec7887a30f8eac6946ba8fd47c15c60b93ceffe3367d",
+        "reconstructedBytes": 956715,
+        "verificationComplete": true
+      },
+      "independentVerification": {
+        "schemaVersion": "compact-planned-swap-verification.v1",
+        "accepted": true,
+        "complete": true,
+        "reason": "VERIFIED"
+      },
+      "inputBytes": 7286,
+      "outputBytes": 945
+    }
+  }
+}

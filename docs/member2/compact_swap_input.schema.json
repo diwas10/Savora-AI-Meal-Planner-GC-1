@@ -1,0 +1,350 @@
+{
+  "$defs": {
+    "AuthorityReference": {
+      "additionalProperties": false,
+      "properties": {
+        "recordId": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+          "title": "Recordid",
+          "type": "string"
+        },
+        "version": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+          "title": "Version",
+          "type": "string"
+        },
+        "contentDigest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Contentdigest",
+          "type": "string"
+        }
+      },
+      "required": [
+        "recordId",
+        "version",
+        "contentDigest"
+      ],
+      "title": "AuthorityReference",
+      "type": "object"
+    },
+    "CompactRankEntry": {
+      "additionalProperties": false,
+      "properties": {
+        "candidateId": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+          "title": "Candidateid",
+          "type": "string"
+        },
+        "priority": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Priority",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "candidateId",
+        "priority"
+      ],
+      "title": "CompactRankEntry",
+      "type": "object"
+    },
+    "CompactReplacement": {
+      "additionalProperties": false,
+      "properties": {
+        "combinationId": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+          "title": "Combinationid",
+          "type": "string"
+        },
+        "portionPreset": {
+          "enum": [
+            "STANDARD",
+            "HIGHER_PROTEIN",
+            "LOWER_CARB",
+            "LOWER_ENERGY",
+            "HIGHER_ENERGY"
+          ],
+          "title": "Portionpreset",
+          "type": "string"
+        }
+      },
+      "required": [
+        "combinationId",
+        "portionPreset"
+      ],
+      "title": "CompactReplacement",
+      "type": "object"
+    },
+    "CompactSavedPlanBinding": {
+      "additionalProperties": false,
+      "properties": {
+        "planId": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+          "title": "Planid",
+          "type": "string"
+        },
+        "revision": {
+          "maximum": 1000000000,
+          "minimum": 1,
+          "title": "Revision",
+          "type": "integer"
+        },
+        "ownerId": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+          "title": "Ownerid",
+          "type": "string"
+        },
+        "profileId": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+          "title": "Profileid",
+          "type": "string"
+        },
+        "profileVersion": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+          "title": "Profileversion",
+          "type": "string"
+        },
+        "snapshotDigest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Snapshotdigest",
+          "type": "string"
+        },
+        "targetSnapshotDigest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Targetsnapshotdigest",
+          "type": "string"
+        },
+        "kbId": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+          "title": "Kbid",
+          "type": "string"
+        },
+        "kbVersion": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+          "title": "Kbversion",
+          "type": "string"
+        },
+        "kbDigest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Kbdigest",
+          "type": "string"
+        },
+        "certificateDigest": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Certificatedigest"
+        }
+      },
+      "required": [
+        "planId",
+        "revision",
+        "ownerId",
+        "profileId",
+        "profileVersion",
+        "snapshotDigest",
+        "targetSnapshotDigest",
+        "kbId",
+        "kbVersion",
+        "kbDigest",
+        "certificateDigest"
+      ],
+      "title": "CompactSavedPlanBinding",
+      "type": "object"
+    },
+    "CompactSlot": {
+      "additionalProperties": false,
+      "properties": {
+        "slotId": {
+          "pattern": "^D[1-7]_(BREAKFAST|LUNCH|DINNER)$",
+          "title": "Slotid",
+          "type": "string"
+        },
+        "combinationId": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+          "title": "Combinationid",
+          "type": "string"
+        },
+        "portionPreset": {
+          "enum": [
+            "STANDARD",
+            "HIGHER_PROTEIN",
+            "LOWER_CARB",
+            "LOWER_ENERGY",
+            "HIGHER_ENERGY"
+          ],
+          "title": "Portionpreset",
+          "type": "string"
+        }
+      },
+      "required": [
+        "slotId",
+        "combinationId",
+        "portionPreset"
+      ],
+      "title": "CompactSlot",
+      "type": "object"
+    },
+    "CompactSourceReference": {
+      "additionalProperties": false,
+      "properties": {
+        "catalogueVersion": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+          "title": "Catalogueversion",
+          "type": "string"
+        },
+        "combinationId": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+          "title": "Combinationid",
+          "type": "string"
+        },
+        "contentDigest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Contentdigest",
+          "type": "string"
+        }
+      },
+      "required": [
+        "catalogueVersion",
+        "combinationId",
+        "contentDigest"
+      ],
+      "title": "CompactSourceReference",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": {
+      "const": "compact-planned-swap-input.v1",
+      "default": "compact-planned-swap-input.v1",
+      "title": "Schemaversion",
+      "type": "string"
+    },
+    "policy": {
+      "const": "synthetic-compact-fixed-swap.v1",
+      "default": "synthetic-compact-fixed-swap.v1",
+      "title": "Policy",
+      "type": "string"
+    },
+    "mode": {
+      "enum": [
+        "B1",
+        "B2"
+      ],
+      "title": "Mode",
+      "type": "string"
+    },
+    "savedPlan": {
+      "$ref": "#/$defs/CompactSavedPlanBinding"
+    },
+    "authority": {
+      "$ref": "#/$defs/AuthorityReference"
+    },
+    "catalogueVersion": {
+      "maxLength": 128,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+      "title": "Catalogueversion",
+      "type": "string"
+    },
+    "sources": {
+      "items": {
+        "$ref": "#/$defs/CompactSourceReference"
+      },
+      "maxItems": 71,
+      "minItems": 1,
+      "title": "Sources",
+      "type": "array"
+    },
+    "slots": {
+      "items": {
+        "$ref": "#/$defs/CompactSlot"
+      },
+      "maxItems": 21,
+      "minItems": 21,
+      "title": "Slots",
+      "type": "array"
+    },
+    "targetSlotId": {
+      "pattern": "^D[1-7]_(BREAKFAST|LUNCH|DINNER)$",
+      "title": "Targetslotid",
+      "type": "string"
+    },
+    "replacement": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/CompactReplacement"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "ranking": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/AuthorityReference"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "candidates": {
+      "items": {
+        "$ref": "#/$defs/CompactRankEntry"
+      },
+      "maxItems": 50,
+      "title": "Candidates",
+      "type": "array"
+    }
+  },
+  "required": [
+    "mode",
+    "savedPlan",
+    "authority",
+    "catalogueVersion",
+    "sources",
+    "slots",
+    "targetSlotId",
+    "replacement",
+    "ranking",
+    "candidates"
+  ],
+  "title": "CompactSwapInput",
+  "type": "object"
+}
