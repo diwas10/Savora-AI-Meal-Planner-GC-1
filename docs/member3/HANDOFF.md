@@ -105,7 +105,7 @@ with the 125-utterance gold set.
 
 1. **Stand-in KB** (`STAND_IN_UNVERIFIED`): allergies are matched on the dish name and
    ingredient names, including common derived ingredients for the nine major allergen
-   groups plus gluten and seafood (`pipelines/allergens.py`, unreviewed; for example milk
+   groups plus gluten and seafood (`pipelines/allergens.py`, reviewed by Member 1; for example milk
    blocks ghee and paneer, wheat blocks soy sauce, shellfish blocks Thai curry paste).
    Conditions are recorded but not enforced; every result shows the safety notice.
 2. **Energy is fitted, not verified** (ADR 0006): each day's portion presets are chosen

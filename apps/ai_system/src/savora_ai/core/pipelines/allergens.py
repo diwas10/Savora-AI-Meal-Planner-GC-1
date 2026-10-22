@@ -8,9 +8,9 @@ ingredient usually or often contains the allergen (soy sauce for wheat, Thai cur
 for shellfish), and exemptions are limited to names that never contain it (coconut milk,
 butter lettuce).
 
-Curation status: `ai-review:claude`, not yet reviewed by a person. It is a STAND-IN for the
-production KB's ingredient-to-allergen mappings (Member 2); results stay labelled
-`STAND_IN_UNVERIFIED`.
+Curation status: drafted as `ai-review:claude`, then reviewed by Member 1 on 2026-10-22.
+It is still a STAND-IN for the production KB's ingredient-to-allergen mappings
+(Member 2); results stay labelled `STAND_IN_UNVERIFIED`.
 
 A word the table does not know is still matched as itself, exactly as before.
 """

@@ -10,7 +10,7 @@ proxy as the coverage report (`meal_composition/coverage.py`):
 - explicit exclusions and allergies: whole-word match on the dish name and ingredients
   ("egg" never matches "eggplant"). A word naming a known allergen group ("milk",
   "tree nut", "gluten") also blocks the ingredients that contain it (ghee, pesto, soy
-  sauce; `allergens.py`). The table is unreviewed and cannot see what a recipe omits, so
+  sauce; `allergens.py`). The table is team-reviewed but cannot see what a recipe omits, so
   results are never reported as allergy-verified; see `SafetyVerification`.
 - conditions (type 2 diabetes, hypertension, dyslipidemia) are NOT enforced; results say so.
 
@@ -99,7 +99,7 @@ def safety_verification(profile: PlanningProfile) -> SafetyVerification:
     if profile.allergies and derived:
         parts.append(
             "Allergens were matched by ingredient name, including common derived "
-            "ingredients, using an unreviewed list. Do not rely on this for allergy safety."
+            "ingredients, using a stand-in list. Do not rely on this for allergy safety."
         )
     elif profile.allergies:
         parts.append(
