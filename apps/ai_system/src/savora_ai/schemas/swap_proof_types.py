@@ -22,9 +22,15 @@ from savora_ai.schemas.planned_swap import (
     SwapValidationLimits,
     SwapWork,
     SyntheticSwapRanking,
-    _SwapModel,
+)
+from savora_ai.schemas.planned_swap import (
+    _SwapModel as _SwapInputModel,
 )
 from savora_ai.schemas.reasoning import FactObservation, RuleStatus, RuleTrace
+
+
+class _SwapModel(_SwapInputModel):
+    _fixed_output_ceiling = True
 
 
 class SwapOperation(StrEnum):

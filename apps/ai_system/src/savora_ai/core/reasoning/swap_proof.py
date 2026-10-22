@@ -122,7 +122,12 @@ def _replay_validation_claim(
 
 
 def _reconstruct_swap(
-    inputs: _Inputs, meter: _Meter
+    inputs: _Inputs,
+    meter: _Meter,
+    *,
+    include_plan: bool = True,
+    phase_type: type[SwapPhaseAssessment] | None = None,
+    component_recipes_only: bool = False,
 ) -> tuple[
     SwapPhaseAssessment,
     SwapPhaseAssessment,
@@ -139,6 +144,7 @@ def _reconstruct_swap(
     SwapPlanSnapshot | None,
 ]:
     """Independent B1 reconstruction; shared only by independent proof checkers."""
+    phase_type = SwapPhaseAssessment if phase_type is None else phase_type
     records = []
     for phase in ("ORIGINAL", "RESULT"):
         chosen = []
@@ -162,7 +168,9 @@ def _reconstruct_swap(
                 continue
             seen.add(option.reference.option_id)
             meter.start(_option_cost(inputs, phase, option))
-            decisions.append(_assess_option(inputs, phase, option))
+            decisions.append(
+                _assess_option(inputs, phase, option, component_recipes_only=component_recipes_only)
+            )
             meter.checkpoint()
         options = tuple(decisions)
         by_id = {d.option.option_id: d.combination.status for d in decisions}
@@ -191,9 +199,7 @@ def _reconstruct_swap(
         )
         meter.checkpoint()
         records.append(
-            SwapPhaseAssessment(
-                phase=phase, options=options, slots=states, days=tuple(days), week=week
-            )
+            phase_type(phase=phase, options=options, slots=states, days=tuple(days), week=week)
         )
     meter.start(SwapWork(full_validations=1))
     original, resulting = records
@@ -217,6 +223,10 @@ def _reconstruct_swap(
         )
     else:
         outcome, scope, reason = SwapOutcome.VALID, None, "COMPLETE_PASS"
+        if not include_plan:
+            # Compact verification retains every phase/verdict obligation while
+            # returning a delta instead of the historical expanded plan body.
+            return original, resulting, outcome, scope, reason, None
         # Independently assemble exactly one payload; no executor plan used.
         slots = tuple(
             SavedSlotPayload(

@@ -175,20 +175,30 @@ def validate_contract_json[Result](
     Supported results are built-in scalar/containers, canonical StrEnum and ordinary
     BaseModel/RootModel data without computed fields. Opaque/custom outputs are rejected.
     """
+    return _validate_contract_json(target, payload, max_bytes=STRICT_JSON_MAX_BYTES)
+
+
+def _validate_contract_json[Result](
+    target: type[Result] | TypeAdapter[Result],
+    payload: str | bytes | bytearray,
+    *,
+    max_bytes: int,
+) -> Result:
+    """Internal bounded parser; public profiles select fixed ceilings."""
     try:
         # Do not invoke custom input subclasses' len/encode/decode implementations.
         if type(payload) not in (str, bytes, bytearray):
             raise ValueError("JSON ingress requires a built-in str, bytes or bytearray")
-        if len(payload) > STRICT_JSON_MAX_BYTES:
-            raise ValueError("JSON input exceeds the 1 MiB ingress limit")
+        if len(payload) > max_bytes:
+            raise ValueError(f"JSON input exceeds the {max_bytes // 1_048_576} MiB ingress limit")
         if isinstance(payload, str):
             text = payload
             size = len(text.encode("utf-8"))
         else:
             size = len(payload)
             text = payload.decode("utf-8")
-        if size > STRICT_JSON_MAX_BYTES:
-            raise ValueError("JSON input exceeds the 1 MiB ingress limit")
+        if size > max_bytes:
+            raise ValueError(f"JSON input exceeds the {max_bytes // 1_048_576} MiB ingress limit")
         _check_json_depth(text)
         json.loads(
             text,
