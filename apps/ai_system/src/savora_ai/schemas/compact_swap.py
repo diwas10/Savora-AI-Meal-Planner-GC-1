@@ -1,6 +1,6 @@
 """Explicit opt-in compact transport. Synthetic reasoning, never clinical approval."""
 
-from typing import Annotated, Literal, Self
+from typing import Annotated, Literal, Self, get_args
 
 from pydantic import Field, JsonValue, model_validator
 
@@ -16,6 +16,7 @@ from savora_ai.schemas.nutrients_v2 import (
     NutrientBandV2,
     OptionNutrientsV2,
     Unit,
+    native_unit,
 )
 from savora_ai.schemas.planned_swap import (
     PlannedSwapRequest,
@@ -195,6 +196,12 @@ class CompactNutrientTotal(_DailyModel):
     value: Annotated[str, Field(pattern=r"^(0|[1-9][0-9]{0,11})(\.[0-9]{1,3})?$")] | None
     complete: bool
 
+    @model_validator(mode="after")
+    def exact_total(self) -> Self:
+        if self.unit != native_unit(self.nutrient) or self.complete != (self.value is not None):
+            raise ValueError("native total requires exact units and explicit completeness")
+        return self
+
 
 class CompactSwapResult(_DailyModel):
     schema_version: Literal["compact-planned-swap-result.v1"] = "compact-planned-swap-result.v1"
@@ -207,6 +214,29 @@ class CompactSwapResult(_DailyModel):
     certificate_digest: _ContentDigest | None = None
     reconstructed_bytes: Annotated[int, Field(ge=0, le=4_194_304)] = 0
     verification_complete: bool = False
+
+    @model_validator(mode="after")
+    def complete_delta(self) -> Self:
+        if self.verification_complete and (
+            self.certificate_digest is None or self.status in ("TIMEOUT", "ADMISSION_FAILED")
+        ):
+            raise ValueError("complete decision requires a reconstructed certificate")
+        if self.status == "VALID":
+            if (
+                not self.verification_complete
+                or self.replacement_combination_id is None
+                or self.replacement_portion_preset is None
+                or tuple(t.nutrient for t in self.changed_day_totals) != get_args(Nutrient)
+                or not all(t.complete for t in self.changed_day_totals)
+            ):
+                raise ValueError("VALID requires one delta and seven complete native totals")
+        elif (
+            self.replacement_combination_id is not None
+            or self.replacement_portion_preset is not None
+            or self.changed_day_totals
+        ):
+            raise ValueError("unsuccessful decision cannot contain a replacement delta")
+        return self
 
 
 class CompactSwapVerification(_DailyModel):
