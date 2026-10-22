@@ -36,6 +36,10 @@ export function NutritionSummary({
           <RangeBar label="Fat" unit="g" planned={totals?.fatG} min={fat?.min} max={fat?.max} />
         </div>
       </div>
+      <p className="mt-4 text-xs leading-relaxed text-muted-foreground">
+        Meals use their standard portions. The weekly check confirms every meal fits your
+        rules; it does not yet resize portions to reach these estimates.
+      </p>
     </Card>
   );
 }

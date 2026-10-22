@@ -45,7 +45,7 @@ export function AuthLayout({ title, subtitle, children }: { title: string; subti
         </div>
         <p className="relative hidden text-sm opacity-75 lg:block">Savora GC1</p>
       </div>
-      <main className="-mt-8 flex justify-center px-4 pb-10 lg:mt-0 lg:items-center lg:px-12">
+      <main className="relative z-10 -mt-8 flex justify-center px-4 pb-10 lg:mt-0 lg:items-center lg:px-12">
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}

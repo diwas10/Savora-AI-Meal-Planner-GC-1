@@ -21,9 +21,9 @@ export function AuthGuard({ children }: { children: ReactNode }) {
   const profileQuery = useProfileQuery(Boolean(token));
   const onOnboarding = pathname.startsWith("/onboarding");
 
-  const needsOnboarding =
-    (profileQuery.error instanceof ApiError && profileQuery.error.status === 404) ||
-    profileQuery.data?.needsSeedPicks === true;
+  // "No profile yet" is data (null), not an error, so the query never flips back to
+  // pending when another screen subscribes to it.
+  const needsOnboarding = profileQuery.data === null || profileQuery.data?.needsSeedPicks === true;
 
   useEffect(() => {
     if (!isClient) return;
@@ -43,7 +43,7 @@ export function AuthGuard({ children }: { children: ReactNode }) {
     isClient &&
     token &&
     userQuery.data &&
-    (profileQuery.data || profileQuery.isError) &&
+    (profileQuery.data !== undefined || profileQuery.isError) &&
     (onOnboarding || !needsOnboarding);
 
   if (!ready) return <SplashScreen />;

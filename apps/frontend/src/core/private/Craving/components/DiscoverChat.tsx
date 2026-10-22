@@ -130,7 +130,7 @@ export function DiscoverChat() {
         </div>
       </header>
 
-      <div className="flex flex-1 flex-col gap-4 pb-40" role="log" aria-live="polite" aria-label="Conversation">
+      <div className="flex flex-1 flex-col gap-4 pb-64 lg:pb-40" role="log" aria-live="polite" aria-label="Conversation">
         {messages.length === 0 && (
           <motion.div variants={stagger} initial="hidden" animate="show" className="flex flex-col items-center px-2 py-8 text-center">
             <motion.div variants={fadeUp} className="relative mb-5">
@@ -200,7 +200,7 @@ export function DiscoverChat() {
             </span>
           </motion.div>
         )}
-        <div ref={endRef} />
+        <div ref={endRef} className="scroll-mb-64 lg:scroll-mb-40" />
       </div>
 
       {/* Composer: floats above the tab bar (mobile) or the page bottom (desktop). */}
@@ -235,7 +235,7 @@ export function DiscoverChat() {
                 e.target.style.height = `${Math.min(e.target.scrollHeight, 140)}px`;
               }}
               onKeyDown={onKeyDown}
-              placeholder="Something spicy and Chinese, without noodles"
+              placeholder="What are you craving?"
               aria-invalid={inputError ? true : undefined}
               className="max-h-36 min-h-11 flex-1 resize-none bg-transparent py-2.5 text-[15px] text-foreground placeholder:text-subtle-foreground focus:outline-none"
             />

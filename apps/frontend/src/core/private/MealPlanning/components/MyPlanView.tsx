@@ -262,7 +262,9 @@ export function MyPlanView() {
       />
       {plan && swapMeal && (
         <SwapSheet
-          key={`${plan.id}-${swapMeal.slotId}`}
+          // Keyed on the slot only: a finished swap switches the page to the new plan
+          // revision, and the sheet must keep showing its result meanwhile.
+          key={swapMeal.slotId}
           plan={plan}
           meal={swapMeal}
           open={swapOpen}

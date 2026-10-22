@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   createMealPlanApi,
   createSubstitutionApi,
@@ -47,6 +47,9 @@ export function useMealPlanDetailQuery(planId: string | null | undefined) {
     queryFn: () => getMealPlanApi(planId as string),
     enabled: Boolean(planId),
     staleTime: 60_000,
+    // Switching plans (e.g. to the revision a swap just created) keeps the current plan
+    // on screen until the next one loads: no skeleton flash, open sheets stay mounted.
+    placeholderData: keepPreviousData,
     refetchInterval: (query) => (query.state.data?.status === "GENERATING" ? POLL_MS : false),
   });
 }

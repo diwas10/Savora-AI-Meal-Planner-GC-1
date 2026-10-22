@@ -1,5 +1,5 @@
 import type { Schema } from "@savora/contracts";
-import { apiRequest } from "@/lib/api-request";
+import { ApiError, apiRequest } from "@/lib/api-request";
 
 export type ProfileEnvelopeData = Schema<"ProfileEnvelopeData">;
 export type ProfileUpsertRequest = Schema<"ProfileUpsertRequest">;
@@ -9,11 +9,14 @@ export type SeedPicksRequest = Schema<"SeedPicksRequest">;
 export type SeedPicksResponse = Schema<"SeedPicksResponse">;
 export type CatalogueDishDto = Schema<"CatalogueDishDto">;
 
-export async function getProfileApi(): Promise<ProfileEnvelopeData> {
-  return apiRequest<ProfileEnvelopeData>({
-    method: "GET",
-    url: "/profile",
-  });
+/** The profile, or null when the user has not completed onboarding yet (404). */
+export async function getProfileApi(): Promise<ProfileEnvelopeData | null> {
+  try {
+    return await apiRequest<ProfileEnvelopeData>({ method: "GET", url: "/profile" });
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 404) return null;
+    throw error;
+  }
 }
 
 export async function upsertProfileApi(
