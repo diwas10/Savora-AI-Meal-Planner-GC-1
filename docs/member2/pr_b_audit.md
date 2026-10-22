@@ -171,8 +171,8 @@ the 20 saved slot payloads.
 ## I. Commits and preservation
 
 Contract/resolver commit: 06a33698b7a34adb4b806a45ce88636e63805150. Execution/admission/verification commit: 62832da35a2dc0b33e191c53a142e22abad0f031.
-The following fixture/handoff/audit commit completes this reviewable branch; its exact
-head is reported with the PR publication. No source history was rewritten.
+Fixture/handoff/audit commit: 9c0e2a3d5af4526c56c9653b22b7d33a00b63b47.
+A following documentation-only commit records publication metadata. No source history was rewritten.
 Original six commits 357b172, faa69cc, 11fb5a7, 4110567, ede74ba, ea40e45 remain intact
 on feat/member2-real-integration-contracts. Phase 7/reporting worktrees and the untracked
 master plan are unchanged. Phase 7.4 remains 624/3007; no campaign jobs were restarted.
@@ -182,5 +182,10 @@ master plan are unchanged. Phase 7.4 remains 624/3007; no campaign jobs were res
 PR A: https://github.com/diwas10/Savora-AI-Meal-Planner-GC-1/pull/20, non-draft,
 head 42cf205a298bfd132fd2728de470a4c04c4e676b. Remote frontend and architecture/review
 checks passed; Python CI was still running at the last read.
-PR B is published as a dependent **draft**, using the completed repository template.
-See the final publication response for its exact URL/head. Nothing is merged.
+PR B: https://github.com/diwas10/Savora-AI-Meal-Planner-GC-1/pull/21, dependent **draft**, target
+`feat/member2-native-nutrients-review`, published at `9c0e2a3d5af4526c56c9653b22b7d33a00b63b47`.
+Both branch pushes and PR creation succeeded. The completed repository PR template
+contains exact source/fixture commits and verification evidence. Nothing is merged.
+
+PR A implementation commit: 2d93f022665406804c18758169798da44d9b24f4.
+PR A audit/publication head: 42cf205a298bfd132fd2728de470a4c04c4e676b.
