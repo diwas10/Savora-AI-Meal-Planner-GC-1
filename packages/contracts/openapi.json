@@ -2588,6 +2588,7 @@
           "allergensCheckedBy": {
             "type": "string",
             "enum": [
+              "DERIVED_TERM_MAP",
               "INGREDIENT_NAME_MATCH",
               "NOT_APPLICABLE"
             ],

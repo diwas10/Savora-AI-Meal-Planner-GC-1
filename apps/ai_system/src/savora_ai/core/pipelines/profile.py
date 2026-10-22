@@ -7,9 +7,11 @@ proxy as the coverage report (`meal_composition/coverage.py`):
 
 - diet: every dish must carry the Food.com diet tag (unverified metadata); a missing tag
   excludes the dish (fail closed).
-- explicit exclusions and allergies: whole-word ingredient match ("egg" never matches
-  "eggplant"). This CANNOT see derived ingredients (pesto -> pine nuts), so results are
-  never reported as allergy-verified; see `SafetyVerification`.
+- explicit exclusions and allergies: whole-word match on the dish name and ingredients
+  ("egg" never matches "eggplant"). A word naming a known allergen group ("milk",
+  "tree nut", "gluten") also blocks the ingredients that contain it (ghee, pesto, soy
+  sauce; `allergens.py`). The table is unreviewed and cannot see what a recipe omits, so
+  results are never reported as allergy-verified; see `SafetyVerification`.
 - conditions (type 2 diabetes, hypertension, dyslipidemia) are NOT enforced; results say so.
 
 When Member 2 ships the production KB, these checks move into `filter_candidates` and
@@ -24,8 +26,8 @@ from pydantic import BaseModel, ConfigDict, Field, StringConstraints
 from pydantic.alias_generators import to_camel
 
 from savora_ai.core.food_data.models import CatalogueRecipe
-from savora_ai.core.meal_composition.composer import _tokens
 from savora_ai.core.meal_composition.models import MealCombination
+from savora_ai.core.pipelines.allergens import all_derived, block_rules
 from savora_ai.schemas.enums import CuisinePolicy, HealthCondition
 
 _Word = Annotated[str, StringConstraints(min_length=1, max_length=64, strip_whitespace=True)]
@@ -66,7 +68,7 @@ class SafetyVerification(_PipelineModel):
 
     status: Literal["STAND_IN_UNVERIFIED"] = "STAND_IN_UNVERIFIED"
     kb_environment: Literal["SYNTHETIC"] = "SYNTHETIC"
-    allergens_checked_by: Literal["INGREDIENT_NAME_MATCH", "NOT_APPLICABLE"]
+    allergens_checked_by: Literal["DERIVED_TERM_MAP", "INGREDIENT_NAME_MATCH", "NOT_APPLICABLE"]
     diet_checked_by: Literal["FOODCOM_TAG", "NOT_APPLICABLE"]
     conditions_not_enforced: tuple[HealthCondition, ...]
     message: str
@@ -74,33 +76,42 @@ class SafetyVerification(_PipelineModel):
 
 def safety_verification(profile: PlanningProfile) -> SafetyVerification:
     parts = ["Results come from a non-production stand-in rule set."]
-    if profile.allergies:
+    derived = all_derived(profile.allergies)
+    if profile.allergies and derived:
         parts.append(
-            "Allergens were matched by ingredient name only; derived ingredients are not "
-            "detected. Do not rely on this for allergy safety."
+            "Allergens were matched by ingredient name, including common derived "
+            "ingredients, using an unreviewed list. Do not rely on this for allergy safety."
+        )
+    elif profile.allergies:
+        parts.append(
+            "Some allergies were matched by ingredient name only; derived ingredients are "
+            "not detected for them. Do not rely on this for allergy safety."
         )
     if profile.diet is not None:
         parts.append("Diet is checked with unverified Food.com tags.")
     if profile.conditions:
         parts.append("Health-condition rules are not applied yet.")
     return SafetyVerification(
-        allergens_checked_by="INGREDIENT_NAME_MATCH" if profile.allergies else "NOT_APPLICABLE",
+        allergens_checked_by=(
+            "NOT_APPLICABLE"
+            if not profile.allergies
+            else "DERIVED_TERM_MAP"
+            if derived
+            else "INGREDIENT_NAME_MATCH"
+        ),
         diet_checked_by="FOODCOM_TAG" if profile.diet is not None else "NOT_APPLICABLE",
         conditions_not_enforced=profile.conditions,
         message=" ".join(parts),
     )
 
 
-def _words(values: Sequence[str]) -> list[frozenset[str]]:
-    return [w for w in (_tokens(v) for v in values) if w]
-
-
 def dish_allowed(dish: CatalogueRecipe, profile: PlanningProfile) -> bool:
-    """Diet tag present and no excluded/allergen word in any ingredient (fail closed)."""
+    """Diet tag present and no excluded or allergen term in the dish name or any
+    ingredient (fail closed)."""
     if profile.diet is not None and profile.diet.value.lower() not in dish.diet_tags:
         return False
-    blocked = _words((*profile.excluded_ingredients, *profile.allergies))
-    return not any(words <= _tokens(i) for i in dish.ingredients for words in blocked)
+    rules = block_rules((*profile.excluded_ingredients, *profile.allergies))
+    return not any(r.blocks(t) for t in (dish.name, *dish.ingredients) for r in rules)
 
 
 def cuisine_allowed(cuisines: Sequence[str], profile: PlanningProfile) -> bool:

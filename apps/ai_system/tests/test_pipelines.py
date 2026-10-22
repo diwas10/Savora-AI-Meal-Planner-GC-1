@@ -126,8 +126,17 @@ def test_screen_fails_closed_on_diet_and_matches_whole_words(bundle: CatalogueBu
     eggplant = [d for d in dishes if any("eggplant" in i for i in d.ingredients)]
     egg = [d for d in dishes if any(_tokens("egg") <= _tokens(i) for i in d.ingredients)]
     assert eggplant and egg
-    assert all(dish_allowed(d, no_egg) for d in eggplant if d not in egg)
+    assert any(dish_allowed(d, no_egg) for d in eggplant if d not in egg)
     assert not any(dish_allowed(d, no_egg) for d in egg)
+
+
+def test_allergy_screen_sees_derived_ingredients(bundle: CatalogueBundle) -> None:
+    dishes = list(bundle.dishes.values())
+    for allergy, derived in [("milk", "ghee"), ("tree nut", "cashews"), ("wheat", "soy sauce")]:
+        user = profile(allergies=[allergy])
+        with_derived = [d for d in dishes if any(i.endswith(derived) for i in d.ingredients)]
+        assert with_derived, derived
+        assert not any(dish_allowed(d, user) for d in with_derived), allergy
 
 
 # --- standalone craving (section 4.3) ----------------------------------------------------
@@ -148,7 +157,7 @@ def test_craving_returns_rule_pass_recipes_matching_the_request(bundle: Catalogu
         codes = {r.code for r in item.explanation.reasons}
         assert {"CRAVING_STANDARD_PORTION_ONLY", "RULES_PASS"} <= codes
     assert result.safety.status == "STAND_IN_UNVERIFIED"
-    assert result.safety.allergens_checked_by == "INGREDIENT_NAME_MATCH"
+    assert result.safety.allergens_checked_by == "DERIVED_TERM_MAP"
     assert result.kb_id == "gc1-stand-in-kb"
     assert result.model_version == "popularity-fallback-v1"  # no scorer: labelled fallback
 

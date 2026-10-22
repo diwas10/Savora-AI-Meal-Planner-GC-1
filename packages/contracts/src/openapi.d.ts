@@ -304,7 +304,7 @@ export interface components {
     SafetyVerification: {
       status?: "STAND_IN_UNVERIFIED";
       kbEnvironment?: "SYNTHETIC";
-      allergensCheckedBy: "INGREDIENT_NAME_MATCH" | "NOT_APPLICABLE";
+      allergensCheckedBy: "DERIVED_TERM_MAP" | "INGREDIENT_NAME_MATCH" | "NOT_APPLICABLE";
       dietCheckedBy: "FOODCOM_TAG" | "NOT_APPLICABLE";
       conditionsNotEnforced: (components["schemas"]["HealthCondition"])[];
       message: string;
