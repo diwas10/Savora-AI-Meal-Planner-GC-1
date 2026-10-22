@@ -71,8 +71,10 @@ from savora_ai.core.recommendation.ranking import (
     SequenceScorer,
     rank_combinations,
 )
+from savora_ai.schemas.candidates import CandidateRecipeFacts, RuleContext
 from savora_ai.schemas.craving import CravingRequest, FlavorTag
 from savora_ai.schemas.daily import (
+    DailyMealOption,
     DailyOutcome,
     DailySlotDomain,
     DailySourceReference,
@@ -80,7 +82,7 @@ from savora_ai.schemas.daily import (
     MealSlot,
 )
 from savora_ai.schemas.enums import MealType, PortionPreset
-from savora_ai.schemas.knowledge_base import KnowledgeWorkflow
+from savora_ai.schemas.knowledge_base import KnowledgeBaseSnapshot, KnowledgeWorkflow
 from savora_ai.schemas.weekly import (
     WeekDayReference,
     WeeklyDayDomain,
@@ -262,30 +264,38 @@ def _sum(values: Iterable[NutrientVector]) -> NutrientVector:
     return NutrientVector(**totals)
 
 
-def _solve(
+@dataclass(frozen=True)
+class _WeekInputs:
+    """Everything Member 2's weekly contracts need for one fixed option per slot."""
+
+    dish_ids: list[str]
+    knowledge: KnowledgeBaseSnapshot
+    context: RuleContext
+    candidates: dict[str, CandidateRecipeFacts]
+    provider: DailySourceReference
+    options: dict[str, DailyMealOption]
+    weekly: WeeklySourceSnapshot
+    days: tuple[WeekDayReference, ...]
+    request: WeeklyPlanningRequest
+
+
+def _week_inputs(
     bundle: CatalogueBundle,
     profile: PlanningProfile,
-    workflow: _Workflow,
     week_id: str,
     start: date,
     chosen: Mapping[str, tuple[MealCombination, PortionConfiguration]],
-    ranking: CombinationRanking,
-    limits: WeeklySearchLimitsV2 | None,
-    clock: Callable[[], float],
-) -> WeekPlan:
-    """Member 2's weekly CSP over one option per slot; maps the witness to `PlannedMeal`s."""
-    started = clock()
+    extra_dish_ids: Iterable[str] = (),
+) -> _WeekInputs:
     dish_ids = sorted({p.dish_id for c, _ in chosen.values() for p in c.components})
-    knowledge = build_stand_in_knowledge(bundle, dish_ids)
-    # Member 2's daily/weekly contracts admit only WEEKLY_PLAN contexts (no PLANNED_SWAP
-    # yet), so a swap is solved as a week whose other 20 slots are locked.
+    knowledge = build_stand_in_knowledge(bundle, sorted({*dish_ids, *extra_dish_ids}))
     context = stand_in_context(knowledge, profile, KnowledgeWorkflow.WEEKLY_PLAN)
     binding = KnowledgeBinding(knowledge=knowledge, context=context)
     candidates = {
         i: candidate_facts(
             bundle.dishes[i], bundle.version, knowledge.graph_id, knowledge.graph_version
         )
-        for i in dish_ids
+        for i in sorted({*dish_ids, *extra_dish_ids})
     }
     provider = DailySourceReference(  # who declared suitability/measurements: the export
         source_id="m1-catalogue-export",
@@ -365,6 +375,40 @@ def _solve(
             ),
         )
     )
+    return _WeekInputs(
+        dish_ids=dish_ids,
+        knowledge=knowledge,
+        context=context,
+        candidates=candidates,
+        provider=provider,
+        options=options,
+        weekly=weekly,
+        days=days,
+        request=request,
+    )
+
+
+def _solve(
+    bundle: CatalogueBundle,
+    profile: PlanningProfile,
+    workflow: _Workflow,
+    week_id: str,
+    start: date,
+    chosen: Mapping[str, tuple[MealCombination, PortionConfiguration]],
+    ranking: CombinationRanking,
+    limits: WeeklySearchLimitsV2 | None,
+    clock: Callable[[], float],
+) -> WeekPlan:
+    """Member 2's weekly CSP over one option per slot; maps the witness to `PlannedMeal`s."""
+    started = clock()
+    inputs = _week_inputs(bundle, profile, week_id, start, chosen)
+    request, knowledge, context, weekly = (
+        inputs.request,
+        inputs.knowledge,
+        inputs.context,
+        inputs.weekly,
+    )
+    dish_ids, candidates = inputs.dish_ids, inputs.candidates
     result = solve_weekly_plan_v2(
         request,
         candidates=tuple(candidates[i] for i in dish_ids),
