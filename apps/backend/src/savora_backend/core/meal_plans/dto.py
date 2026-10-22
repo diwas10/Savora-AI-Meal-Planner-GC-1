@@ -6,7 +6,12 @@ from uuid import UUID
 
 from pydantic import Field, StringConstraints
 
-from savora_ai.core.pipelines import PlannedMeal, ReplacementOptions, SafetyVerification
+from savora_ai.core.pipelines import (
+    PlannedMeal,
+    ReplacementOptions,
+    SafetyVerification,
+    SwapProof,
+)
 from savora_ai.core.pipelines.planning import SLOT_ID, DayTotals, SearchSummary
 from savora_ai.schemas.craving import CravingRequest
 from savora_backend.core.common import CamelModel
@@ -100,5 +105,6 @@ class SubstitutionDetailDto(CamelModel):
     preference: CravingRequest | None = None
     before_snapshot: PlannedMeal | None = None
     after_snapshot: PlannedMeal | None = None
+    proof: SwapProof | None = None  # Member 2's compact B1 decision, when it ran
     created_at: datetime
     updated_at: datetime

@@ -19,6 +19,7 @@ from savora_ai.core.pipelines import (
     PlanningProfile,
     PlanStatus,
     ReplacementOptions,
+    SwapProof,
     WeekPlan,
     confirm_seeds,
     revalidate_seeds,
@@ -46,11 +47,14 @@ class FakeAiGateway:
         fail_plan: bool = False,
         plan_status: PlanStatus = PlanStatus.FEASIBLE,
         swap_status: PlanStatus = PlanStatus.FEASIBLE,
+        proof_status: str = "VALID",
     ) -> None:
         self._bundle = bundle or get_catalogue_bundle()
         self.fail_plan = fail_plan
         self.plan_status = plan_status
         self.swap_status = swap_status
+        self.proof_status = proof_status
+        self.proved: list[dict[str, object]] = []
         self.last_swap: dict[str, object] = {}
         self.planned_profiles: list[PlanningProfile] = []
 
@@ -326,6 +330,41 @@ class FakeAiGateway:
             ),
             message="Replacement meal verified by the weekly CSP.",
             safety=safety,
+        )
+
+    async def prove_swap(
+        self,
+        profile: PlanningProfile,
+        *,
+        saved: Mapping[str, str],
+        slot: str,
+        replacement_option_id: str,
+        plan_id: str,
+        revision: int,
+        owner_id: str,
+        start_date: date,
+    ) -> SwapProof:
+        del profile, start_date
+        self.proved.append(
+            {
+                "saved": dict(saved),
+                "slot": slot,
+                "option": replacement_option_id,
+                "plan": plan_id,
+                "revision": revision,
+                "owner": owner_id,
+            }
+        )
+        valid = self.proof_status == "VALID"
+        return SwapProof(
+            protocol="compact-planned-swap-input.v1",
+            status=self.proof_status,  # type: ignore[arg-type]
+            verified=valid,
+            reason="simulated",
+            certificate_digest="c" * 64 if valid else None,
+            input_digest="i" * 64,
+            changed_day_totals=(),
+            seconds=0.01,
         )
 
     async def replacements(

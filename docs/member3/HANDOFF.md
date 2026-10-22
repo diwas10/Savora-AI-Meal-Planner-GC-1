@@ -78,15 +78,18 @@ with the 125-utterance gold set.
   checking and preparation reuse returns the same verified witness as v1 on a strict Indian
   vegetarian week in **50 s instead of 175 s**: the rule filter runs once per week rather
   than once per option. Each result is rechecked by Member 2's independent verifier.
-- **PLANNED_SWAP validation is not integrated yet (needs Member 2).** `validate_swap`
-  admits at most 1 MiB of authority material ("the strict 1 MiB admission envelope is
-  unchanged"). A real saved week is about 1.9 MB: the request with its embedded sources
-  (408 KB), the same sources again in the saved snapshot (394 KB), 32 recipe candidates
-  (292 KB) and 21 slot payloads with their recipes (about 770 KB). An adapter that builds
-  the full material was written and reached admission; it is not committed. Options for the
-  team: raise the envelope for real catalogues, or reference the sources once instead of
-  embedding them twice. Until then swaps are validated by the v2 weekly CSP over the locked
-  week, which checks the same DAY and WEEK rules but not the swap-specific lock proof.
+- **PLANNED_SWAP proof is integrated (compact B1, PR #21; ADR 0007).** After the CSP
+  accepts a swap, `pipelines/swap_proof.py::prove_swap` builds Member 2's compact B1 input
+  and a server-side `CatalogueResolver`; `execute_compact_swap` and `verify_compact_swap`
+  replay both complete weeks and reconstruct the witness independently. With
+  `SWAP_PROOF_MODE=required` (default) only a verified swap becomes a new revision; the
+  proof (status, certificate digest, exact changed-day totals) is stored on the
+  substitution (migration 0006) and shown in the swap sheet. A proof takes a few minutes on
+  a real week (226 s measured).
+- **Native nutrients (PR #20) are merged but not yet driving portions.** Its nutrient
+  search checks bands only at complete weeks (no pruning yet) and a contract holds at most
+  75 options, so offering every preset per slot (up to 105) is not possible yet; portions
+  stay fitted before the CSP (ADR 0006).
 
 ## 6. Verification performed
 
@@ -118,4 +121,5 @@ with the 125-utterance gold set.
 4. **Strict single-cuisine weeks**: every target cuisine works; Nepali has exactly the 4
    breakfasts a week needs (no spare), so strict vegan Nepali returns INSUFFICIENT_DATA.
 5. **Curation** marked `ai-review:claude` in `Data/curated/` awaits a person's review.
-6. **PLANNED_SWAP** proof integration waits on Member 2 (section 5).
+6. **Swap proof time**: the compact B1 proof adds a few minutes per swap (ADR 0007);
+   `SWAP_PROOF_MODE=record` or `off` trades that for speed.

@@ -17,6 +17,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from savora_ai.core.craving_nlu import CravingParser, parse_craving
 from savora_ai.schemas.craving import CravingRequest
 from savora_backend.ai.gateway import AiGateway
+from savora_backend.config import get_settings
 from savora_backend.core.cravings import CravingParseMeta, parse_meta
 from savora_backend.core.meal_plans.dto import (
     CreateSubstitutionAcceptedDto,
@@ -163,6 +164,8 @@ class SubstitutionService:
                 preference=preference,
                 gateway=self._gateway,
                 session_factory=self._job_session_factory or get_session_factory(),
+                from_revision=plan.revision,
+                proof_mode=get_settings().swap_proof_mode,
             )
         )
         return CreateSubstitutionAcceptedDto(substitution_id=sub.id)

@@ -13,9 +13,11 @@ from savora_ai.core.pipelines import (
     CravingRecommendation,
     PlanningProfile,
     ReplacementOptions,
+    SwapProof,
     WeekPlan,
     confirm_seeds,
     plan_week,
+    prove_swap,
     recommend_for_craving,
     revalidate_seeds,
     substitute_slot,
@@ -59,6 +61,19 @@ class AiGateway(Protocol):
         replacement_combination_id: str | None = None,
         preference: CravingRequest | None = None,
     ) -> WeekPlan: ...
+
+    async def prove_swap(
+        self,
+        profile: PlanningProfile,
+        *,
+        saved: Mapping[str, str],
+        slot: str,
+        replacement_option_id: str,
+        plan_id: str,
+        revision: int,
+        owner_id: str,
+        start_date: date,
+    ) -> SwapProof: ...
 
     async def replacements(
         self,
@@ -156,6 +171,31 @@ class PipelineAiGateway:
             replacement_combination_id=replacement_combination_id,
             preference=preference,
             scorer=self._runtime.scorer,
+        )
+
+    async def prove_swap(
+        self,
+        profile: PlanningProfile,
+        *,
+        saved: Mapping[str, str],
+        slot: str,
+        replacement_option_id: str,
+        plan_id: str,
+        revision: int,
+        owner_id: str,
+        start_date: date,
+    ) -> SwapProof:
+        return await asyncio.to_thread(
+            prove_swap,
+            profile,
+            self._runtime.bundle,
+            saved=saved,
+            slot=slot,
+            replacement_option_id=replacement_option_id,
+            plan_id=plan_id,
+            revision=revision,
+            owner_id=owner_id,
+            start_date=start_date,
         )
 
     async def replacements(

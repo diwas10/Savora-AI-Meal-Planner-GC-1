@@ -4,7 +4,7 @@ import json
 from typing import Any
 from uuid import UUID
 
-from savora_ai.core.pipelines import PlannedMeal, SafetyVerification, WeekPlan
+from savora_ai.core.pipelines import PlannedMeal, SafetyVerification, SwapProof, WeekPlan
 from savora_ai.core.pipelines.planning import DayTotals, SearchSummary
 from savora_ai.schemas.craving import CravingRequest
 from savora_backend.core.meal_plans.dto import (
@@ -127,6 +127,7 @@ def to_substitution_dto(sub: MealPlanSubstitutionEntity) -> SubstitutionDetailDt
         else None,
         before_snapshot=meal(sub.before_snapshot),
         after_snapshot=meal(sub.after_snapshot),
+        proof=SwapProof.model_validate_json(_json(sub.proof)) if sub.proof else None,
         created_at=sub.created_at,
         updated_at=sub.updated_at,
     )

@@ -10,10 +10,10 @@ import asyncio
 import logging
 from collections.abc import Callable, Coroutine
 from datetime import date
-from typing import Any
+from typing import Any, Literal
 from uuid import UUID
 
-from savora_ai.core.pipelines import PlanningProfile, PlanStatus
+from savora_ai.core.pipelines import PlanningProfile, PlanStatus, SwapProof
 from savora_ai.schemas.craving import CravingRequest
 from savora_backend.ai.gateway import AiGateway
 from savora_backend.core.meal_plans.entity import MealPlanEntity, MealPlanJobStatus
@@ -27,6 +27,29 @@ SessionFactory = Callable[[], Any]
 PLAN_FAILED_MESSAGE = "We could not generate this plan. Please try again."
 SWAP_FAILED_MESSAGE = "We could not complete this swap. Your plan is unchanged; please try again."
 RESTARTED_MESSAGE = "The server restarted before this finished. Please try again."
+VERIFYING_MESSAGE = "Independently verifying the swap against your saved week"
+ProofMode = Literal["required", "record", "off"]
+# A proof that is not VALID refuses the swap in "required" mode (section 4.4: store a
+# substitution only when it is verified); the user-facing reason per decision.
+_PROOF_REFUSED = {
+    "REJECTED": (
+        MealPlanJobStatus.INFEASIBLE,
+        "The independent check rejected this swap against your saved week; "
+        "pick another meal.",
+    ),
+    "INSUFFICIENT_DATA": (
+        MealPlanJobStatus.INSUFFICIENT_DATA,
+        "The independent check is missing facts for this meal; pick another meal.",
+    ),
+    "TIMEOUT": (
+        MealPlanJobStatus.TIMEOUT,
+        "The independent check ran out of time; please try again.",
+    ),
+    "ADMISSION_FAILED": (
+        MealPlanJobStatus.FAILED,
+        "The independent check could not load your saved week; please try again.",
+    ),
+}
 
 _background_tasks: set[asyncio.Task[None]] = set()
 
@@ -102,6 +125,8 @@ async def run_substitute_job(
     preference: CravingRequest | None,
     gateway: AiGateway,
     session_factory: SessionFactory,
+    from_revision: int = 1,
+    proof_mode: ProofMode = "off",
 ) -> None:
     try:
         swapped = await gateway.substitute(
@@ -114,6 +139,23 @@ async def run_substitute_job(
             replacement_combination_id=replacement_combination_id,
             preference=preference,
         )
+        new_meal = next((m for m in swapped.meals if m.slot_id == slot_id), None)
+        proof: SwapProof | None = None
+        if proof_mode != "off" and new_meal is not None and swapped.status is PlanStatus.FEASIBLE:
+            async with session_factory() as session, session.begin():
+                sub = await MealPlanRepository(session).get_substitution_by_id(substitution_id)
+                if sub is not None:
+                    sub.message = VERIFYING_MESSAGE
+            proof = await gateway.prove_swap(
+                planning_profile,
+                saved=current_options,
+                slot=slot_id,
+                replacement_option_id=new_meal.option_id,
+                plan_id=str(from_plan_id),
+                revision=from_revision,
+                owner_id=str(user_id),
+                start_date=week_start,
+            )
         async with session_factory() as session, session.begin():
             repo = MealPlanRepository(session)
             sub = await repo.get_substitution_by_id(substitution_id)
@@ -122,13 +164,23 @@ async def run_substitute_job(
                 return
             sub.status = swapped.status.value
             sub.message = swapped.message
+            if proof is not None:
+                sub.proof = proof.model_dump(mode="json", by_alias=True)
+                sub.proof_certificate_digest = proof.certificate_digest
             if swapped.status is not PlanStatus.FEASIBLE:
                 return  # the saved plan is untouched; the message says why
-            new_meal = next((m for m in swapped.meals if m.slot_id == slot_id), None)
             if new_meal is None:
                 sub.status = MealPlanJobStatus.FAILED.value
                 sub.message = SWAP_FAILED_MESSAGE
                 return
+            if proof is not None and not proof.verified and proof_mode == "required":
+                refused, message = _PROOF_REFUSED.get(
+                    proof.status, (MealPlanJobStatus.FAILED, SWAP_FAILED_MESSAGE)
+                )
+                sub.status, sub.message = refused.value, message
+                return
+            if proof is not None and proof.verified:
+                sub.message = f"{swapped.message} Swap independently verified (compact B1)."
             # A new revision: the 20 locked slots copied verbatim, the new slot added.
             await repo.clear_current_for_user(user_id)
             revision = max(

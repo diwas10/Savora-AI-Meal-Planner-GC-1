@@ -1,7 +1,7 @@
 "use client";
 
 import type { Schema } from "@savora/contracts";
-import { ArrowDown, ArrowLeft, CircleCheck, Lock, Repeat2, Search, Sparkles, TriangleAlert } from "lucide-react";
+import { ArrowDown, ArrowLeft, CircleCheck, Lock, Repeat2, Search, ShieldCheck, Sparkles, TriangleAlert } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 import { Badge } from "@/components/ui/Badge";
@@ -272,9 +272,11 @@ export function SwapSheet({ plan, meal, open, onOpenChange, initialText = "", on
               </span>
             </div>
             <h3 className="text-lg font-semibold">Checking your week</h3>
+            {sub?.message && <p className="mt-1.5 text-sm font-medium text-primary">{sub.message}</p>}
             <p className="mt-1.5 max-w-sm text-sm text-muted-foreground">
-              The new meal is validated with your other 20 meals locked. This can take a couple
-              of minutes. You can close this sheet; we&apos;ll update your plan when it&apos;s done.
+              The new meal is validated with your other 20 meals locked, then the swap is
+              checked again independently. This can take a few minutes. You can close this
+              sheet; we&apos;ll update your plan when it&apos;s done.
             </p>
           </motion.div>
         )}
@@ -289,6 +291,11 @@ export function SwapSheet({ plan, meal, open, onOpenChange, initialText = "", on
                   </motion.span>
                   <h3 className="mt-3 text-lg font-semibold">Meal swapped</h3>
                   <p className="text-sm text-muted-foreground">Saved as a new version of your plan. Nothing else changed.</p>
+                  {sub.proof?.verified && (
+                    <Badge tone="success" className="mt-2" title={`Certificate ${sub.proof.certificateDigest ?? ""}`}>
+                      <ShieldCheck className="size-3.5" aria-hidden /> Swap independently verified
+                    </Badge>
+                  )}
                 </div>
                 <div className="flex flex-col items-stretch gap-2">
                   {sub.beforeSnapshot && <SnapshotRow label="Before" meal={sub.beforeSnapshot} muted />}

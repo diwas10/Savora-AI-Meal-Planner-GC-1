@@ -783,6 +783,57 @@
         ],
         "title": "CatalogueDishDto"
       },
+      "CompactNutrientTotal": {
+        "properties": {
+          "nutrient": {
+            "type": "string",
+            "enum": [
+              "energy_kcal",
+              "protein_g",
+              "carbs_g",
+              "fat_g",
+              "saturated_fat_g",
+              "sodium_mg",
+              "sugars_g"
+            ],
+            "title": "Nutrient"
+          },
+          "unit": {
+            "type": "string",
+            "enum": [
+              "kcal",
+              "g",
+              "mg"
+            ],
+            "title": "Unit"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^(0|[1-9][0-9]{0,11})(\\.[0-9]{1,3})?$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          },
+          "complete": {
+            "type": "boolean",
+            "title": "Complete"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "nutrient",
+          "unit",
+          "value",
+          "complete"
+        ],
+        "title": "CompactNutrientTotal"
+      },
       "CravingCounts": {
         "properties": {
           "retrieved": {
@@ -2872,6 +2923,16 @@
               }
             ]
           },
+          "proof": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SwapProof"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "createdAt": {
             "type": "string",
             "format": "date-time",
@@ -2894,6 +2955,73 @@
           "updatedAt"
         ],
         "title": "SubstitutionDetailDto"
+      },
+      "SwapProof": {
+        "properties": {
+          "protocol": {
+            "type": "string",
+            "title": "Protocol"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "VALID",
+              "REJECTED",
+              "INSUFFICIENT_DATA",
+              "TIMEOUT",
+              "ADMISSION_FAILED"
+            ],
+            "title": "Status"
+          },
+          "verified": {
+            "type": "boolean",
+            "title": "Verified"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason"
+          },
+          "certificateDigest": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Certificatedigest"
+          },
+          "inputDigest": {
+            "type": "string",
+            "title": "Inputdigest"
+          },
+          "changedDayTotals": {
+            "items": {
+              "$ref": "#/components/schemas/CompactNutrientTotal"
+            },
+            "type": "array",
+            "title": "Changeddaytotals"
+          },
+          "seconds": {
+            "type": "number",
+            "title": "Seconds"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "protocol",
+          "status",
+          "verified",
+          "reason",
+          "certificateDigest",
+          "inputDigest",
+          "changedDayTotals",
+          "seconds"
+        ],
+        "title": "SwapProof",
+        "description": "What to store on the substitution: the decision and its certificate binding."
       },
       "UserDto": {
         "properties": {

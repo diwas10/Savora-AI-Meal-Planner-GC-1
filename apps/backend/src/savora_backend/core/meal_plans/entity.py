@@ -126,3 +126,7 @@ class MealPlanSubstitutionEntity(CommonEntity):
     # CravingRequest their words were parsed into; never the raw text (no chat history).
     replacement_combination_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
     preference: Mapped[dict[str, Any] | None] = mapped_column(JsonbType, nullable=True)
+    # Member 2's compact B1 proof of the swap (`SwapProof`): its decision, the certificate
+    # digest binding the independently reconstructed witness, and the changed day's totals.
+    proof_certificate_digest: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    proof: Mapped[dict[str, Any] | None] = mapped_column(JsonbType, nullable=True)

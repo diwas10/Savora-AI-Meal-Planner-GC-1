@@ -39,6 +39,11 @@ class Settings(BaseSettings):
 
     cors_origins: str = Field(default="http://localhost:3000")
 
+    # Member 2's compact B1 swap proof: "required" saves a swap only when it is VALID and
+    # independently verified; "record" saves CSP-feasible swaps and records the proof;
+    # "off" skips it (tests, slow machines).
+    swap_proof_mode: Literal["required", "record", "off"] = "required"
+
     catalogue_dir: Path = Field(default=REPO_ROOT / "Data/catalogue")
     model_dir: Path = Field(default=REPO_ROOT / "Data/models")
 

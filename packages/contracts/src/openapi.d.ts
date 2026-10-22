@@ -20,6 +20,12 @@ export interface components {
       name: string;
       cuisines: (string)[];
     };
+    CompactNutrientTotal: {
+      nutrient: "energy_kcal" | "protein_g" | "carbs_g" | "fat_g" | "saturated_fat_g" | "sodium_mg" | "sugars_g";
+      unit: "kcal" | "g" | "mg";
+      value: string | null;
+      complete: boolean;
+    };
     CravingCounts: {
       retrieved: number;
       screenedOut: number;
@@ -346,8 +352,19 @@ export interface components {
       preference?: components["schemas"]["CravingRequest"] | null;
       beforeSnapshot?: components["schemas"]["PlannedMeal"] | null;
       afterSnapshot?: components["schemas"]["PlannedMeal"] | null;
+      proof?: components["schemas"]["SwapProof"] | null;
       createdAt: string;
       updatedAt: string;
+    };
+    SwapProof: {
+      protocol: string;
+      status: "VALID" | "REJECTED" | "INSUFFICIENT_DATA" | "TIMEOUT" | "ADMISSION_FAILED";
+      verified: boolean;
+      reason: string;
+      certificateDigest: string | null;
+      inputDigest: string;
+      changedDayTotals: (components["schemas"]["CompactNutrientTotal"])[];
+      seconds: number;
     };
     UserDto: {
       id: string;

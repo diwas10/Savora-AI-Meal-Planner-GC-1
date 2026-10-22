@@ -63,6 +63,20 @@ reported, not hidden.
   integrated, each slot offers all its measurable presets, the band becomes a DAY rule,
   and `_fit_portions` is deleted. The pipeline signatures do not change.
 
+## Update 2026-10-23: Member 2's native nutrients (PR #20)
+
+PR #20 adds seven-nutrient DAY/WEEK bands and a ranked value order to weekly search v2,
+and is merged into this branch. Fitting stays for now, because:
+
+- the nutrient search checks bands only at complete weeks ("native nutrient bound pruning
+  is deferred"), so a day outside its band is found only after all 21 slots are assigned,
+  and backtracking over several presets per slot grows exponentially;
+- a `WeeklyNutrientContractV2` holds at most 75 options, fewer than the up to 105 that
+  five presets on 21 slots need.
+
+When band pruning lands, offer the fitted preset first (highest priority) and the other
+measurable presets after it, make the band a DAY rule, and delete `_fit_portions`.
+
 ## Open items needing team approval
 
 1. The cost weights (4 kcal per gram of protein shortfall) and whether carbohydrate and
