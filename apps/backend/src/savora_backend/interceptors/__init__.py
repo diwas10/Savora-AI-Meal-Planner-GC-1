@@ -65,6 +65,7 @@ class TransformRoute(APIRoute):
                         content=envelope,
                         status_code=status_code,
                         headers=headers,
+                        background=response.background,  # e.g. the reset email
                     )
                 return response
             finally:

@@ -1,12 +1,16 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { hasSession, setSession } from "@/lib/api-request";
 import {
+  forgotPasswordApi,
   getMeApi,
   loginApi,
   logoutApi,
   registerApi,
+  resetPasswordApi,
+  type ForgotPasswordRequest,
   type LoginRequest,
   type RegisterRequest,
+  type ResetPasswordRequest,
 } from "./auth.api";
 
 export const authKeys = {
@@ -51,6 +55,22 @@ export function useRegisterMutation() {
     onSuccess: (data) => {
       setSession(true);
       queryClient.setQueryData(authKeys.me, data.user);
+    },
+  });
+}
+
+export function useForgotPasswordMutation() {
+  return useMutation({ mutationFn: (payload: ForgotPasswordRequest) => forgotPasswordApi(payload) });
+}
+
+export function useResetPasswordMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: ResetPasswordRequest) => resetPasswordApi(payload),
+    onSuccess: () => {
+      // The server ended every earlier session; drop what this browser kept of it.
+      setSession(false);
+      queryClient.clear();
     },
   });
 }

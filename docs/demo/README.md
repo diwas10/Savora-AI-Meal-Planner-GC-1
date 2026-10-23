@@ -35,3 +35,13 @@ then returned VALID, was independently verified, and was stored with certificate
 | Swap result with "Swap independently verified" | `25-swap-verified.png` |
 
 | Targets card with nutrient ranges, per-meal energy and the calculation steps (23 October) | `26-targets-breakdown.png` |
+
+## Forgot password (23 October 2026)
+
+Real stack; the mail goes to the backend log because no SMTP server is configured. Flow: link on sign-in, request, link from the log, new password, old password refused, new one signs in, the link refused a second time.
+
+| Screen | File |
+|---|---|
+| Request a reset link | `27-forgot-password.png` |
+| Link sent (same text for any email) | `28-reset-link-sent.png` |
+| Choose a new password | `29-reset-password.png` |

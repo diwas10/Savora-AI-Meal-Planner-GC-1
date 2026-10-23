@@ -33,6 +33,11 @@ export function LoginForm() {
 
   return (
     <AuthLayout title="Welcome back" subtitle="Sign in to see your plan.">
+      {params.get("reset") === "1" && (
+        <InlineAlert tone="success" className="mb-4">
+          Password updated. Sign in with your new password.
+        </InlineAlert>
+      )}
       <form noValidate onSubmit={(e) => void submit(e)} className="flex flex-col gap-4">
         {error && <InlineAlert tone="danger">{error}</InlineAlert>}
         <Field id="email" label="Email" error={errors.email?.message}>
@@ -41,6 +46,9 @@ export function LoginForm() {
         <Field id="password" label="Password" error={errors.password?.message}>
           <PasswordInput id="password" autoComplete="current-password" aria-invalid={Boolean(errors.password)} aria-describedby="password-error" {...form.register("password")} />
         </Field>
+        <Link href="/forgot-password" className="-mt-2 self-end text-sm font-semibold text-primary">
+          Forgot password?
+        </Link>
         <Button type="submit" size="lg" block loading={login.isPending} className="mt-2">
           Sign in
         </Button>

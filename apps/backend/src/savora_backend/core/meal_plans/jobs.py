@@ -34,8 +34,7 @@ ProofMode = Literal["required", "record", "off"]
 _PROOF_REFUSED = {
     "REJECTED": (
         MealPlanJobStatus.INFEASIBLE,
-        "The independent check rejected this swap against your saved week; "
-        "pick another meal.",
+        "The independent check rejected this swap against your saved week; pick another meal.",
     ),
     "INSUFFICIENT_DATA": (
         MealPlanJobStatus.INSUFFICIENT_DATA,

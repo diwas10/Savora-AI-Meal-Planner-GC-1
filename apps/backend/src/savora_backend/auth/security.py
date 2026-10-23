@@ -54,6 +54,11 @@ def _invalid_token() -> RuntimeException:
 
 
 def decode_access_token(token: str, *, settings: Settings | None = None) -> UUID:
+    return decode_access_claims(token, settings=settings)[0]
+
+
+def decode_access_claims(token: str, *, settings: Settings | None = None) -> tuple[UUID, int]:
+    """The user ID and the issue time (epoch seconds) of a valid token."""
     cfg = settings or get_settings()
     try:
         payload = jwt.decode(token, cfg.jwt_secret_key, algorithms=[cfg.jwt_algorithm])
@@ -68,7 +73,10 @@ def decode_access_token(token: str, *, settings: Settings | None = None) -> UUID
     sub = payload.get("sub")
     if not isinstance(sub, str):
         raise _invalid_token()
+    issued = payload.get("iat")
+    if not isinstance(issued, int):
+        raise _invalid_token()
     try:
-        return UUID(sub)
+        return UUID(sub), issued
     except ValueError as exc:
         raise _invalid_token() from exc

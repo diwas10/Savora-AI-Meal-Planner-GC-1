@@ -166,3 +166,150 @@ async def test_session_cookie_login_requests_and_logout(db_client: httpx.AsyncCl
         out.headers["set-cookie"].lower()
     )
     assert (await db_client.get("/api/auth/me")).status_code == 401
+
+
+class _Outbox:
+    """Captures the reset mail instead of sending it."""
+
+    def __init__(self) -> None:
+        self.sent: list[tuple[str, str, str]] = []
+
+    async def send(self, to: str, subject: str, body: str) -> None:
+        self.sent.append((to, subject, body))
+
+    def last_token(self) -> str:
+        return self.sent[-1][2].split("token=")[1].split()[0]
+
+
+def _outbox(db_client: httpx.AsyncClient) -> _Outbox:
+    from savora_backend.auth.mailer import get_mailer
+
+    outbox = _Outbox()
+    app = db_client._transport.app  # type: ignore[attr-defined]
+    app.dependency_overrides[get_mailer] = lambda: outbox
+    return outbox
+
+
+async def _register(db_client: httpx.AsyncClient, email: str = "forgot@example.com") -> None:
+    reg = await db_client.post(
+        "/api/auth/register",
+        json={"email": email, "password": "oldpassword123", "displayName": "F"},
+    )
+    assert reg.status_code == 201
+    db_client.cookies.clear()
+
+
+async def test_forgot_password_answers_the_same_for_unknown_emails(
+    db_client: httpx.AsyncClient,
+) -> None:
+    outbox = _outbox(db_client)
+    await _register(db_client)
+    known = await db_client.post("/api/auth/forgot-password", json={"email": "Forgot@example.com"})
+    unknown = await db_client.post(
+        "/api/auth/forgot-password", json={"email": "nobody@example.com"}
+    )
+    assert known.status_code == unknown.status_code == 200
+    assert known.json()["message"] == unknown.json()["message"]
+    assert known.json()["data"] == unknown.json()["data"]
+    assert [m[0] for m in outbox.sent] == ["forgot@example.com"]  # nothing sent to the stranger
+    assert "/reset-password?token=" in outbox.sent[0][2]
+
+
+async def test_reset_password_changes_the_password_once_and_ends_old_sessions(
+    db_client: httpx.AsyncClient,
+) -> None:
+    outbox = _outbox(db_client)
+    await _register(db_client)
+    old_session = (
+        await db_client.post(
+            "/api/auth/login", json={"email": "forgot@example.com", "password": "oldpassword123"}
+        )
+    ).json()["data"]["accessToken"]
+    db_client.cookies.clear()
+    await db_client.post("/api/auth/forgot-password", json={"email": "forgot@example.com"})
+    token = outbox.last_token()
+
+    # Sessions are second-resolution: make the old one strictly older than the reset.
+    import asyncio
+
+    await asyncio.sleep(1.1)
+    done = await db_client.post(
+        "/api/auth/reset-password", json={"token": token, "password": "newpassword456"}
+    )
+    assert done.status_code == 200
+
+    old = await db_client.post(
+        "/api/auth/login", json={"email": "forgot@example.com", "password": "oldpassword123"}
+    )
+    assert old.status_code == 401
+    new = await db_client.post(
+        "/api/auth/login", json={"email": "forgot@example.com", "password": "newpassword456"}
+    )
+    assert new.status_code == 200
+    db_client.cookies.clear()
+    stale = await db_client.get("/api/auth/me", headers={"Authorization": f"Bearer {old_session}"})
+    assert stale.status_code == 401  # issued before the reset
+    fresh_token = new.json()["data"]["accessToken"]
+    fresh = await db_client.get("/api/auth/me", headers={"Authorization": f"Bearer {fresh_token}"})
+    assert fresh.status_code == 200
+
+    again = await db_client.post(
+        "/api/auth/reset-password", json={"token": token, "password": "anotherpass789"}
+    )
+    assert again.status_code == 400  # single use
+
+
+async def _age_reset_tokens(
+    db_client: httpx.AsyncClient, *, created_ago: int, expires_in: int
+) -> None:
+    """Sets every reset link's age and remaining life, in minutes."""
+    from datetime import UTC, datetime
+
+    from sqlalchemy import update
+
+    from savora_backend.core.users import PasswordResetTokenEntity
+    from savora_backend.database import get_session
+
+    app = db_client._transport.app  # type: ignore[attr-defined]
+    now = datetime.now(UTC)
+    async for session in app.dependency_overrides[get_session]():
+        await session.execute(
+            update(PasswordResetTokenEntity).values(
+                created_at=now - timedelta(minutes=created_ago),
+                expires_at=now + timedelta(minutes=expires_in),
+            )
+        )
+
+
+async def test_reset_password_refuses_unknown_expired_and_replaced_links(
+    db_client: httpx.AsyncClient,
+) -> None:
+    outbox = _outbox(db_client)
+    await _register(db_client)
+    body = {"password": "newpassword456"}
+    bogus = await db_client.post("/api/auth/reset-password", json={"token": "x" * 43, **body})
+    assert bogus.status_code == 400
+    short = await db_client.post("/api/auth/reset-password", json={"token": "short", **body})
+    assert short.status_code == 422
+
+    await db_client.post("/api/auth/forgot-password", json={"email": "forgot@example.com"})
+    first = outbox.last_token()
+    # Within a minute a second request mails nothing new, so the first link stays valid.
+    await db_client.post("/api/auth/forgot-password", json={"email": "forgot@example.com"})
+    assert len(outbox.sent) == 1
+
+    await _age_reset_tokens(db_client, created_ago=61, expires_in=-1)  # expired
+    expired = await db_client.post("/api/auth/reset-password", json={"token": first, **body})
+    assert expired.status_code == 400
+
+    await db_client.post("/api/auth/forgot-password", json={"email": "forgot@example.com"})
+    second = outbox.last_token()
+    assert second != first and len(outbox.sent) == 2
+    await _age_reset_tokens(db_client, created_ago=5, expires_in=55)  # past the cooldown
+    await db_client.post("/api/auth/forgot-password", json={"email": "forgot@example.com"})
+    third = outbox.last_token()
+    assert len(outbox.sent) == 3
+    replaced = await db_client.post("/api/auth/reset-password", json={"token": second, **body})
+    assert replaced.status_code == 400  # a newer link ends the earlier ones
+    ok = await db_client.post("/api/auth/reset-password", json={"token": third, **body})
+    assert ok.status_code == 200

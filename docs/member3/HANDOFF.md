@@ -57,7 +57,14 @@ Member 2's Phase 7 (PR #18).
    options → the user picks one → the week is re-solved by Member 2's CSP with the other 20
    options locked → a new plan revision with before/after snapshots. The parsed preference
    is stored on the substitution; the raw text never is.
-6. **No craving history**: Discover's chat lives only in the screen's memory.
+6. **Password reset**: `POST /auth/forgot-password` always answers the same, so it cannot
+   show who has an account; it mails a single-use link (SHA-256 stored, 60 minutes, one per
+   account per minute, a newer link ends older ones). `POST /auth/reset-password` sets the
+   password and `users.password_changed_at`, which ends every session issued earlier.
+   Pages `/forgot-password` and `/reset-password`; migration `0007`. Mail goes through SMTP
+   (`SMTP_*`, `FRONTEND_URL` in `.env.example`); without `SMTP_HOST` the link is logged
+   outside production and nothing is sent in production, so **set SMTP before deploying**.
+7. **No craving history**: Discover's chat lives only in the screen's memory.
 
 ## 4. Craving NLU evaluation (`docs/reports/craving_nlu_report.md`)
 

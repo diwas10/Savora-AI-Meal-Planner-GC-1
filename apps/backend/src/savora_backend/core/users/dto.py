@@ -28,3 +28,12 @@ class LoginRequest(CamelModel):
 class AuthResponse(CamelModel):
     user: UserDto
     access_token: str
+
+
+class ForgotPasswordRequest(CamelModel):
+    email: EmailStr
+
+
+class ResetPasswordRequest(CamelModel):
+    token: str = Field(min_length=20, max_length=200)
+    password: str = Field(min_length=8, max_length=128)

@@ -116,6 +116,9 @@ export interface components {
     };
     FallbackReason: "NO_HISTORY" | "MODEL_UNAVAILABLE" | "CANDIDATES_UNKNOWN_TO_MODEL";
     FlavorTag: "SPICY" | "SWEET" | "SOUR" | "SMOKY" | "CREAMY";
+    ForgotPasswordRequest: {
+      email: string;
+    };
     GeneratePlanAcceptedDto: {
       planId: string;
       status?: components["schemas"]["MealPlanJobStatus"];
@@ -307,6 +310,10 @@ export interface components {
       preferenceText?: string | null;
       excludeCombinationIds?: (string)[];
     };
+    ResetPasswordRequest: {
+      token: string;
+      password: string;
+    };
     SafetyVerification: {
       status?: "STAND_IN_UNVERIFIED";
       kbEnvironment?: "SYNTHETIC";
@@ -417,6 +424,18 @@ export interface paths {
   "/api/auth/logout": {
     post: {
       requestBody?: never;
+      response: unknown;
+    };
+  };
+  "/api/auth/forgot-password": {
+    post: {
+      requestBody?: components["schemas"]["ForgotPasswordRequest"];
+      response: unknown;
+    };
+  };
+  "/api/auth/reset-password": {
+    post: {
+      requestBody?: components["schemas"]["ResetPasswordRequest"];
       response: unknown;
     };
   };

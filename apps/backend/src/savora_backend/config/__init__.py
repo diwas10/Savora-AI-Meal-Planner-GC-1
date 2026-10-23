@@ -39,6 +39,17 @@ class Settings(BaseSettings):
 
     cors_origins: str = Field(default="http://localhost:3000")
 
+    # Password reset: the emailed link points at the web app. Without `smtp_host` no mail
+    # is sent; outside production the link is written to the server log instead.
+    frontend_url: str = Field(default="http://localhost:3000")
+    password_reset_expire_minutes: int = Field(default=60, ge=5, le=1440)
+    smtp_host: str = Field(default="")
+    smtp_port: int = Field(default=587)
+    smtp_username: str = Field(default="")
+    smtp_password: str = Field(default="")
+    smtp_from: str = Field(default="Savora <no-reply@localhost>")
+    smtp_starttls: bool = Field(default=True)
+
     # Member 2's compact B1 swap proof: "required" saves a swap only when it is VALID and
     # independently verified; "record" saves CSP-feasible swaps and records the proof;
     # "off" skips it (tests, slow machines).
