@@ -176,14 +176,6 @@ def _ranking_reason(
             f"any seed dishes yet.{position}",
             references=() if model_version is None else (model_version,),
         )
-    if fallback is FallbackReason.INSUFFICIENT_HISTORY:
-        return Reason(
-            kind=ReasonKind.RANKING,
-            code="RANKING_FALLBACK_INSUFFICIENT_HISTORY",
-            message=f"Ordered by overall popularity; more seed dishes will unlock personal "
-            f"ranking.{position}",
-            references=(model_version,),
-        )
     if fallback is FallbackReason.CANDIDATES_UNKNOWN_TO_MODEL:
         return Reason(
             kind=ReasonKind.RANKING,
@@ -377,7 +369,7 @@ def explain_craving_recipe(
             code="CRAVING_STANDARD_PORTION_ONLY",
             message=f"Nutrition shown is for a standard portion ({portion.label}). This "
             "suggestion was not checked against what is left of today's targets.",
-            references=(portion.portion_id,),\
+            references=(portion.portion_id,),
         )
     ]
     if ranking is not None:

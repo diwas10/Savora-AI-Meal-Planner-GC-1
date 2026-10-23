@@ -189,16 +189,11 @@ def recommend_for_craving(
             safety=safety,
         )
 
+    if request.requires_clarification:
+        return result(CravingStatus.NEEDS_CLARIFICATION, empty, (), ())
+
     retrieved, unknown, unmatched = retrieve_for_craving(request, profile, bundle)
-    screened = [
-        d
-        for d in retrieved
-        if dish_allowed(
-            d,
-            profile,
-            skip_exclusions=bool(request.excluded_ingredient_ids),  # NLU already screened them
-        )
-    ]
+    screened = [d for d in retrieved if dish_allowed(d, profile)]
     counts = empty.model_copy(
         update={"retrieved": len(retrieved), "screened_out": len(retrieved) - len(screened)}
     )

@@ -1,6 +1,6 @@
 """Catalogue routes."""
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Query, status
 
 from savora_backend.auth import CurrentUser
 from savora_backend.core.catalogue.dependencies import CatalogueBundleDep
@@ -43,6 +43,8 @@ async def get_dish(
     dish = CatalogueService(bundle).get_dish(recipe_id)
     if dish is None:
         raise RuntimeException(
-            "DISH_NOT_FOUND", f"Dish '{recipe_id}' was not found in the catalogue.", status_code=404
+            f"Dish '{recipe_id}' was not found in the catalogue.",
+            status_code=status.HTTP_404_NOT_FOUND,
+            source="catalogue",
         )
     return dish
