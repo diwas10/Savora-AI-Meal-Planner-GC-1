@@ -1,0 +1,7 @@
+*
+!Dockerfile
+!requirements.txt
+!app.py
+!model.py
+!sasrec_content.pt
+!sasrec_content.json

@@ -1,0 +1,6 @@
+# Preserve the verified runtime files byte-for-byte; lint all other files normally.
+extend = "../../pyproject.toml"
+
+[lint.per-file-ignores]
+"app.py" = ["I001", "E501", "B905"]
+"model.py" = ["I001", "UP035", "B905"]
