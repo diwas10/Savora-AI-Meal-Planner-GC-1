@@ -26,10 +26,11 @@ jobs:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v5
       - name: Create isolated service environment
-        run: uv venv --python 3.12 .venv
+        run: uv venv --python 3.12.14 .venv
       - name: Install hash-locked runtime and test dependencies
         run: |
-          uv pip install --python .venv/bin/python --require-hashes -r requirements.txt
+          # Match the lock's multi-index resolution; every runtime package is hash-pinned.
+          uv pip install --python .venv/bin/python --index-strategy unsafe-best-match --require-hashes -r requirements.txt
           uv pip install --python .venv/bin/python -r requirements-dev.txt
       - name: Run tests without trained weights
         run: .venv/bin/python -B -m pytest -c pytest.ini -q -p no:cacheprovider

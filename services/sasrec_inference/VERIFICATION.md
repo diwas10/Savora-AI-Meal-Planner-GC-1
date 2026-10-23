@@ -43,6 +43,13 @@ for this isolated source archive. The new independent CI workflow runs the servi
 suite without model weights or credentials; normal repository CI remains intact.
 No local Docker build was performed; a clone intentionally lacks its checkpoint.
 
+The first service CI attempt exposed uv's default first-index resolution: the
+CPU Torch index contains `filelock` but not the lock's pinned version, which is
+available on PyPI. CI now uses `--index-strategy unsafe-best-match`, matching the
+lock generation/deployed pip multi-index behavior while enforcing all runtime
+package hashes, and pins the deployed Python 3.12.14 patch version. No runtime
+source, package version or package hash changed for this CI correction.
+
 The original private-gateway verification is retained as historical evidence.
 Current read-only metadata reports **public** HF visibility, health is accessible
 without a bearer, and rank still requires the application service token. No
