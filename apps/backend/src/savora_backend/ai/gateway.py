@@ -3,7 +3,7 @@
 import asyncio
 from collections.abc import Iterable, Mapping, Sequence
 from datetime import date
-from typing import Annotated, Protocol
+from typing import Annotated, Any, Protocol
 
 from fastapi import Depends
 
@@ -73,6 +73,7 @@ class AiGateway(Protocol):
         revision: int,
         owner_id: str,
         start_date: date,
+        calculator_payload: Mapping[str, Any] | None = None,
     ) -> SwapProof: ...
 
     async def replacements(
@@ -184,6 +185,7 @@ class PipelineAiGateway:
         revision: int,
         owner_id: str,
         start_date: date,
+        calculator_payload: Mapping[str, Any] | None = None,
     ) -> SwapProof:
         return await asyncio.to_thread(
             prove_swap,
@@ -196,6 +198,7 @@ class PipelineAiGateway:
             revision=revision,
             owner_id=owner_id,
             start_date=start_date,
+            calculator_payload=calculator_payload,
         )
 
     async def replacements(

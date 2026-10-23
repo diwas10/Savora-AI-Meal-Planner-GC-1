@@ -11,7 +11,10 @@ export const profileFormSchema = z
     activity: z.enum(["SEDENTARY", "LIGHT", "MODERATE", "ACTIVE", "VERY_ACTIVE"]),
     goal: z.enum(["LOSE", "MAINTAIN", "GAIN"]),
     diet: z.enum(["NONE", "VEGETARIAN", "VEGAN"]),
-    cuisinePolicy: z.enum(["STRICT", "MAJORITY", "MIXED"]),
+    cuisinePolicy: z.enum(["STRICT", "MAJORITY", "MIXED"]).refine(
+      (policy): boolean => policy !== "MAJORITY",
+      "Mostly is unavailable in this prototype. Choose Mix it up or Only.",
+    ),
     cuisines: z.array(z.string()).max(25),
     excludedIngredients: z.array(z.string().min(1).max(60)).max(50),
     allergies: z.array(z.string().min(1).max(60)).max(50),
@@ -72,6 +75,9 @@ export function toFormValues(profile: UserProfileDto | undefined): ProfileFormVa
 }
 
 export function toUpsertRequest(v: ProfileFormValues): ProfileUpsertRequest {
+  if (v.cuisinePolicy === "MAJORITY") {
+    throw new Error("Choose MIXED or STRICT; MAJORITY is not supported.");
+  }
   return {
     ageYears: v.ageYears,
     sex: v.sex,

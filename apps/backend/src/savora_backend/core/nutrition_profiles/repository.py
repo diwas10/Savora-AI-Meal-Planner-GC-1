@@ -25,12 +25,15 @@ class ProfileRepository:
         Serialises one user's job starts, so two concurrent requests cannot both pass the
         "no job is generating" check. SQLite ignores the lock (tests run one at a time)."""
         stmt = (
-            select(UserProfileEntity).where(UserProfileEntity.user_id == user_id).with_for_update()
+            select(UserProfileEntity)
+            .where(UserProfileEntity.user_id == user_id)
+            .with_for_update()
+            .execution_options(populate_existing=True)
         )
         return await self._session.scalar(stmt)
 
     async def get_latest_nutrition(
-        self, user_id: UUID, profile_version: int
+        self, user_id: UUID, profile_version: int, *, lock: bool = False
     ) -> UserNutritionProfileEntity | None:
         stmt = (
             select(UserNutritionProfileEntity)
@@ -40,6 +43,8 @@ class ProfileRepository:
             )
             .order_by(desc(UserNutritionProfileEntity.created_at))
         )
+        if lock:
+            stmt = stmt.with_for_update().execution_options(populate_existing=True)
         return await self._session.scalar(stmt)
 
     async def save_profile(self, profile: UserProfileEntity) -> UserProfileEntity:

@@ -67,6 +67,8 @@ class MealPlanEntity(CommonEntity):
     safety: Mapped[dict[str, Any] | None] = mapped_column(JsonbType, nullable=True)
     search: Mapped[dict[str, Any] | None] = mapped_column(JsonbType, nullable=True)
     day_totals: Mapped[list[dict[str, Any]] | None] = mapped_column(JsonbType, nullable=True)
+    # Server-only provenance, not VERIFIED_AT_SAVE or client-supplied authority.
+    source_binding: Mapped[dict[str, Any] | None] = mapped_column(JsonbType, nullable=True)
     parent_plan_id: Mapped[UUID | None] = mapped_column(
         Uuid, ForeignKey("meal_plans.id", ondelete="SET NULL"), nullable=True
     )

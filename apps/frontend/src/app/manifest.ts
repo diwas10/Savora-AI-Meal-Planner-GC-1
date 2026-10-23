@@ -6,7 +6,7 @@ export default function manifest(): MetadataRoute.Manifest {
     id: "/",
     name: "Savora: explainable meal planning",
     short_name: "Savora",
-    description: "7-day meal plans that fit your cuisines, rules and allergies, with reasons.",
+    description: "Academic prototype for 7-day meal planning and swaps with explanations.",
     start_url: "/dashboard",
     scope: "/",
     display: "standalone",

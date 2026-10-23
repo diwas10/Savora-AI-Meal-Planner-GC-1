@@ -53,7 +53,7 @@ async def test_member3_end_to_end_journey(db_client: httpx.AsyncClient) -> None:
             "activity": "MODERATE",
             "goal": "MAINTAIN",
             "diet": "VEGETARIAN",
-            "cuisinePolicy": "MAJORITY",
+            "cuisinePolicy": "MIXED",
             "cuisines": ["Indian", "Nepali"],
             "excludedIngredients": ["mushroom"],
             "allergies": ["peanut"],

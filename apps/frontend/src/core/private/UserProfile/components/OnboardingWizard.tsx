@@ -23,7 +23,7 @@ type StepId = "about" | "food" | "health" | "targets" | "seeds" | "done";
 const STEPS: Array<{ id: StepId; title: string; description: string; fields?: FieldPath<ProfileFormValues>[] }> = [
   { id: "about", title: "About you", description: "Used only to estimate your daily energy and protein.", fields: ["ageYears", "sex", "heightCm", "weightKg", "activity", "goal"] },
   { id: "food", title: "Food and culture", description: "What you eat and how strictly to follow it.", fields: ["diet", "cuisinePolicy", "cuisines", "excludedIngredients"] },
-  { id: "health", title: "Allergies and health", description: "Allergies are always applied, everywhere.", fields: ["allergies", "allergiesConfirmed", "conditions"] },
+  { id: "health", title: "Allergies and health", description: "Ingredient screening is limited; allergy and clinical safety are not verified.", fields: ["allergies", "allergiesConfirmed", "conditions"] },
   { id: "targets", title: "Your estimated targets", description: "Review them before Savora plans your week." },
   { id: "seeds", title: "Dishes you like", description: "Pick 3 to 5 so recommendations start with your taste." },
   { id: "done", title: "You're all set", description: "Generate your first 7-day plan." },

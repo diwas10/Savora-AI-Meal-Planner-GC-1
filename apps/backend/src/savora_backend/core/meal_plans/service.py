@@ -6,6 +6,7 @@ from fastapi import status
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from savora_ai.schemas.enums import CuisinePolicy
 from savora_backend.ai.gateway import AiGateway
 from savora_backend.core.meal_plans.dto import (
     GeneratePlanAcceptedDto,
@@ -59,8 +60,13 @@ class MealPlanService:
         profile = await self._profiles.lock_by_user_id(user_id)
         if profile is None:
             raise conflict("complete onboarding first")
+        if profile.cuisine_policy == CuisinePolicy.MAJORITY.value:
+            raise conflict("MAJORITY is not supported; choose MIXED or STRICT in your profile.")
         if await self._plans.has_generating_job(user_id):
             raise conflict(JOB_RUNNING)
+        snapshot = await self._profiles.get_latest_nutrition(user_id, profile.version)
+        if snapshot is None:
+            raise conflict("Nutrition targets are missing; save your profile again.")
         plan = MealPlanEntity(
             user_id=user_id,
             week_start=body.week_start,
@@ -75,7 +81,6 @@ class MealPlanService:
             await self._plans.create_plan(plan)
         except IntegrityError as exc:
             raise conflict(JOB_RUNNING) from exc
-        snapshot = await self._profiles.get_latest_nutrition(user_id, profile.version)
         planning_profile = to_planning_profile(profile, snapshot)
         await self._session.commit()  # the job must see the committed row
         track_background_task(
@@ -86,6 +91,7 @@ class MealPlanService:
                 week_start=body.week_start,
                 gateway=self._gateway,
                 session_factory=self._job_factory(),
+                target_snapshot=dict(snapshot.targets),
             )
         )
         return GeneratePlanAcceptedDto(plan_id=plan.id)

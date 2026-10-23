@@ -278,6 +278,16 @@ export function SwapSheet({ plan, meal, open, onOpenChange, initialText = "", on
               checked again independently. This can take a few minutes. You can close this
               sheet; we&apos;ll update your plan when it&apos;s done.
             </p>
+            {swapQuery.isError && (
+              <div className="mt-4 flex flex-col gap-3">
+                <InlineAlert tone="warning">
+                  We could not load the swap status. It may still be running; retry or refresh your saved plans.
+                </InlineAlert>
+                <Button variant="secondary" onClick={() => void swapQuery.refetch()}>
+                  Retry status check
+                </Button>
+              </div>
+            )}
           </motion.div>
         )}
 
@@ -291,11 +301,14 @@ export function SwapSheet({ plan, meal, open, onOpenChange, initialText = "", on
                   </motion.span>
                   <h3 className="mt-3 text-lg font-semibold">Meal swapped</h3>
                   <p className="text-sm text-muted-foreground">Saved as a new version of your plan. Nothing else changed.</p>
-                  {sub.proof?.verified && (
+                  {sub.proof?.verified && sub.proof.status === "VALID" && (
                     <Badge tone="success" className="mt-2" title={`Certificate ${sub.proof.certificateDigest ?? ""}`}>
-                      <ShieldCheck className="size-3.5" aria-hidden /> Swap independently verified
+                      <ShieldCheck className="size-3.5" aria-hidden /> Stand-in swap checks independently verified
                     </Badge>
                   )}
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    Nutrient targets, clinical rules and allergy safety are not verified by these checks.
+                  </p>
                 </div>
                 <div className="flex flex-col items-stretch gap-2">
                   {sub.beforeSnapshot && <SnapshotRow label="Before" meal={sub.beforeSnapshot} muted />}

@@ -111,7 +111,7 @@ class ProfileService:
     ) -> ProfileEnvelopeData:
         fields = self._validated_fields(body)
         now = datetime.now(UTC)
-        profile = await self._repo.get_by_user_id(user_id)
+        profile = await self._repo.lock_by_user_id(user_id)
         if profile is not None and all(getattr(profile, k) == v for k, v in fields.items()):
             # Nothing relevant changed: same version, same targets, plans stay valid.
             return await self.get_profile(user_id)

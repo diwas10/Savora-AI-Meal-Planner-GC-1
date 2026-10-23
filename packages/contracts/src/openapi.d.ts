@@ -259,7 +259,7 @@ export interface components {
       activity: components["schemas"]["ActivityLevel"];
       goal: components["schemas"]["Goal"];
       diet?: components["schemas"]["DietPattern"] | null;
-      cuisinePolicy?: components["schemas"]["CuisinePolicy"];
+      cuisinePolicy?: "MIXED" | "STRICT";
       cuisines?: (string)[];
       excludedIngredients?: (string)[];
       allergies?: (string)[];
