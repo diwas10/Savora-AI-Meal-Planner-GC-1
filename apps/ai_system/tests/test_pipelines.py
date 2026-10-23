@@ -379,9 +379,30 @@ def test_swap_is_independently_verified_by_the_compact_b1_proof(
 ) -> None:
     # Member 2's compact B1 (PR #21) over our runtime resolver: both complete weeks are
     # replayed from the server's own catalogue and the witness reconstructed independently.
+    from datetime import UTC, datetime
     from decimal import Decimal
 
+    from savora_ai.core.nutrition.models import TargetInput
+    from savora_ai.core.nutrition.targets import calculate_nutrition_targets
     from savora_ai.core.pipelines import prove_swap
+    from savora_ai.schemas.enums import ActivityLevel, Goal, Sex
+
+    # Fictional calculator inputs reproduce the saved fixture's exact 1800 kcal / 50 g
+    # targets. The real compact executor and independent verifier must admit the complete
+    # calculator body supplied by the backend, without claiming nutrient bands are active.
+    targets = calculate_nutrition_targets(
+        TargetInput(
+            age_years=30,
+            sex=Sex.MALE,
+            height_cm=163.2,
+            weight_kg=62.5,
+            activity=ActivityLevel.SEDENTARY,
+            goal=Goal.MAINTAIN,
+        ),
+        profile_version=1,
+        calculated_at=datetime(2026, 10, 23, tzinfo=UTC),
+    )
+    assert targets.energy_kcal.target == TARGETS["energyKcalTarget"]
 
     new = next(m for m in swapped.meals if m.slot_id == "D2_LUNCH")
     proof = prove_swap(
@@ -394,6 +415,7 @@ def test_swap_is_independently_verified_by_the_compact_b1_proof(
         revision=1,
         owner_id="user-1",
         start_date=START,
+        calculator_payload=targets.model_dump(mode="json", by_alias=True),
     )
     assert proof.status == "VALID" and proof.verified, proof.reason
     assert proof.certificate_digest is not None and len(proof.certificate_digest) == 64

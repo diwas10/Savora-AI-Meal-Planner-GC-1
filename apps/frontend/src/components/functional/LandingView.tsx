@@ -12,10 +12,10 @@ import { hasSession } from "@/lib/api-request";
 import { fadeUp, stagger } from "@/lib/motion";
 
 const FEATURES = [
-  { Icon: CalendarCheck, title: "A whole week, checked", text: "21 meals verified together, not one at a time." },
+  { Icon: CalendarCheck, title: "A whole week, checked", text: "21 meal slots checked together with prototype rules." },
   { Icon: Repeat2, title: "Swap without chaos", text: "Change one meal; the other 20 stay locked." },
   { Icon: MessageCircle, title: "Ask for a craving", text: "“Spicy Thai, no peanuts” in plain words." },
-  { Icon: ShieldCheck, title: "Your rules first", text: "Allergies and diet apply to every result." },
+  { Icon: ShieldCheck, title: "Your preferences first", text: "Ingredient and diet screening; allergy safety is not verified." },
 ];
 
 export function LandingView() {
@@ -56,8 +56,8 @@ export function LandingView() {
             Meals that fit your life, with reasons you can read.
           </motion.h1>
           <motion.p variants={fadeUp} className="mt-5 max-w-xl text-lg opacity-90">
-            Savora plans seven days around your cuisines, diet and allergies, explains every
-            choice, and lets you swap a meal without breaking the week.
+            Savora is an academic prototype for seven-day planning and meal swaps, with
+            explanations. Nutrient targets and clinical or allergy safety are not verified.
           </motion.p>
           <motion.div variants={fadeUp} className="mt-8 flex flex-wrap gap-3">
             <LinkButton href="/register" size="lg" className="bg-hero-ink text-hero-from shadow-float hover:bg-hero-ink/90" icon={<ArrowRight className="size-5" aria-hidden />}>

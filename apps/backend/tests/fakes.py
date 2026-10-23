@@ -2,6 +2,7 @@
 
 from collections.abc import Iterable, Mapping, Sequence
 from datetime import date, timedelta
+from typing import Any, get_args
 
 from savora_ai.core.explainability.explanation import (
     PlanningOutcome,
@@ -31,9 +32,11 @@ from savora_ai.core.pipelines.planning import DayTotals, SearchSummary
 from savora_ai.core.pipelines.profile import combination_allowed, safety_verification
 from savora_ai.core.recommendation.ranking import FallbackReason
 from savora_ai.core.recommendation.seeds import DEFAULT_SUGGESTIONS, SeedSuggestions
+from savora_ai.schemas.compact_swap import CompactNutrientTotal
 from savora_ai.schemas.craving import CravingRequest
 from savora_ai.schemas.daily import DailyOutcome
 from savora_ai.schemas.enums import MealType, PortionPreset
+from savora_ai.schemas.nutrients_v2 import Nutrient, native_unit
 from savora_backend.core.catalogue import get_catalogue_bundle
 
 
@@ -343,6 +346,7 @@ class FakeAiGateway:
         revision: int,
         owner_id: str,
         start_date: date,
+        calculator_payload: Mapping[str, Any] | None = None,
     ) -> SwapProof:
         del profile, start_date
         self.proved.append(
@@ -353,6 +357,7 @@ class FakeAiGateway:
                 "plan": plan_id,
                 "revision": revision,
                 "owner": owner_id,
+                "calculatorPayload": dict(calculator_payload or {}),
             }
         )
         valid = self.proof_status == "VALID"
@@ -363,7 +368,12 @@ class FakeAiGateway:
             reason="simulated",
             certificate_digest="c" * 64 if valid else None,
             input_digest="i" * 64,
-            changed_day_totals=(),
+            changed_day_totals=tuple(
+                CompactNutrientTotal(nutrient=n, unit=native_unit(n), value="1.000", complete=True)
+                for n in get_args(Nutrient)
+            )
+            if valid
+            else (),
             seconds=0.01,
         )
 

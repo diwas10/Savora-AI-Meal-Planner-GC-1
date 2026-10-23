@@ -25,7 +25,7 @@ def _base_profile(**overrides: object) -> dict[str, object]:
         "activity": "MODERATE",
         "goal": "MAINTAIN",
         "diet": "VEGETARIAN",
-        "cuisinePolicy": "MAJORITY",
+        "cuisinePolicy": "MIXED",
         "cuisines": ["Indian", "Nepali"],
         "excludedIngredients": ["mushroom"],
         "allergies": [],

@@ -131,13 +131,20 @@ export function FoodSection({ form }: { form: Form }) {
             onChange={field.onChange}
             options={[
               { value: "MIXED", label: "Mix it up", hint: "any cuisine" },
-              { value: "MAJORITY", label: "Mostly", hint: "my cuisines" },
               { value: "STRICT", label: "Only", hint: "my cuisines" },
             ]}
           />
         )}
       />
       <fieldset>
+        {policy === "MAJORITY" && (
+          <p role="alert" className="mb-3 text-sm text-warning-foreground">
+            Mostly is unavailable in this prototype. Choose Mix it up or Only before saving.
+          </p>
+        )}
+        {formState.errors.cuisinePolicy?.message && (
+          <p role="alert" className="mb-3 text-sm text-danger">{formState.errors.cuisinePolicy.message}</p>
+        )}
         <legend className="mb-2 text-sm font-medium">
           {policy === "MIXED" ? "Favourite cuisines (optional)" : "Your cuisines"}
         </legend>

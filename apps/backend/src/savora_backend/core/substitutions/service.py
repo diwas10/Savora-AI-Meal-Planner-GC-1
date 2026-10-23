@@ -19,6 +19,7 @@ from savora_ai.schemas.craving import CravingRequest
 from savora_backend.ai.gateway import AiGateway
 from savora_backend.config import get_settings
 from savora_backend.core.cravings import CravingParseMeta, parse_meta
+from savora_backend.core.meal_plans.authority import validate_binding
 from savora_backend.core.meal_plans.dto import (
     CreateSubstitutionAcceptedDto,
     CreateSubstitutionRequest,
@@ -86,6 +87,23 @@ class SubstitutionService:
         slots = await self._plans.get_slots(plan.id)
         if not any(s.slot_id == slot_id for s in slots):
             raise not_found(f"Slot {slot_id} is not on this plan", SOURCE)
+        snapshot = await self._profiles.get_latest_nutrition(user_id, profile.version)
+        if snapshot is None:
+            raise conflict("Nutrition targets are missing; save your profile again.", SOURCE)
+        try:
+            validate_binding(
+                plan,
+                slots,
+                bundle=self._gateway.bundle,
+                profile=to_planning_profile(profile, snapshot),
+                targets=snapshot.targets,
+            )
+        except ValueError as exc:
+            raise conflict(
+                "Saved plan sources or targets cannot be verified; "
+                "generate a new plan before swapping.",
+                SOURCE,
+            ) from exc
         return plan, profile, slots
 
     async def _preference(
@@ -166,6 +184,7 @@ class SubstitutionService:
                 session_factory=self._job_session_factory or get_session_factory(),
                 from_revision=plan.revision,
                 proof_mode=get_settings().swap_proof_mode,
+                expected_binding=dict(plan.source_binding or {}),
             )
         )
         return CreateSubstitutionAcceptedDto(substitution_id=sub.id)

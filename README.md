@@ -1,6 +1,8 @@
 # Savora — Explainable Neuro-Symbolic Meal Planning (GC1 Monorepo)
 
 Read [`AGENTS.md`](./AGENTS.md) and [`ARCHITECTURE.md`](./ARCHITECTURE.md) before making changes.
+For the final submission fixes, required migration and known verification limits, see
+[`docs/submission_fixes_20261023.md`](./docs/submission_fixes_20261023.md).
 For the app's architecture, contracts, NLU evaluation, integration status and handoff notes, see [`docs/member3/HANDOFF.md`](./docs/member3/HANDOFF.md). The UI follows [`.agents/designs/DESIGN_SYSTEM.md`](./.agents/designs/DESIGN_SYSTEM.md) and [`.agents/designs/SCREENS.md`](./.agents/designs/SCREENS.md).
 
 ## Monorepo Layout

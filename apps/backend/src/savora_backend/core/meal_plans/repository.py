@@ -25,10 +25,14 @@ class MealPlanRepository:
             select(MealPlanEntity).where(MealPlanEntity.id == plan_id)
         )
 
-    async def get_owned_plan(self, plan_id: UUID, user_id: UUID) -> MealPlanEntity | None:
+    async def get_owned_plan(
+        self, plan_id: UUID, user_id: UUID, *, lock: bool = False
+    ) -> MealPlanEntity | None:
         stmt = select(MealPlanEntity).where(
             MealPlanEntity.id == plan_id, MealPlanEntity.user_id == user_id
         )
+        if lock:
+            stmt = stmt.with_for_update().execution_options(populate_existing=True)
         return await self._session.scalar(stmt)
 
     async def get_substitution_by_id(
@@ -40,12 +44,14 @@ class MealPlanRepository:
         return await self._session.scalar(stmt)
 
     async def get_owned_substitution(
-        self, substitution_id: UUID, user_id: UUID
+        self, substitution_id: UUID, user_id: UUID, *, lock: bool = False
     ) -> MealPlanSubstitutionEntity | None:
         stmt = select(MealPlanSubstitutionEntity).where(
             MealPlanSubstitutionEntity.id == substitution_id,
             MealPlanSubstitutionEntity.user_id == user_id,
         )
+        if lock:
+            stmt = stmt.with_for_update().execution_options(populate_existing=True)
         return await self._session.scalar(stmt)
 
     async def has_generating_job(self, user_id: UUID) -> bool:
@@ -78,12 +84,14 @@ class MealPlanRepository:
         stmt = stmt.order_by(desc(MealPlanEntity.created_at), desc(MealPlanEntity.revision))
         return list((await self._session.scalars(stmt)).all())
 
-    async def get_slots(self, plan_id: UUID) -> list[MealPlanSlotEntity]:
+    async def get_slots(self, plan_id: UUID, *, lock: bool = False) -> list[MealPlanSlotEntity]:
         stmt = (
             select(MealPlanSlotEntity)
             .where(MealPlanSlotEntity.plan_id == plan_id)
             .order_by(MealPlanSlotEntity.day_index, MealPlanSlotEntity.id)
         )
+        if lock:
+            stmt = stmt.with_for_update().execution_options(populate_existing=True)
         return list((await self._session.scalars(stmt)).all())
 
     async def stale_plans(self) -> list[MealPlanEntity]:

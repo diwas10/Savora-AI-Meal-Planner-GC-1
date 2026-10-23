@@ -1,6 +1,7 @@
 """Profile DTOs."""
 
 from datetime import datetime
+from typing import Literal
 from uuid import UUID
 
 from pydantic import Field
@@ -19,7 +20,7 @@ class ProfileUpsertRequest(CamelModel):
     activity: ActivityLevel
     goal: Goal
     diet: DietPattern | None = None
-    cuisine_policy: CuisinePolicy = CuisinePolicy.MIXED
+    cuisine_policy: Literal[CuisinePolicy.MIXED, CuisinePolicy.STRICT] = CuisinePolicy.MIXED
     cuisines: list[str] = Field(default_factory=list, max_length=25)
     excluded_ingredients: list[str] = Field(default_factory=list, max_length=50)
     allergies: list[str] = Field(default_factory=list, max_length=50)

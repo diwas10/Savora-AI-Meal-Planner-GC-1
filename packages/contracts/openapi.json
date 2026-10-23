@@ -2537,7 +2537,12 @@
             ]
           },
           "cuisinePolicy": {
-            "$ref": "#/components/schemas/CuisinePolicy",
+            "type": "string",
+            "enum": [
+              "MIXED",
+              "STRICT"
+            ],
+            "title": "Cuisinepolicy",
             "default": "MIXED"
           },
           "cuisines": {

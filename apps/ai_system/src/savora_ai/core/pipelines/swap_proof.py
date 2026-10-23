@@ -269,6 +269,7 @@ def build_swap(
     revision: int,
     owner_id: str,
     start_date: date,
+    calculator_payload: Mapping[str, Any] | None = None,
 ) -> tuple[CompactSwapInput, CatalogueResolver]:
     """The compact B1 input and its resolver for one saved slot's replacement."""
     combo, config = replacement
@@ -276,10 +277,13 @@ def build_swap(
     inputs = _week_inputs(bundle, profile, f"{plan_id}-r{revision}", start_date, saved, extra)
     ev = (evidence(bundle.version, "m1-runtime-swap-authority"),)
     targets = None if profile.targets is None else profile.targets.model_dump(mode="json")
+    target_payload: dict[str, Any] = {"dayTargets": targets, "bandsEnforced": False}
+    if calculator_payload is not None:
+        target_payload["calculatorSnapshot"] = dict(calculator_payload)
     target_snapshot = CompactTargetSnapshot(
         profile_id=inputs.context.profile_id,
         profile_version=inputs.context.profile_version,
-        calculator_payload={"dayTargets": targets, "bandsEnforced": False},
+        calculator_payload=target_payload,
         bands=(),
     )
     target_ref = s.SyntheticTargetReference(
@@ -486,6 +490,7 @@ def prove_swap(
     revision: int,
     owner_id: str,
     start_date: date,
+    calculator_payload: Mapping[str, Any] | None = None,
     clock: Callable[[], float] = monotonic,
 ) -> SwapProof:
     """Execute and independently verify the B1 swap of `slot` to `replacement_option_id`.
@@ -509,6 +514,7 @@ def prove_swap(
             revision=revision,
             owner_id=owner_id,
             start_date=start_date,
+            calculator_payload=calculator_payload,
         )
     result = execute_compact_swap(compact, resolver, clock=clock)
     check = verify_compact_swap(compact, result, resolver, clock=clock)

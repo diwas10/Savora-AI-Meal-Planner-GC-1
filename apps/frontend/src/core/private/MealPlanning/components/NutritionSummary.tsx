@@ -37,8 +37,9 @@ export function NutritionSummary({
         </div>
       </div>
       <p className="mt-4 text-xs leading-relaxed text-muted-foreground">
-        Portions are sized toward these estimates before the weekly check, which confirms
-        every meal fits your rules. Reaching the estimates is not yet a verified rule.
+        Portions are fitted toward energy and protein estimates. Nutritional bands are
+        not enforced by the weekly check. Unknown values are not evidence of compliance;
+        allergy and health-condition safety is not verified.
       </p>
     </Card>
   );
