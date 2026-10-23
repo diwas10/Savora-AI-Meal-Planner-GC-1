@@ -1,0 +1,9 @@
+# Preserve deployed artifact hashes across platforms (no newline conversion).
+app.py -text
+model.py -text
+Dockerfile -text
+.dockerignore -text
+requirements.in -text
+requirements.txt -text
+sasrec_content.json -text
+fixture.json -text

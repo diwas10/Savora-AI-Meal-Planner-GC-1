@@ -1,0 +1,63 @@
+{
+  "sha": "ed1392996183abfdc844529dd93c251d568b2cb8",
+  "runtime_stage": "RUNNING",
+  "private_gateway_unauthenticated_health_status": 404,
+  "health_http_status": 200,
+  "health": {
+    "status": "ready",
+    "ready": true,
+    "model_version": "sasrec-content-v2",
+    "schema_version": "savora-rank-v1",
+    "score_mode": "transformer_only",
+    "checkpoint_sha256": "87f1855284befc8e6b43d86779edc177b592bbe68f0cb3a8f89c288e41f0cb45"
+  },
+  "missing_application_auth_status": 401,
+  "wrong_application_auth_status": 401,
+  "invalid_id_status": 422,
+  "rank_http_status": 200,
+  "response": {
+    "schema_version": "savora-rank-v1",
+    "model_version": "sasrec-content-v2",
+    "score_mode": "transformer_only",
+    "scores": [
+      {
+        "candidate_id": "FC_100001",
+        "score": -1.0865507125854492,
+        "rank": 4
+      },
+      {
+        "candidate_id": "FC_100002",
+        "score": -2.292989492416382,
+        "rank": 5
+      },
+      {
+        "candidate_id": "FC_100003",
+        "score": -0.9994651675224304,
+        "rank": 2
+      },
+      {
+        "candidate_id": "FC_100004",
+        "score": -1.047228455543518,
+        "rank": 3
+      },
+      {
+        "candidate_id": "FC_100005",
+        "score": 2.2045743465423584,
+        "rank": 1
+      }
+    ]
+  },
+  "identical_repeats": 5,
+  "maximum_absolute_local_remote_difference": 2.384185791015625e-07,
+  "round_trip_ms": {
+    "samples": [
+      433.62730008084327,
+      354.2711999034509,
+      363.28630009666085,
+      388.2551999995485,
+      430.6648999918252
+    ],
+    "median": 388.2551999995485,
+    "maximum": 433.62730008084327
+  }
+}

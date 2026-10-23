@@ -88,3 +88,11 @@ and needs a connection only to generate plans, swap meals and use Discover.
 - **Browser → Next.js (`apps/frontend`) → FastAPI (`apps/backend`) → AI (`apps/ai_system`).**
 - `savora-backend` imports `savora-ai` in-process via the `uv` workspace; `savora-ai` never imports backend ORM models, controllers, or frontend code.
 - PostgreSQL (Supabase) is the sole mandatory production database for GC1.
+
+## Verified Hugging Face inference source
+
+The independently deployed SASRec service is archived in
+[`services/sasrec_inference`](services/sasrec_inference/README.md), with its pinned
+revision, checkpoint hash, tests and [Render integration handoff](services/sasrec_inference/RENDER_HANDOFF.md).
+Trained weights remain on Hugging Face and are not supplied by cloning GitHub.
+This archive does not enable remote ranking or connect the Render backend.

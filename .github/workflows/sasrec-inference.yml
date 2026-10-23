@@ -1,0 +1,35 @@
+name: SASRec inference source
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - services/sasrec_inference/**
+      - .github/workflows/sasrec-inference.yml
+  push:
+    branches: [main]
+    paths:
+      - services/sasrec_inference/**
+      - .github/workflows/sasrec-inference.yml
+
+permissions:
+  contents: read
+
+jobs:
+  source-tests:
+    name: Protocol, failure and provenance tests (no weights or credentials)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: services/sasrec_inference
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - name: Create isolated service environment
+        run: uv venv --python 3.12 .venv
+      - name: Install hash-locked runtime and test dependencies
+        run: |
+          uv pip install --python .venv/bin/python --require-hashes -r requirements.txt
+          uv pip install --python .venv/bin/python -r requirements-dev.txt
+      - name: Run tests without trained weights
+        run: .venv/bin/python -B -m pytest -c pytest.ini -q -p no:cacheprovider

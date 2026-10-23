@@ -1,0 +1,73 @@
+{
+  "files": [
+    {
+      "path": "app.py",
+      "bytes": 7127,
+      "sha256": "1f3d549a9c478a0134dec6b370c7cbccde6136bd9f55a10074c81ca6424377ae"
+    },
+    {
+      "path": "model.py",
+      "bytes": 10211,
+      "sha256": "b54b8e05d19cbd11b9507fe709b6b1c429ffdae93b38890d471519effcbfa9d7"
+    },
+    {
+      "path": "sasrec_content.pt",
+      "bytes": 196509717,
+      "sha256": "87f1855284befc8e6b43d86779edc177b592bbe68f0cb3a8f89c288e41f0cb45"
+    },
+    {
+      "path": "sasrec_content.json",
+      "bytes": 3860,
+      "sha256": "1fe9c9501747ea551710e7a11c8f9f8d4dcccee05196e76cd70c771728f76c02"
+    },
+    {
+      "path": "README.md",
+      "bytes": 7984,
+      "sha256": "cacee0f39e5e5a4816def32256a0c2ca76662221b4b616b7fc0547347f5ef99c"
+    },
+    {
+      "path": "Dockerfile",
+      "bytes": 795,
+      "sha256": "82f4f06121927eb8c89be8edd9d007178c5e3d9a42dbc3510646e17201fe0673"
+    },
+    {
+      "path": ".dockerignore",
+      "bytes": 90,
+      "sha256": "375e981b8b1e048ef677b4d47401eb50b84128424524f435fa91056c6a81b24a"
+    },
+    {
+      "path": ".gitignore",
+      "bytes": 136,
+      "sha256": "6aca9e161ebb5ca23205776df697bc508c36a3687bd56781d78e45b3ed5294f7"
+    },
+    {
+      "path": "requirements.txt",
+      "bytes": 38270,
+      "sha256": "5af7febad8e5d600224d67153d89b299989b8c93d987171cf1893c1c54d3fe7b"
+    },
+    {
+      "path": "requirements.in",
+      "bytes": 119,
+      "sha256": "a963087c7ecabe11cd9f19a059ad5bea9179bccb28a21e0350931d7e59b6a567"
+    },
+    {
+      "path": "requirements-dev.txt",
+      "bytes": 65,
+      "sha256": "b8ee95cae508f604f5dcbd3cd744327d95b9e09c6d66eda1c905240f0b42305a"
+    },
+    {
+      "path": "fixture.json",
+      "bytes": 181,
+      "sha256": "d9aacb4dd7e9a09ee367726bcb6c92ace8b5cedf480fbe4c6b78cceed809b590"
+    },
+    {
+      "path": "test_service.py",
+      "bytes": 5921,
+      "sha256": "2683eed1f11bf83ee5c1aafbeb8921776d607fb54e8650584eefa865053b623e"
+    }
+  ],
+  "tests_passed": 27,
+  "private_hosting_authorization": "Explicit project-owner user instruction",
+  "raw_datasets": false,
+  "credential_files": false
+}

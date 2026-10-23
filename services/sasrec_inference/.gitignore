@@ -1,0 +1,24 @@
+# Model artifacts belong on Hugging Face, never in GitHub (including LFS).
+*.pt
+*.pth
+*.bin
+*.safetensors
+.env
+.env.*
+!.env.example
+.local-secrets/
+*.dpapi
+*.secret
+*.token
+*.pem
+*.key
+.venv/
+.python/
+.uv-cache/
+.cache/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+*.pyc
+.test-output/
+deployment/

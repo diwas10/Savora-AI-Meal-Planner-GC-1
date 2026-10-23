@@ -1,0 +1,5 @@
+{
+  "schema_version": "savora-rank-v1",
+  "history_ids": ["FC_100", "FC_10000", "FC_100000"],
+  "candidate_ids": ["FC_100001", "FC_100002", "FC_100003", "FC_100004", "FC_100005"]
+}

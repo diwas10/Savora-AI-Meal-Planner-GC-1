@@ -1,0 +1,18 @@
+{
+  "revision": "ed1392996183abfdc844529dd93c251d568b2cb8",
+  "private": false,
+  "runtime_stage": "RUNNING",
+  "source_files_matched": 8,
+  "health": {
+    "status": "ready",
+    "ready": true,
+    "model_version": "sasrec-content-v2",
+    "schema_version": "savora-rank-v1",
+    "score_mode": "transformer_only",
+    "checkpoint_sha256": "87f1855284befc8e6b43d86779edc177b592bbe68f0cb3a8f89c288e41f0cb45"
+  },
+  "checkpoint_downloaded": false,
+  "remote_mutations": false,
+  "unauthenticated_health_status": 200,
+  "rank_without_application_auth_status": 401
+}

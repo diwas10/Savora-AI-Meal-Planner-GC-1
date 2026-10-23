@@ -1,0 +1,54 @@
+{
+  "health": {
+    "status": "ready",
+    "ready": true,
+    "model_version": "sasrec-content-v2",
+    "schema_version": "savora-rank-v1",
+    "score_mode": "transformer_only",
+    "checkpoint_sha256": "87f1855284befc8e6b43d86779edc177b592bbe68f0cb3a8f89c288e41f0cb45"
+  },
+  "response": {
+    "schema_version": "savora-rank-v1",
+    "model_version": "sasrec-content-v2",
+    "score_mode": "transformer_only",
+    "scores": [
+      {
+        "candidate_id": "FC_100001",
+        "score": -1.0865508317947388,
+        "rank": 4
+      },
+      {
+        "candidate_id": "FC_100002",
+        "score": -2.2929892539978027,
+        "rank": 5
+      },
+      {
+        "candidate_id": "FC_100003",
+        "score": -0.99946528673172,
+        "rank": 2
+      },
+      {
+        "candidate_id": "FC_100004",
+        "score": -1.0472285747528076,
+        "rank": 3
+      },
+      {
+        "candidate_id": "FC_100005",
+        "score": 2.2045745849609375,
+        "rank": 1
+      }
+    ]
+  },
+  "model_load_and_warmup_seconds": 1.2133753000525758,
+  "rss_mib": 637.1484375,
+  "fixture_latency_ms": {
+    "median": 0.9743500268086791,
+    "p95": 1.5370999462902546,
+    "samples": 30
+  },
+  "max_input_latency_ms": {
+    "median": 2.502450020983815,
+    "maximum": 2.915299963206053,
+    "samples": 10
+  }
+}
