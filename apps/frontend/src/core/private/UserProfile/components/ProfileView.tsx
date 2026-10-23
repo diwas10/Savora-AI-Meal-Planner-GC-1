@@ -1,6 +1,17 @@
 "use client";
 
-import { CalendarDays, ChevronRight, Heart, LogOut, Pencil, ShieldAlert, UtensilsCrossed } from "lucide-react";
+import {
+  CalendarDays,
+  ChevronRight,
+  Heart,
+  Laptop,
+  LogOut,
+  Moon,
+  Pencil,
+  ShieldAlert,
+  Sun,
+  UtensilsCrossed,
+} from "lucide-react";
 import { motion } from "motion/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -13,6 +24,7 @@ import { Card, SectionTitle } from "@/components/ui/Card";
 import { Sheet } from "@/components/ui/Sheet";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { ErrorState } from "@/components/ui/States";
+import { useTheme } from "@/core/common/theme/ThemeContext";
 import { useCurrentUserQuery, useLogout } from "@/core/public/Auth/service/auth.query";
 import { useOnline } from "@/hooks/useOnline";
 import { fadeUp, stagger } from "@/lib/motion";
@@ -50,6 +62,7 @@ export function ProfileView() {
   const profile = useProfileQuery();
   const logout = useLogout();
   const online = useOnline();
+  const { theme, setTheme } = useTheme();
   const [seedsOpen, setSeedsOpen] = useState(false);
 
   const signOut = () => {
@@ -138,6 +151,37 @@ export function ProfileView() {
             </Card>
           </motion.section>
 
+          {/* Theme switcher */}
+          <motion.section variants={fadeUp} className="flex flex-col gap-3">
+            <SectionTitle title="Appearance" />
+            <Card className="flex items-center justify-between p-4">
+              <div>
+                <p className="text-sm font-medium text-foreground">Theme</p>
+                <p className="text-xs text-muted-foreground">Choose light, dark, or system mode</p>
+              </div>
+              <div className="flex items-center gap-1 rounded-pill bg-surface-muted p-1 ring-1 ring-border">
+                <ThemeButton
+                  active={theme === "light"}
+                  icon={<Sun className="size-4" aria-hidden />}
+                  label="Light"
+                  onClick={() => setTheme("light")}
+                />
+                <ThemeButton
+                  active={theme === "dark"}
+                  icon={<Moon className="size-4" aria-hidden />}
+                  label="Dark"
+                  onClick={() => setTheme("dark")}
+                />
+                <ThemeButton
+                  active={theme === "system"}
+                  icon={<Laptop className="size-4" aria-hidden />}
+                  label="System"
+                  onClick={() => setTheme("system")}
+                />
+              </div>
+            </Card>
+          </motion.section>
+
           <motion.section variants={fadeUp} className="flex flex-col gap-3">
             <SectionTitle title="Your Savora" />
             <ProfileLink icon={<Heart className="size-5" aria-hidden />} title="Favourite dishes" detail={`${p.seedRecipeIds.length} picked`} onClick={() => setSeedsOpen(true)} />
@@ -164,6 +208,34 @@ export function ProfileView() {
         {p && <SeedPicker initial={p.seedRecipeIds} onDone={() => setSeedsOpen(false)} />}
       </Sheet>
     </>
+  );
+}
+
+function ThemeButton({
+  active,
+  icon,
+  label,
+  onClick,
+}: {
+  active: boolean;
+  icon: ReactNode;
+  label: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`flex items-center gap-1.5 rounded-pill px-3 py-1.5 text-xs font-semibold transition ${
+        active
+          ? "bg-surface text-foreground shadow-sm ring-1 ring-border"
+          : "text-muted-foreground hover:text-foreground"
+      }`}
+      aria-pressed={active}
+    >
+      {icon}
+      <span>{label}</span>
+    </button>
   );
 }
 

@@ -6,6 +6,7 @@ import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client
 import { MotionConfig } from "motion/react";
 import { useState, type ReactNode } from "react";
 import { ApiError, QUERY_CACHE_KEY } from "@/lib/api-request";
+import { ThemeProvider } from "@/core/common/theme/ThemeContext";
 
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 
@@ -34,20 +35,14 @@ export function Providers({ children }: { children: ReactNode }) {
       ? null
       : createSyncStoragePersister({ storage: window.localStorage, key: QUERY_CACHE_KEY }),
   );
-  const content = <MotionConfig reducedMotion="user">{children}</MotionConfig>;
+  const content = (
+    <ThemeProvider>
+      <MotionConfig reducedMotion="user">{children}</MotionConfig>
+    </ThemeProvider>
+  );
   if (!persister) return <QueryClientProvider client={queryClient}>{content}</QueryClientProvider>;
   return (
-    <PersistQueryClientProvider
-      client={queryClient}
-      persistOptions={{
-        persister,
-        maxAge: WEEK_MS,
-        buster: "savora-v1",
-        dehydrateOptions: {
-          shouldDehydrateQuery: (q) => q.state.status === "success" && q.queryKey[0] !== "substitutions",
-        },
-      }}
-    >
+    <PersistQueryClientProvider client={queryClient} persistOptions={{ persister, maxAge: WEEK_MS }}>
       {content}
     </PersistQueryClientProvider>
   );
