@@ -163,13 +163,15 @@ def recommend_for_craving(
     if not 1 <= top_k <= MAX_TOP_K:
         raise ValueError(f"top_k must be 1..{MAX_TOP_K}")
     safety = safety_verification(profile)
+    empty = CravingCounts(retrieved=0, screened_out=0, rule_checked=0, rule_excluded=0)
 
     def result(
         status: CravingStatus,
         counts: CravingCounts,
-        unknown: Sequence[str] = (),
-        unmatched: Sequence[FlavorTag] = (),
+        unknown: tuple[str, ...],
+        unmatched: tuple[FlavorTag, ...],
         items: Sequence[CravingItem] = (),
+        *,
         model: tuple[str | None, FallbackReason | None] = (None, None),
         kb: tuple[str | None, str | None] = (None, None),
     ) -> CravingRecommendation:
@@ -179,19 +181,24 @@ def recommend_for_craving(
             items=tuple(items),
             model_version=model[0],
             fallback_reason=model[1],
-            unknown_cuisine_ids=tuple(unknown),
-            unmatched_flavor_tags=tuple(unmatched),
+            unknown_cuisine_ids=unknown,
+            unmatched_flavor_tags=unmatched,
             counts=counts,
             kb_id=kb[0],
             kb_version=kb[1],
             safety=safety,
         )
 
-    empty = CravingCounts(retrieved=0, screened_out=0, rule_checked=0, rule_excluded=0)
-    if request.requires_clarification:
-        return result(CravingStatus.NEEDS_CLARIFICATION, empty)
     retrieved, unknown, unmatched = retrieve_for_craving(request, profile, bundle)
-    screened = [d for d in retrieved if dish_allowed(d, profile)]
+    screened = [
+        d
+        for d in retrieved
+        if dish_allowed(
+            d,
+            profile,
+            skip_exclusions=bool(request.excluded_ingredient_ids),  # NLU already screened them
+        )
+    ]
     counts = empty.model_copy(
         update={"retrieved": len(retrieved), "screened_out": len(retrieved) - len(screened)}
     )
@@ -238,7 +245,10 @@ def recommend_for_craving(
             cuisines=bundle.dishes[c.recipe_id].cuisines,
             explanation=with_cook_without(
                 explain_craving_recipe(
-                    bundle.dishes[c.recipe_id], ranking=final, rules=outcomes[c.recipe_id]
+                    bundle.dishes[c.recipe_id],
+                    ranking=final,
+                    rules=outcomes[c.recipe_id],
+                    steps=bundle.recipe_steps.get(c.recipe_id, ()),
                 ),
                 [bundle.dishes[c.recipe_id]],
                 profile,

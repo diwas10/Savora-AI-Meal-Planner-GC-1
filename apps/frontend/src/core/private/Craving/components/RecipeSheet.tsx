@@ -1,7 +1,7 @@
 "use client";
 
 import type { Schema } from "@savora/contracts";
-import { CircleCheck, Info } from "lucide-react";
+import { ChefHat, CircleCheck, Info, Utensils } from "lucide-react";
 import { Badge } from "@/components/ui/Badge";
 import { InlineAlert } from "@/components/ui/States";
 import { Sheet } from "@/components/ui/Sheet";
@@ -22,6 +22,9 @@ export function RecipeSheet({
   if (!item) return null;
   const name = dishName(item.name);
   const exp = item.explanation;
+  const ingredients = exp.ingredients ?? [];
+  const steps = exp.steps ?? [];
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange} title={name.title} description={name.subtitle ?? item.cuisines.join(" · ")}>
       <div className="flex flex-col gap-5">
@@ -31,9 +34,55 @@ export function RecipeSheet({
             <Badge key={c}>{c}</Badge>
           ))}
         </div>
+
+        {cookWithout(exp.reasons) && (
+          <InlineAlert tone="warning" title="Cook it your way">
+            {cookWithout(exp.reasons)}
+          </InlineAlert>
+        )}
+
+        {/* Ingredients section */}
+        {ingredients.length > 0 && (
+          <section aria-labelledby="recipe-ingredients">
+            <h3 id="recipe-ingredients" className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground">
+              <Utensils className="size-4 text-primary" aria-hidden />
+              Ingredients ({ingredients.length})
+            </h3>
+            <ul className="grid grid-cols-1 gap-2 rounded-2xl bg-surface p-4 ring-1 ring-border sm:grid-cols-2 text-sm">
+              {ingredients.map((ingr, i) => (
+                <li key={i} className="flex items-center gap-2 text-foreground">
+                  <span className="size-1.5 shrink-0 rounded-full bg-primary" />
+                  <span className="capitalize">{ingr}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
+        {/* Recipe preparation steps */}
+        {steps.length > 0 && (
+          <section aria-labelledby="recipe-steps">
+            <h3 id="recipe-steps" className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground">
+              <ChefHat className="size-4 text-primary" aria-hidden />
+              Recipe & Instructions ({steps.length} {steps.length === 1 ? "step" : "steps"})
+            </h3>
+            <ol className="flex flex-col gap-3 rounded-2xl bg-surface p-4 ring-1 ring-border text-sm">
+              {steps.map((step, idx) => (
+                <li key={idx} className="flex items-start gap-3">
+                  <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-surface-muted text-xs font-semibold text-muted-foreground ring-1 ring-border">
+                    {idx + 1}
+                  </span>
+                  <p className="leading-relaxed text-foreground">{step}</p>
+                </li>
+              ))}
+            </ol>
+          </section>
+        )}
+
+        {/* Full Nutrition Label */}
         <section aria-labelledby="recipe-nutrients">
           <h3 id="recipe-nutrients" className="mb-2 text-sm font-semibold text-muted-foreground">
-            Standard portion: {exp.standardPortion}
+            Planned nutrition (Standard portion: {exp.standardPortion})
           </h3>
           <table className="w-full overflow-hidden rounded-2xl bg-surface text-sm ring-1 ring-border">
             <caption className="sr-only">Nutrients for one standard portion</caption>
@@ -55,14 +104,11 @@ export function RecipeSheet({
             </tbody>
           </table>
         </section>
-        {cookWithout(exp.reasons) && (
-          <InlineAlert tone="warning" title="Cook it your way">
-            {cookWithout(exp.reasons)}
-          </InlineAlert>
-        )}
+
         <InlineAlert tone="info" icon={<Info className="size-4" aria-hidden />}>
           Not checked against today&apos;s remaining targets.
         </InlineAlert>
+
         <section aria-labelledby="recipe-why">
           <h3 id="recipe-why" className="mb-2 text-sm font-semibold text-muted-foreground">
             Why it&apos;s suggested

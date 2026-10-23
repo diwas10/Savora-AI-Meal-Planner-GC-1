@@ -563,6 +563,7 @@ def _solve(
                             ranking=ranking,
                             rules=rules,
                             planning=planning,
+                            recipe_steps=bundle.recipe_steps,
                         ),
                         [bundle.dishes[c.dish_id] for c in combo.components],
                         profile,
@@ -823,7 +824,14 @@ def suggest_replacements(
                 cuisines=combo.cuisines,
                 repeats_in_week=found.repeats[combo.combination_id],
                 explanation=with_cook_without(
-                    explain_meal(combo, config, bundle.dishes, slot_id=slot, ranking=found.ranking),
+                    explain_meal(
+                        combo,
+                        config,
+                        bundle.dishes,
+                        slot_id=slot,
+                        ranking=found.ranking,
+                        recipe_steps=bundle.recipe_steps,
+                    ),
                     [bundle.dishes[c.dish_id] for c in combo.components],
                     profile,
                 ),

@@ -22,6 +22,7 @@ class CatalogueBundle:
     # The cuisines the catalogue was built to cover; other names are incidental Food.com
     # tags (e.g. British). Empty for exports that predate the field: then every cuisine.
     target_cuisines: tuple[str, ...] = ()
+    recipe_steps: dict[str, tuple[str, ...]] = field(default_factory=dict, compare=False)
 
     @property
     def cuisine_ids(self) -> dict[str, str]:
@@ -65,10 +66,21 @@ def load_catalogue_export(directory: Path, version: str | None = None) -> Catalo
         for d in dishes.values()
         if d.training_interactions is not None
     }
+    steps_file = directory / "recipe_steps.json"
+    if not steps_file.exists():
+        steps_file = directory.parent / "curated" / "recipe_steps.json"
+    recipe_steps: dict[str, tuple[str, ...]] = {}
+    if steps_file.exists():
+        try:
+            raw_steps = json.loads(steps_file.read_text(encoding="utf-8"))
+            recipe_steps = {k: tuple(v) for k, v in raw_steps.items()}
+        except Exception:
+            recipe_steps = {}
     return CatalogueBundle(
         version=version,
         dishes=dishes,
         combinations={m.combination_id: m for m in meals},
         popularity=PopularityScorer(counts),
         target_cuisines=tuple(sorted(catalogue.get("targetCuisines", ()))),
+        recipe_steps=recipe_steps,
     )

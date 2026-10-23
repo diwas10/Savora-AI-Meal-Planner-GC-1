@@ -34,13 +34,12 @@ export function AppShell({ children }: { children: ReactNode }) {
         Skip to content
       </a>
 
-      {/* Desktop: the same four destinations as a frosted glass sidebar. */}
+      {/* Desktop: the same four destinations as a frosted glass sidebar with theme toggle at the bottom. */}
       <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 flex-col border-r border-border/70 bg-surface/75 backdrop-blur-xl px-4 py-6 lg:flex">
         <div className="flex items-center justify-between px-3">
           <Link href="/dashboard" aria-label="Savora home">
             <Wordmark />
           </Link>
-          <ThemeToggle />
         </div>
         <nav aria-label="Primary" className="mt-8 flex-1">
           <LayoutGroup id="sidebar">
@@ -73,6 +72,14 @@ export function AppShell({ children }: { children: ReactNode }) {
             </ul>
           </LayoutGroup>
         </nav>
+
+        {/* Desktop sidebar bottom: theme switcher placed at bottom on large screens */}
+        <div className="mt-auto border-t border-border/70 pt-4 px-2">
+          <div className="flex items-center justify-between rounded-xl px-2 py-1 text-sm font-medium text-muted-foreground">
+            <span>Appearance</span>
+            <ThemeToggle />
+          </div>
+        </div>
       </aside>
 
       <div className="min-w-0 flex-1">

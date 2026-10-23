@@ -1,8 +1,9 @@
 """Catalogue queries over the in-memory export (no database: section 10 of the spec)."""
 
+from savora_ai.core.food_data.portions import standard_portion
 from savora_ai.core.pipelines import CatalogueBundle
 from savora_ai.core.recommendation.seeds import is_seed_eligible
-from savora_backend.core.catalogue.dto import CatalogueDishDto, CuisineOptionDto
+from savora_backend.core.catalogue.dto import CatalogueDishDetailDto, CatalogueDishDto, CuisineOptionDto
 
 MAX_DISH_RESULTS = 50
 
@@ -40,3 +41,21 @@ class CatalogueService:
             if len(results) >= MAX_DISH_RESULTS:
                 break
         return results
+
+    def get_dish(self, recipe_id: str) -> CatalogueDishDetailDto | None:
+        """Full dish details: ingredients, steps, roles, and standard portion nutrition."""
+        dish = self._bundle.dishes.get(recipe_id)
+        if dish is None:
+            return None
+        portion = standard_portion(dish)
+        return CatalogueDishDetailDto(
+            recipe_id=dish.recipe_id,
+            name=dish.name,
+            cuisines=dish.cuisines,
+            roles=tuple(r.value for r in dish.roles),
+            meal_types=tuple(m.value for m in dish.meal_types),
+            ingredients=dish.ingredients,
+            steps=self._bundle.recipe_steps.get(dish.recipe_id, ()),
+            standard_portion=portion.label,
+            standard_nutrients=portion.nutrients,
+        )

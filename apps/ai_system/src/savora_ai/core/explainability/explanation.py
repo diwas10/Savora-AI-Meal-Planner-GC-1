@@ -89,6 +89,8 @@ class DishLine(_ExplanationModel):
     role: str
     portion: str  # e.g. "2 pieces (80 g)", "1.25 servings"
     nutrition_source: NutritionSource
+    ingredients: tuple[str, ...] = ()
+    steps: tuple[str, ...] = ()
 
 
 class MealExplanation(_ExplanationModel):
@@ -109,6 +111,8 @@ class RecipeExplanation(_ExplanationModel):
     name: str
     standard_portion: str
     standard_nutrients: NutrientVector
+    ingredients: tuple[str, ...] = ()
+    steps: tuple[str, ...] = ()
     reasons: tuple[Reason, ...]
 
 
@@ -158,15 +162,26 @@ def _limitations(dishes: Sequence[CatalogueRecipe], unknown: Sequence[str]) -> l
 
 
 def _ranking_reason(
-    model_version: str, fallback: FallbackReason | None, rank: int | None, total: int
+    model_version: str | None,
+    fallback: FallbackReason | None,
+    rank: int | None,
+    total: int,
 ) -> Reason:
-    position = "" if rank is None else f" Ranked {rank} of {total}."
-    if fallback is FallbackReason.NO_HISTORY:
+    position = f" (ranked #{rank} of {total} candidates)" if rank is not None else ""
+    if model_version is None or fallback is FallbackReason.NO_HISTORY:
         return Reason(
             kind=ReasonKind.RANKING,
             code="RANKING_FALLBACK_NO_HISTORY",
-            message="Ordered by overall popularity, because there are no liked dishes to "
-            f"personalise from yet.{position}",
+            message=f"Ordered by overall popularity among home cooks; you have not saved "
+            f"any seed dishes yet.{position}",
+            references=() if model_version is None else (model_version,),
+        )
+    if fallback is FallbackReason.INSUFFICIENT_HISTORY:
+        return Reason(
+            kind=ReasonKind.RANKING,
+            code="RANKING_FALLBACK_INSUFFICIENT_HISTORY",
+            message=f"Ordered by overall popularity; more seed dishes will unlock personal "
+            f"ranking.{position}",
             references=(model_version,),
         )
     if fallback is FallbackReason.CANDIDATES_UNKNOWN_TO_MODEL:
@@ -257,6 +272,7 @@ def explain_meal(
     ranking: CombinationRanking | None = None,
     rules: RuleOutcome | None = None,
     planning: PlanningOutcome | None = None,
+    recipe_steps: Mapping[str, Sequence[str]] | None = None,
 ) -> MealExplanation:
     """Explain one planned meal. Every input is optional except what Member 1 owns."""
     if configuration not in combination.configurations:
@@ -272,6 +288,8 @@ def explain_meal(
             role=c.role.value,
             portion=options[p.portion_id].label,
             nutrition_source=d.nutrition.source,
+            ingredients=tuple(d.ingredients),
+            steps=tuple(recipe_steps.get(d.recipe_id, ())) if recipe_steps else (),
         )
         for d, c, p in zip(parts, combination.components, configuration.portions, strict=True)
     )
@@ -349,6 +367,7 @@ def explain_craving_recipe(
     *,
     ranking: RecipeRanking | None = None,
     rules: RuleOutcome | None = None,
+    steps: Sequence[str] = (),
 ) -> RecipeExplanation:
     """Standalone craving: standard-portion facts, NOT a fit to the day's budget (4.3)."""
     portion = standard_portion(dish)
@@ -358,7 +377,7 @@ def explain_craving_recipe(
             code="CRAVING_STANDARD_PORTION_ONLY",
             message=f"Nutrition shown is for a standard portion ({portion.label}). This "
             "suggestion was not checked against what is left of today's targets.",
-            references=(portion.portion_id,),
+            references=(portion.portion_id,),\
         )
     ]
     if ranking is not None:
@@ -380,5 +399,7 @@ def explain_craving_recipe(
         name=dish.name,
         standard_portion=portion.label,
         standard_nutrients=portion.nutrients,
+        ingredients=tuple(dish.ingredients),
+        steps=tuple(steps),
         reasons=tuple(reasons),
     )
