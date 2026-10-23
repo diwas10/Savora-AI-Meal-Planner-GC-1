@@ -41,10 +41,19 @@ and saturated fat (20 g) are **assumed** to follow the same table. This must be 
 against a source before any sodium or saturated-fat rule uses these values.
 The table is a named, versioned parameter (`DvReference`), so changing it is one line.
 
-### D2. Sugar stays unknown
+### D2. Sugar uses a verified 25 g reference (revised 21 Oct 2026)
 
-No reference was verified for Food.com's sugar %DV, so `sugars_g` is `None`
-(unknown, never zero) until one is. Glycaemic work must not use it.
+Originally sugar stayed unknown because no reference was verified. The mass-independent
+DV verification (`food_data/dv_verification.py`, `docs/eval/dv_verification.json`) has
+since settled it. On single-ingredient Food.com recipes, the Food.com/USDA
+sugars-per-kcal ratio is 0.97–1.05 with a **25 g** reference and about 2.0 with 50 g.
+This holds across 6 foods and 34 recipes (white sugar n=16, sweetened condensed milk
+n=6, almonds n=6, grapes n=4, apples n=4, fresh coconut n=2).
+
+`sugars_g = sugar %DV / 100 × 25 g` per serving, as total sugars. A value above the
+recipe's carbohydrate by more than 1 g is a data error and stays `None` (unknown, never
+zero). It is FOODCOM_DERIVED like the other nutrients and carries the same caveats; any
+clinical use of sugar still needs a sourced rule (Member 2).
 
 ### D3. Food.com dishes are served per recipe serving; no estimated mass (revised)
 

@@ -32,11 +32,20 @@ ANCHOR_ROLES = frozenset({CulinaryRole.MAIN_DISH, CulinaryRole.BREAKFAST_BASE})
 NO_CUISINE = "Other"
 
 
+class IngredientSwap(_RankingModel):
+    """An excluded ingredient the dish uses, and what to cook with instead."""
+
+    ingredient: str
+    instead: str
+
+
 class SeedSuggestion(_RankingModel):
     recipe_id: str
     name: str
     cuisines: tuple[str, ...]
     rank: int = Field(ge=1)
+    # Empty when the dish already fits; else how to cook it without the excluded words.
+    swaps: tuple[IngredientSwap, ...] = ()
 
 
 class SeedSuggestions(_RankingModel):
@@ -60,10 +69,11 @@ def suggest_seed_dishes(
     preferred_cuisines: Sequence[str] = (),
     limit: int = DEFAULT_SUGGESTIONS,
 ) -> SeedSuggestions:
-    """Popular dishes, one cuisine at a time, so the list is not ten dishes of one cuisine.
+    """Popular dishes of the cuisines the user chose, one cuisine at a time.
 
-    Cuisines the user prefers come first (in their order), then the others by their most
-    popular dish. A dish counts once, under its first cuisine."""
+    The preferred cuisines fill the list first (in their order, interleaved so one cuisine
+    does not take every place); other cuisines, by their most popular dish, only top it up
+    when the preferred ones run out. A dish counts once, under its first cuisine."""
     if limit < MIN_SEED_PICKS:
         raise ValueError(f"offer at least {MIN_SEED_PICKS} suggestions")
     groups: dict[str, list[CatalogueRecipe]] = {}
@@ -71,12 +81,12 @@ def suggest_seed_dishes(
         groups.setdefault(dish.cuisines[0] if dish.cuisines else NO_CUISINE, []).append(dish)
     preferred = [c for c in dict.fromkeys(preferred_cuisines) if c in groups]
     others = [c for c in groups if c not in preferred]  # already in popularity order
-    order = preferred + others
     picked: list[CatalogueRecipe] = []
-    depth = 0
-    while len(picked) < limit and any(depth < len(groups[c]) for c in order):
-        picked += [groups[c][depth] for c in order if depth < len(groups[c])]
-        depth += 1
+    for order in (preferred, others):
+        depth = 0
+        while len(picked) < limit and any(depth < len(groups[c]) for c in order):
+            picked += [groups[c][depth] for c in order if depth < len(groups[c])]
+            depth += 1
     return SeedSuggestions(
         suggestions=tuple(
             SeedSuggestion(recipe_id=d.recipe_id, name=d.name, cuisines=d.cuisines, rank=i + 1)

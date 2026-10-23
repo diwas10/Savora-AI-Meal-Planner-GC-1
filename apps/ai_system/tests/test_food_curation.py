@@ -11,6 +11,7 @@ from savora_ai.core.food_data.classification import (
     ClassificationOverrideFile,
     check_cuisines,
 )
+from savora_ai.core.food_data.selection import TARGET_CUISINES
 from savora_ai.core.food_data.usda_staples import load_extract, load_spec, staple_dishes
 from savora_ai.core.meal_composition.pairings import (
     PairingFile,
@@ -38,9 +39,7 @@ def test_committed_pairings_are_valid_for_the_committed_staples() -> None:
     pairings = load_pairings(PAIRINGS)
     validate_pairings(pairings, staples())
     by_cuisine = pairings.staples_by_cuisine()
-    assert {"Indian", "Nepali", "Chinese", "Thai", "Italian", "Mexican", "American"} == set(
-        by_cuisine
-    )
+    assert set(TARGET_CUISINES) == set(by_cuisine)  # every target cuisine has staples
     assert "USDA_2707713" in by_cuisine["Nepali"]  # dal bhat with roti is allowed
 
 

@@ -38,6 +38,7 @@ from savora_ai.core.pipelines.profile import (
     _PipelineModel,
     dish_allowed,
     safety_verification,
+    with_cook_without,
 )
 from savora_ai.core.pipelines.rules import check_recipes
 from savora_ai.core.recommendation.ranking import (
@@ -235,8 +236,12 @@ def recommend_for_craving(
             rank=c.rank,
             score=c.score,
             cuisines=bundle.dishes[c.recipe_id].cuisines,
-            explanation=explain_craving_recipe(
-                bundle.dishes[c.recipe_id], ranking=final, rules=outcomes[c.recipe_id]
+            explanation=with_cook_without(
+                explain_craving_recipe(
+                    bundle.dishes[c.recipe_id], ranking=final, rules=outcomes[c.recipe_id]
+                ),
+                [bundle.dishes[c.recipe_id]],
+                profile,
             ),
         )
         for c in final.ranked_candidates

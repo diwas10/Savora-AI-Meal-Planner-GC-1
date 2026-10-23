@@ -1,24 +1,50 @@
 """Tests for AiRuntime startup loading, manifest verification, and FakeAiGateway."""
 
+import json
 import shutil
 from datetime import date
 from pathlib import Path
 
 import pytest
 
+from savora_ai.core.craving_nlu import QwenParser, TemplateParser
 from savora_ai.core.pipelines import PlanningProfile, PlanStatus
 from savora_ai.schemas.craving import CravingIntent, CravingRequest
 from savora_backend.ai.runtime import build_ai_runtime
-from savora_backend.config import get_settings
+from savora_backend.config import DEV_JWT_SECRET, get_settings
 
 from .fakes import FakeAiGateway
 
 
-def test_real_runtime_loads_catalogue_export_and_fallback() -> None:
+def test_real_runtime_loads_the_latest_catalogue_export() -> None:
+    settings = get_settings()
+    latest = sorted(settings.catalogue_dir.glob("*_combinations.json"))[-1]
+    export = json.loads(latest.read_text(encoding="utf-8"))
     runtime = build_ai_runtime()
-    assert len(runtime.bundle.combinations) == 465
-    assert runtime.bundle.version == "20261019T012206Z"
-    assert runtime.scorer is None
+    assert runtime.bundle.version == export["catalogueVersion"]
+    assert len(runtime.bundle.combinations) == len(export["combinations"])
+    # The Transformer loads only when the downloaded model file is present (ADR 0005 D2).
+    assert (runtime.scorer is None) == (not (settings.model_dir / "sasrec_content.pt").exists())
+
+
+def test_runtime_builds_the_configured_craving_parser() -> None:
+    base = get_settings()
+    template_only = build_ai_runtime(settings=base.model_copy(update={"qwen_provider": "none"}))
+    assert isinstance(template_only.parser, TemplateParser)
+    local = build_ai_runtime(settings=base.model_copy(update={"qwen_provider": "ollama"}))
+    assert isinstance(local.parser, QwenParser)
+
+
+def test_production_refuses_the_development_jwt_secret() -> None:
+    base = get_settings()
+    with pytest.raises(RuntimeError, match="JWT_SECRET_KEY"):
+        base.model_copy(
+            update={"app_env": "production", "jwt_secret_key": DEV_JWT_SECRET}
+        ).check_secrets()
+    with pytest.raises(RuntimeError, match="JWT_SECRET_KEY"):
+        base.model_copy(update={"app_env": "production", "jwt_secret_key": "short"}).check_secrets()
+    strong = base.model_copy(update={"app_env": "production", "jwt_secret_key": "a" * 64})
+    strong.check_secrets()  # no error
 
 
 def test_runtime_refuses_corrupt_model_file(tmp_path: Path) -> None:

@@ -91,9 +91,14 @@ def test_vegetable_side_is_same_cuisine_first_and_never_another_cuisine() -> Non
 
 def test_breakfast_add_on_already_in_the_base_is_skipped() -> None:
     assert overlaps(OMELETTE, next(s for s in STAPLES if s.name == "boiled egg"))
-    assert by_template(run(), "BREAKFAST_PROTEIN") == []  # no boiled egg with an omelette
+    # No boiled egg with an omelette; staple bases (puri, paratha) may still take one.
+    on_omelette = [
+        c for c in by_template(run(), "BREAKFAST_PROTEIN") if c.components[0].dish_id == "FC_5"
+    ]
+    assert on_omelette == []
     fruit = by_template(run(add_ons_per_base=10), "BREAKFAST_FRUIT")
-    assert len(fruit) == 6 and all(c.meal_types == (MealType.BREAKFAST,) for c in fruit)
+    assert len([c for c in fruit if c.components[0].dish_id == "FC_5"]) == 6
+    assert all(c.meal_types == (MealType.BREAKFAST,) for c in fruit)
 
 
 def test_composition_is_deterministic_and_input_order_independent() -> None:

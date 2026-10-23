@@ -246,3 +246,24 @@ def test_committed_override_file_is_valid_and_has_no_duplicates() -> None:
 def test_self_contained_name_words_match_whole_words_only(name: str, complete: bool) -> None:
     result = run(name, "main-dish")
     assert (result.dish_class is DishClass.COMPLETE_MEAL) is complete
+
+
+@pytest.mark.parametrize(
+    ("name", "breakfast"),
+    [
+        ("hainanese chicken rice", False),
+        ("mulligatawny soup with lentils", False),
+        ("balsamic tomato basil pasta", False),
+        ("singapore rice noodles", False),
+        ("thai curry burger with grilled onions", False),
+        ("masala dosa with coconut chutney", True),
+        ("burmese breakfast fried rice", True),  # the name says breakfast
+        ("creamy rice pudding", True),
+        ("eggs benedict", True),
+    ],
+)
+def test_breakfast_tag_on_a_lunch_dinner_name_is_not_a_breakfast_base(
+    name: str, breakfast: bool
+) -> None:
+    result = classify(name, frozenset({"breakfast", "main-dish"}), 400.0)
+    assert (CulinaryRole.BREAKFAST_BASE in result.roles) is breakfast

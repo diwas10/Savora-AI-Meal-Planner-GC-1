@@ -34,6 +34,14 @@ FDA_2016 = DvReference(
 
 DV_REFERENCES: dict[str, DvReference] = {ref.name: ref for ref in (FDA_1993, FDA_2016)}
 
+# Food.com's sugar %DV uses a 25 g reference, independent of the table above: on
+# single-ingredient recipes the Food.com/USDA sugars-per-kcal ratio is 0.97-1.05 at 25 g
+# and about 2.0 at 50 g (6 foods, 38 recipes; docs/eval/dv_verification.json, ADR 0001 D2).
+SUGAR_DV_G = 25.0
+# Sugars are part of carbohydrate; a value above it (beyond rounding) is a data error and
+# stays unknown rather than being trusted.
+_SUGAR_CARB_TOLERANCE_G = 1.0
+
 # Atwater general factors: kcal per gram of fat, carbohydrate and protein.
 _KCAL_PER_G_FAT = 9.0
 _KCAL_PER_G_CARBOHYDRATE = 4.0
@@ -64,16 +72,19 @@ def parse_nutrition(value: object) -> tuple[float, float, float, float, float, f
 def to_serving_nutrition(
     raw: tuple[float, float, float, float, float, float, float], ref: DvReference
 ) -> NutrientVector:
-    """Turn %DV into grams/mg per serving. Sugar stays unknown (no verified reference)."""
-    calories, fat, _sugar, sodium, protein, sat_fat, carbs = raw
+    """Turn %DV into grams/mg per serving. Sugar uses its own verified 25 g reference and
+    is unknown (None) when it exceeds carbohydrate."""
+    calories, fat, sugar, sodium, protein, sat_fat, carbs = raw
+    carbohydrate_g = carbs / 100.0 * ref.carbohydrate_g
+    sugars_g = sugar / 100.0 * SUGAR_DV_G
     return NutrientVector(
         energy_kcal=calories,
         fat_g=fat / 100.0 * ref.fat_g,
         saturated_fat_g=sat_fat / 100.0 * ref.saturated_fat_g,
-        carbohydrate_g=carbs / 100.0 * ref.carbohydrate_g,
+        carbohydrate_g=carbohydrate_g,
         protein_g=protein / 100.0 * ref.protein_g,
         sodium_mg=sodium / 100.0 * ref.sodium_mg,
-        sugars_g=None,
+        sugars_g=sugars_g if sugars_g <= carbohydrate_g + _SUGAR_CARB_TOLERANCE_G else None,
     )
 
 

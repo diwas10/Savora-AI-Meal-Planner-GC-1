@@ -1,5 +1,17 @@
 """Provider adapters for external AI endpoints."""
 
-from savora_ai.providers.qwen import FakeQwenClient, HttpxQwenClient, QwenClient
+from savora_ai.providers.qwen import (
+    FakeQwenClient,
+    OllamaQwenClient,
+    OpenAICompatibleQwenClient,
+    QwenClient,
+    build_qwen_client,
+)
 
-__all__ = ["FakeQwenClient", "HttpxQwenClient", "QwenClient"]
+__all__ = [
+    "FakeQwenClient",
+    "OllamaQwenClient",
+    "OpenAICompatibleQwenClient",
+    "QwenClient",
+    "build_qwen_client",
+]

@@ -1,7 +1,11 @@
 import axios, { AxiosError, type AxiosRequestConfig } from "axios";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
-const TOKEN_STORAGE_KEY = "savora_access_token";
+/** localStorage key of the "signed in" hint. The session itself is an httpOnly cookie
+ * that no script can read; this flag only tells the UI whether to try authenticated
+ * requests. */
+const SESSION_HINT_KEY = "savora_signed_in";
+/** localStorage key of the persisted query cache (cleared on logout). */
+export const QUERY_CACHE_KEY = "savora_query_cache";
 
 export interface SuccessEnvelope<T> {
   success: true;
@@ -38,37 +42,35 @@ export class ApiError extends Error {
   }
 }
 
-export function getStoredToken(): string | null {
+export function hasSession(): boolean {
   if (typeof window === "undefined") {
-    return null;
+    return false;
   }
-  return window.localStorage.getItem(TOKEN_STORAGE_KEY);
+  return window.localStorage.getItem(SESSION_HINT_KEY) === "1";
 }
 
-export function setStoredToken(token: string | null): void {
+export function setSession(signedIn: boolean): void {
   if (typeof window === "undefined") {
     return;
   }
-  if (token === null) {
-    window.localStorage.removeItem(TOKEN_STORAGE_KEY);
+  // Tokens from earlier builds lived in localStorage; never leave one behind.
+  window.localStorage.removeItem("savora_access_token");
+  if (signedIn) {
+    window.localStorage.setItem(SESSION_HINT_KEY, "1");
   } else {
-    window.localStorage.setItem(TOKEN_STORAGE_KEY, token);
+    window.localStorage.removeItem(SESSION_HINT_KEY);
+    window.localStorage.removeItem(QUERY_CACHE_KEY);
   }
 }
 
+// Same origin: Next.js rewrites /api to FastAPI (next.config.ts), so the session cookie is
+// first-party. The client header is required on cookie-authenticated writes (CSRF).
 const axiosInstance = axios.create({
-  baseURL: `${API_BASE_URL}/api`,
+  baseURL: "/api",
   headers: {
     "Content-Type": "application/json",
+    "X-Savora-Client": "web",
   },
-});
-
-axiosInstance.interceptors.request.use((config) => {
-  const token = getStoredToken();
-  if (token && config.headers) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
 });
 
 function toApiError(error: unknown): ApiError {
@@ -85,6 +87,10 @@ function toApiError(error: unknown): ApiError {
         data.source ?? "api",
         data.description ?? {},
       );
+    }
+    if (!error.response) {
+      // No response at all: offline or the server is unreachable (status 0).
+      return new ApiError("Can't reach Savora. Check your connection and try again.", 0);
     }
     return new ApiError(error.message || "Network request failed", status);
   }

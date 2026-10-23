@@ -20,6 +20,12 @@ export interface components {
       name: string;
       cuisines: (string)[];
     };
+    CompactNutrientTotal: {
+      nutrient: "energy_kcal" | "protein_g" | "carbs_g" | "fat_g" | "saturated_fat_g" | "sodium_mg" | "sugars_g";
+      unit: "kcal" | "g" | "mg";
+      value: string | null;
+      complete: boolean;
+    };
     CravingCounts: {
       retrieved: number;
       screenedOut: number;
@@ -36,7 +42,7 @@ export interface components {
       explanation: components["schemas"]["RecipeExplanation"];
     };
     CravingParseMeta: {
-      parser: "TEMPLATE" | "QWEN";
+      parser: "TEMPLATE" | "QWEN" | "HYBRID";
       promptVersion: string;
       fallbackReason?: string | null;
       clarification?: string | null;
@@ -86,6 +92,8 @@ export interface components {
       slotId: string;
       expectedRevision: number;
       excludeCombinationIds?: (string)[];
+      replacementCombinationId?: string | null;
+      preferenceText?: string | null;
     };
     CuisineOptionDto: {
       id: string;
@@ -108,6 +116,9 @@ export interface components {
     };
     FallbackReason: "NO_HISTORY" | "MODEL_UNAVAILABLE" | "CANDIDATES_UNKNOWN_TO_MODEL";
     FlavorTag: "SPICY" | "SWEET" | "SOUR" | "SMOKY" | "CREAMY";
+    ForgotPasswordRequest: {
+      email: string;
+    };
     GeneratePlanAcceptedDto: {
       planId: string;
       status?: components["schemas"]["MealPlanJobStatus"];
@@ -120,6 +131,10 @@ export interface components {
       detail?: (components["schemas"]["ValidationError"])[];
     };
     HealthCondition: "TYPE_2_DIABETES" | "HYPERTENSION" | "DYSLIPIDEMIA";
+    IngredientSwap: {
+      ingredient: string;
+      instead: string;
+    };
     LoginRequest: {
       email: string;
       password: string;
@@ -271,10 +286,42 @@ export interface components {
       password: string;
       displayName: string;
     };
+    ReplacementOption: {
+      combinationId: string;
+      rank: number;
+      cuisines: (string)[];
+      repeatsInWeek: number;
+      explanation: components["schemas"]["MealExplanation"];
+    };
+    ReplacementOptions: {
+      slotId: string;
+      mealType: components["schemas"]["MealType"];
+      currentCombinationId: string;
+      preference: components["schemas"]["CravingRequest"] | null;
+      options: (components["schemas"]["ReplacementOption"])[];
+      unknownCuisineIds: (string)[];
+      unmatchedFlavorTags: (components["schemas"]["FlavorTag"])[];
+      modelVersion: string | null;
+      fallbackReason: components["schemas"]["FallbackReason"] | null;
+      message: string;
+      safety: components["schemas"]["SafetyVerification"];
+    };
+    ReplacementOptionsDto: {
+      parse?: components["schemas"]["CravingParseMeta"] | null;
+      result: components["schemas"]["ReplacementOptions"];
+    };
+    ReplacementOptionsRequest: {
+      preferenceText?: string | null;
+      excludeCombinationIds?: (string)[];
+    };
+    ResetPasswordRequest: {
+      token: string;
+      password: string;
+    };
     SafetyVerification: {
       status?: "STAND_IN_UNVERIFIED";
       kbEnvironment?: "SYNTHETIC";
-      allergensCheckedBy: "INGREDIENT_NAME_MATCH" | "NOT_APPLICABLE";
+      allergensCheckedBy: "DERIVED_TERM_MAP" | "INGREDIENT_NAME_MATCH" | "NOT_APPLICABLE";
       dietCheckedBy: "FOODCOM_TAG" | "NOT_APPLICABLE";
       conditionsNotEnforced: (components["schemas"]["HealthCondition"])[];
       message: string;
@@ -297,6 +344,7 @@ export interface components {
       name: string;
       cuisines: (string)[];
       rank: number;
+      swaps?: (components["schemas"]["IngredientSwap"])[];
     };
     SeedSuggestions: {
       suggestions: (components["schemas"]["SeedSuggestion"])[];
@@ -312,8 +360,23 @@ export interface components {
       fromPlanId: string;
       toPlanId?: string | null;
       slotId: string;
+      replacementCombinationId?: string | null;
+      preference?: components["schemas"]["CravingRequest"] | null;
       beforeSnapshot?: components["schemas"]["PlannedMeal"] | null;
       afterSnapshot?: components["schemas"]["PlannedMeal"] | null;
+      proof?: components["schemas"]["SwapProof"] | null;
+      createdAt: string;
+      updatedAt: string;
+    };
+    SwapProof: {
+      protocol: string;
+      status: "VALID" | "REJECTED" | "INSUFFICIENT_DATA" | "TIMEOUT" | "ADMISSION_FAILED";
+      verified: boolean;
+      reason: string;
+      certificateDigest: string | null;
+      inputDigest: string;
+      changedDayTotals: (components["schemas"]["CompactNutrientTotal"])[];
+      seconds: number;
     };
     UserDto: {
       id: string;
@@ -361,6 +424,24 @@ export interface paths {
     post: {
       requestBody?: components["schemas"]["LoginRequest"];
       response: components["schemas"]["AuthResponse"];
+    };
+  };
+  "/api/auth/logout": {
+    post: {
+      requestBody?: never;
+      response: unknown;
+    };
+  };
+  "/api/auth/forgot-password": {
+    post: {
+      requestBody?: components["schemas"]["ForgotPasswordRequest"];
+      response: unknown;
+    };
+  };
+  "/api/auth/reset-password": {
+    post: {
+      requestBody?: components["schemas"]["ResetPasswordRequest"];
+      response: unknown;
     };
   };
   "/api/auth/me": {
@@ -423,6 +504,12 @@ export interface paths {
     get: {
       requestBody?: never;
       response: components["schemas"]["MealPlanDetailDto"];
+    };
+  };
+  "/api/meal-plans/{plan_id}/slots/{slot_id}/replacement-options": {
+    post: {
+      requestBody?: components["schemas"]["ReplacementOptionsRequest"];
+      response: components["schemas"]["ReplacementOptionsDto"];
     };
   };
   "/api/meal-plans/{plan_id}/substitutions": {

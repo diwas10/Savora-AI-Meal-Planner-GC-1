@@ -1,9 +1,8 @@
+import type { Metadata } from "next";
 import { RegisterForm } from "@/core/public/Auth/components/RegisterForm";
 
+export const metadata: Metadata = { title: "Create account" };
+
 export default function RegisterPage() {
-  return (
-    <main className="flex min-h-screen items-center justify-center bg-neutral-50 p-6">
-      <RegisterForm />
-    </main>
-  );
+  return <RegisterForm />;
 }

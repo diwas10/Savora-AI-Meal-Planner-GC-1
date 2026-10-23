@@ -5,6 +5,8 @@ export type AuthResponse = Schema<"AuthResponse">;
 export type LoginRequest = Schema<"LoginRequest">;
 export type RegisterRequest = Schema<"RegisterRequest">;
 export type UserDto = Schema<"UserDto">;
+export type ForgotPasswordRequest = Schema<"ForgotPasswordRequest">;
+export type ResetPasswordRequest = Schema<"ResetPasswordRequest">;
 
 export async function loginApi(payload: LoginRequest): Promise<AuthResponse> {
   return apiRequest<AuthResponse>({
@@ -27,4 +29,16 @@ export async function getMeApi(): Promise<UserDto> {
     method: "GET",
     url: "/auth/me",
   });
+}
+
+export async function logoutApi(): Promise<void> {
+  await apiRequest<null>({ method: "POST", url: "/auth/logout" });
+}
+
+export async function forgotPasswordApi(payload: ForgotPasswordRequest): Promise<void> {
+  await apiRequest<null>({ method: "POST", url: "/auth/forgot-password", data: payload });
+}
+
+export async function resetPasswordApi(payload: ResetPasswordRequest): Promise<void> {
+  await apiRequest<null>({ method: "POST", url: "/auth/reset-password", data: payload });
 }

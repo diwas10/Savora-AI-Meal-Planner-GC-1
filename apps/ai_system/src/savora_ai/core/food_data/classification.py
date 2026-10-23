@@ -47,6 +47,15 @@ NON_MEAL_TAGS = frozenset(
 MAIN_TAG = "main-dish"
 ONE_DISH_TAG = "one-dish-meal"
 BREAKFAST_TAGS = frozenset({"breakfast", "brunch"})
+# PROVISIONAL (catalogue audit, 21 Oct 2026): a breakfast/brunch tag on a dish whose NAME
+# says lunch or dinner (curry, soup, pasta, noodles, plain rice...) is not a breakfast
+# base: 14 such dishes reached breakfast slots ("hainanese chicken rice", "mulligatawny
+# soup"). A name that says breakfast/brunch keeps the tag, and so do rice porridges.
+LUNCH_DINNER_NAME_WORDS = (
+    "curry", "soup", "pasta", "noodle", "burger", "chalupa", "lasagna", "lasagne",
+    "biryani", "stew", "chili", "chilli", "tikka", "kebab", "enchilada", "spaghetti",
+)  # fmt: skip
+BREAKFAST_RICE_WORDS = ("pudding", "porridge", "congee", "cereal")
 SIDE_TAG = "side-dishes"
 SALAD_TAG = "salads"
 BREADS_TAG = "breads"
@@ -104,10 +113,28 @@ SELF_CONTAINED_NAME_WORDS = (
     "taco",
 )
 
+# Catalogue-only cuisines (ADR 0001 D6, 21 Oct 2026 expansion): exact Food.com tags the EDA
+# taxonomy (foodcom_cuisines.CUISINE_TAGS, Member 2's EDA) does not list. Kept here so the
+# EDA exports and their pinned counts stay unchanged.
+CATALOGUE_EXTRA_CUISINE_TAGS: dict[str, frozenset[str]] = {
+    "Malaysian": frozenset({"malaysian"}),
+    "Indonesian": frozenset({"indonesian"}),
+    "Filipino": frozenset({"filipino"}),
+    "Moroccan": frozenset({"moroccan"}),
+    "Caribbean": frozenset({"caribbean"}),
+}
+
 # Cuisine names a curated record may use: the exact-tag cuisines plus curated-only ones.
-# Food.com has no Nepali tag, so Nepali comes from curation alone (ADR 0001 open item 1).
+# Nepali comes from curation alone (ADR 0001 open item 1); Food.com's 53 `nepalese`
+# recipes are not used yet.
 CURATED_ONLY_CUISINES = ("Nepali",)
-KNOWN_CUISINES = frozenset((*CUISINE_TAGS, *CURATED_ONLY_CUISINES))
+KNOWN_CUISINES = frozenset((*CUISINE_TAGS, *CATALOGUE_EXTRA_CUISINE_TAGS, *CURATED_ONLY_CUISINES))
+
+
+def catalogue_cuisines(tags: frozenset[str]) -> tuple[str, ...]:
+    """Exact-tag cuisines for the catalogue: the EDA taxonomy, then the catalogue extras."""
+    mapped = {**CUISINE_TAGS, **CATALOGUE_EXTRA_CUISINE_TAGS}
+    return tuple(cuisine for cuisine, supported in mapped.items() if tags & supported)
 
 
 def check_cuisines(cuisines: Iterable[str]) -> None:
@@ -206,6 +233,13 @@ def has_name_word(name: str, words: Iterable[str]) -> bool:
     return any(re.search(rf"\b{re.escape(word)}s?\b", name) for word in words)
 
 
+def _lunch_dinner_name(lowered: str) -> bool:
+    if has_name_word(lowered, ("breakfast", "brunch")):
+        return False
+    rice = has_name_word(lowered, ("rice",)) and not has_name_word(lowered, BREAKFAST_RICE_WORDS)
+    return rice or has_name_word(lowered, LUNCH_DINNER_NAME_WORDS)
+
+
 def _dish_class(roles: set[CulinaryRole], tags: frozenset[str], name: str) -> DishClass:
     if ONE_DISH_TAG in tags:
         return DishClass.COMPLETE_MEAL
@@ -230,8 +264,11 @@ def classify(name: str, tags: frozenset[str], energy_kcal: float) -> Classificat
         roles.add(CulinaryRole.MAIN_DISH)
         evidence.append("course main-dish/one-dish-meal -> MAIN_DISH")
     if tags & BREAKFAST_TAGS:
-        roles.add(CulinaryRole.BREAKFAST_BASE)
-        evidence.append("course breakfast/brunch -> BREAKFAST_BASE")
+        if _lunch_dinner_name(name.lower()):
+            evidence.append("breakfast/brunch tag, but a lunch/dinner dish name: not breakfast")
+        else:
+            roles.add(CulinaryRole.BREAKFAST_BASE)
+            evidence.append("course breakfast/brunch -> BREAKFAST_BASE")
     if SIDE_TAG in tags:
         if tags & STAPLE_INGREDIENT_TAGS:
             roles.add(CulinaryRole.STAPLE)

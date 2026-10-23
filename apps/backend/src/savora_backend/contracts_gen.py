@@ -79,9 +79,7 @@ def export_contracts(
     dts_path: Path = DTS_PATH,
 ) -> None:
     openapi_path.parent.mkdir(parents=True, exist_ok=True)
-    openapi_path.write_text(
-        json.dumps(openapi_spec, indent=2) + "\n", encoding="utf-8"
-    )
+    openapi_path.write_text(json.dumps(openapi_spec, indent=2) + "\n", encoding="utf-8")
 
     schemas = openapi_spec.get("components", {}).get("schemas", {})
     out: list[str] = [

@@ -25,8 +25,10 @@ from savora_ai.core.pipelines import (
     recommend_for_craving,
     revalidate_seeds,
     substitute_slot,
+    suggest_replacements,
     suggest_seeds,
 )
+from savora_ai.core.pipelines.allergens import block_rules
 from savora_ai.core.pipelines.catalogue import CatalogueBundle
 from savora_ai.core.pipelines.craving import retrieve_for_craving
 from savora_ai.core.pipelines.profile import dish_allowed
@@ -108,10 +110,13 @@ def test_swap_may_ask_for_clarification() -> None:
 
 
 def test_catalogue_bundle_and_cuisine_ids(bundle: CatalogueBundle) -> None:
-    assert bundle.version == "20261019T012206Z"
+    latest = sorted(EXPORT.glob("*_catalogue.json"))[-1].name.removesuffix("_catalogue.json")
+    assert bundle.version == latest
     assert bundle.cuisine_ids["NEPALI"] == "Nepali"
     assert bundle.cuisine_ids["MIDDLE_EASTERN"] == "Middle Eastern"
-    assert len(bundle.combinations) == 465
+    assert bundle.cuisine_ids["MALAYSIAN"] == "Malaysian"
+    combos = json.loads((EXPORT / f"{latest}_combinations.json").read_text("utf-8"))
+    assert len(bundle.combinations) == len(combos["combinations"])
 
 
 def test_screen_fails_closed_on_diet_and_matches_whole_words(bundle: CatalogueBundle) -> None:
@@ -122,8 +127,17 @@ def test_screen_fails_closed_on_diet_and_matches_whole_words(bundle: CatalogueBu
     eggplant = [d for d in dishes if any("eggplant" in i for i in d.ingredients)]
     egg = [d for d in dishes if any(_tokens("egg") <= _tokens(i) for i in d.ingredients)]
     assert eggplant and egg
-    assert all(dish_allowed(d, no_egg) for d in eggplant if d not in egg)
+    assert any(dish_allowed(d, no_egg) for d in eggplant if d not in egg)
     assert not any(dish_allowed(d, no_egg) for d in egg)
+
+
+def test_allergy_screen_sees_derived_ingredients(bundle: CatalogueBundle) -> None:
+    dishes = list(bundle.dishes.values())
+    for allergy, derived in [("milk", "ghee"), ("tree nut", "cashews"), ("wheat", "soy sauce")]:
+        user = profile(allergies=[allergy])
+        with_derived = [d for d in dishes if any(i.endswith(derived) for i in d.ingredients)]
+        assert with_derived, derived
+        assert not any(dish_allowed(d, user) for d in with_derived), allergy
 
 
 # --- standalone craving (section 4.3) ----------------------------------------------------
@@ -144,7 +158,7 @@ def test_craving_returns_rule_pass_recipes_matching_the_request(bundle: Catalogu
         codes = {r.code for r in item.explanation.reasons}
         assert {"CRAVING_STANDARD_PORTION_ONLY", "RULES_PASS"} <= codes
     assert result.safety.status == "STAND_IN_UNVERIFIED"
-    assert result.safety.allergens_checked_by == "INGREDIENT_NAME_MATCH"
+    assert result.safety.allergens_checked_by == "DERIVED_TERM_MAP"
     assert result.kb_id == "gc1-stand-in-kb"
     assert result.model_version == "popularity-fallback-v1"  # no scorer: labelled fallback
 
@@ -203,11 +217,51 @@ def test_craving_is_deterministic(bundle: CatalogueBundle) -> None:
 # --- onboarding seeds (ADR 0005) ---------------------------------------------------------
 
 
+def test_seed_suggestions_lead_with_the_chosen_cuisines_unless_strict(
+    bundle: CatalogueBundle,
+) -> None:
+    user = profile(diet="VEGETARIAN", cuisinePolicy="MIXED", cuisines=["Indian", "Nepali"])
+    offered = suggest_seeds(user, bundle).suggestions
+    firsts = [bundle.dishes[s.recipe_id].cuisines[0] for s in offered]
+    assert set(firsts) == {"Indian", "Nepali"}  # both have enough dishes to fill the list
+
+
+def test_seed_suggestions_stay_in_the_chosen_cuisines_after_exclusions(
+    bundle: CatalogueBundle,
+) -> None:
+    # Onion and garlic leave only six Indian dishes as they are; the rest of the list is
+    # Indian and Nepali dishes cooked with a swap, not other cuisines.
+    user = profile(
+        diet="VEGETARIAN",
+        cuisinePolicy="MIXED",
+        cuisines=["Nepali", "Indian"],
+        allergies=["peanut"],
+        excludedIngredients=["mushroom", "onion", "garlic"],
+    )
+    offered = suggest_seeds(user, bundle).suggestions
+    assert len(offered) == 12  # strict fits first, then dishes cooked with a swap
+    assert {bundle.dishes[s.recipe_id].cuisines[0] for s in offered} <= {"Indian", "Nepali"}
+    plain = [s for s in offered if not s.swaps]
+    assert plain and offered[: len(plain)] == tuple(plain)  # no-swap dishes come first
+    peanut = block_rules(("peanut",))
+    for s in offered:
+        dish = bundle.dishes[s.recipe_id]
+        assert not any(r.blocks(t) for t in (dish.name, *dish.ingredients) for r in peanut)
+        assert {w.ingredient for w in s.swaps} <= {"mushroom", "onion", "garlic"}
+    swapped = [s.recipe_id for s in offered if s.swaps][:3]
+    assert confirm_seeds(user, bundle, swapped) == tuple(swapped)  # a swapped pick is usable
+    # Cuisines with fewer than three left are topped up so onboarding can still finish.
+    rare = profile(diet="VEGAN", cuisinePolicy="MIXED", cuisines=["Korean"], allergies=["soy"])
+    filled = suggest_seeds(rare, bundle).suggestions
+    assert len(filled) >= 3
+
+
 def test_seed_suggestions_are_rule_safe_and_confirmable(bundle: CatalogueBundle) -> None:
     user = profile(diet="VEGETARIAN", cuisinePolicy="STRICT", cuisines=["Indian"])
     offered = suggest_seeds(user, bundle).suggestions
     assert len(offered) == 12
     assert bundle.dishes[offered[0].recipe_id].cuisines[0] == "Indian"
+    assert all("Indian" in bundle.dishes[s.recipe_id].cuisines for s in offered)  # STRICT
     for s in offered:
         assert is_seed_eligible(bundle.dishes[s.recipe_id])
         assert dish_allowed(bundle.dishes[s.recipe_id], user)
@@ -226,7 +280,18 @@ def test_seed_suggestions_are_rule_safe_and_confirmable(bundle: CatalogueBundle)
 
 # --- weekly plan and substitution (sections 4.2 and 4.4) ---------------------------------
 
-PLANNER = {"diet": "VEGETARIAN", "cuisinePolicy": "STRICT", "cuisines": ["Indian"]}
+TARGETS = {
+    "energyKcalMin": 1710,
+    "energyKcalTarget": 1800,
+    "energyKcalMax": 1890,
+    "proteinGMin": 50,
+}
+PLANNER = {
+    "diet": "VEGETARIAN",
+    "cuisinePolicy": "STRICT",
+    "cuisines": ["Indian"],
+    "targets": TARGETS,
+}
 
 
 @pytest.fixture(scope="module")
@@ -270,6 +335,37 @@ def test_week_is_21_verified_allowed_meals(bundle: CatalogueBundle, week: WeekPl
     assert week.safety.diet_checked_by == "FOODCOM_TAG"
 
 
+def test_portions_are_sized_toward_the_day_targets(week: WeekPlan) -> None:
+    # Measured on catalogue 20261021T073631Z: STANDARD portions put 0 of 7 days in the
+    # band for this profile; fitted presets put 6 (ADR 0006).
+    assert week.status is PlanStatus.FEASIBLE, week.message
+    assert any(m.preset.value != "STANDARD" for m in week.meals)
+    energy = [t.totals.energy_kcal for t in week.day_totals]
+    within = sum(e is not None and 1710 <= e <= 1890 for e in energy)
+    assert within >= 5, energy
+    assert f"{within} of 7 days are within" in week.message
+
+
+def test_fitting_keeps_standard_without_targets_and_locks_other_slots(
+    bundle: CatalogueBundle,
+) -> None:
+    from savora_ai.core.pipelines.planning import _fit_portions, _ranked_meals, _rotation, _standard
+    from savora_ai.core.pipelines.profile import DayTargets
+
+    user = profile(**PLANNER)
+    _, by_meal = _ranked_meals(bundle, user, None)
+    chosen = {}
+    for sid, combo in _rotation(by_meal).items():
+        config = _standard(combo)
+        assert config is not None
+        chosen[sid] = (combo, config)
+    assert _fit_portions(chosen, None) == chosen
+    targets = DayTargets.model_validate(TARGETS)
+    one = _fit_portions(chosen, targets, vary=("D2_LUNCH",))
+    assert [s for s in chosen if one[s] != chosen[s]] in ([], ["D2_LUNCH"])
+    assert all(one[s][0] is chosen[s][0] for s in chosen)  # the meals never change
+
+
 def test_substitution_changes_only_the_target_slot(week: WeekPlan, swapped: WeekPlan) -> None:
     assert swapped.status is PlanStatus.FEASIBLE, swapped.message
     assert swapped.workflow == "PLANNED_SWAP"
@@ -278,9 +374,39 @@ def test_substitution_changes_only_the_target_slot(week: WeekPlan, swapped: Week
     assert [s for s in before if before[s] != after[s]] == ["D2_LUNCH"]
 
 
+def test_swap_is_independently_verified_by_the_compact_b1_proof(
+    bundle: CatalogueBundle, week: WeekPlan, swapped: WeekPlan
+) -> None:
+    # Member 2's compact B1 (PR #21) over our runtime resolver: both complete weeks are
+    # replayed from the server's own catalogue and the witness reconstructed independently.
+    from decimal import Decimal
+
+    from savora_ai.core.pipelines import prove_swap
+
+    new = next(m for m in swapped.meals if m.slot_id == "D2_LUNCH")
+    proof = prove_swap(
+        profile(**PLANNER),
+        bundle,
+        saved={m.slot_id: m.option_id for m in week.meals},
+        slot="D2_LUNCH",
+        replacement_option_id=new.option_id,
+        plan_id="plan-1",
+        revision=1,
+        owner_id="user-1",
+        start_date=START,
+    )
+    assert proof.status == "VALID" and proof.verified, proof.reason
+    assert proof.certificate_digest is not None and len(proof.certificate_digest) == 64
+    day2 = next(t for t in swapped.day_totals if t.day_index == 2).totals
+    energy = next(t for t in proof.changed_day_totals if t.nutrient == "energy_kcal")
+    assert day2.energy_kcal is not None and energy.value is not None
+    assert abs(Decimal(energy.value) - Decimal(str(day2.energy_kcal))) < 1
+
+
 def test_too_few_meals_is_insufficient_without_solving(bundle: CatalogueBundle) -> None:
-    nepali = profile(cuisinePolicy="STRICT", cuisines=["Nepali"])
-    result = plan_week(nepali, bundle, week_id="week-np", start_date=START)
+    # British is an incidental Food.com tag, not a target cuisine: one breakfast dish.
+    british = profile(cuisinePolicy="STRICT", cuisines=["British"])
+    result = plan_week(british, bundle, week_id="week-gb", start_date=START)
     assert result.status is PlanStatus.INSUFFICIENT_DATA
     assert "breakfast" in result.message and result.search is None and not result.meals
 
@@ -306,3 +432,90 @@ def test_substitution_refuses_to_lock_meals_the_profile_no_longer_allows(
         substitute_slot(
             vegan, bundle, current=current, slot="D2_LUNCH", week_id="w", start_date=START
         )
+
+
+def test_strict_nepali_has_enough_breakfasts_for_a_week(bundle: CatalogueBundle) -> None:
+    # 7 breakfasts with each dish at most twice need 4 distinct anchors (catalogue audit).
+    from savora_ai.core.pipelines.planning import _ranked_meals
+    from savora_ai.schemas.enums import MealType
+
+    nepali = profile(cuisinePolicy="STRICT", cuisines=["Nepali"])
+    _, by_meal = _ranked_meals(bundle, nepali, None)
+    anchors = {c.components[0].dish_id for c in by_meal[MealType.BREAKFAST]}
+    assert len(anchors) >= 4
+    assert {"USDA_2707714", "USDA_2707715"} <= anchors  # puri, paratha (curated USDA)
+
+
+def test_replacements_are_ranked_eligible_and_exclude_the_current_meal(
+    bundle: CatalogueBundle, week: WeekPlan
+) -> None:
+    user = profile(**PLANNER)
+    current = {m.slot_id: m.option_id for m in week.meals}
+    result = suggest_replacements(user, bundle, current=current, slot="D2_LUNCH")
+    assert result.options and [o.rank for o in result.options] == list(
+        range(1, len(result.options) + 1)
+    )
+    saved = next(m.combination_id for m in week.meals if m.slot_id == "D2_LUNCH")
+    assert result.current_combination_id == saved
+    for option in result.options:
+        combo = bundle.combinations[option.combination_id]
+        assert option.combination_id != saved
+        assert "LUNCH" in {m.value for m in combo.meal_types}
+        assert all(dish_allowed(bundle.dishes[c.dish_id], user) for c in combo.components)
+        assert option.repeats_in_week < 2
+    assert result.safety.status == "STAND_IN_UNVERIFIED"
+
+
+def test_replacement_preference_filters_by_exclusion_and_reports_unknowns(
+    bundle: CatalogueBundle, week: WeekPlan
+) -> None:
+    user = profile(**PLANNER)
+    current = {m.slot_id: m.option_id for m in week.meals}
+    wish = craving(intent="SWAP_MEAL", mealSlotId="D2_LUNCH", excludedIngredientIds=["POTATO"])
+    result = suggest_replacements(user, bundle, current=current, slot="D2_LUNCH", preference=wish)
+    for option in result.options:
+        combo = bundle.combinations[option.combination_id]
+        for part in combo.components:
+            dish = bundle.dishes[part.dish_id]
+            assert not any("potato" in i.lower().split() for i in dish.ingredients)
+    nowhere = craving(intent="SWAP_MEAL", mealSlotId="D2_LUNCH", cuisineIds=["ATLANTEAN"])
+    empty = suggest_replacements(user, bundle, current=current, slot="D2_LUNCH", preference=nowhere)
+    assert empty.options == () and empty.unknown_cuisine_ids == ("ATLANTEAN",)
+    assert "No eligible" in empty.message
+
+
+def test_substitution_uses_the_chosen_replacement(bundle: CatalogueBundle, week: WeekPlan) -> None:
+    user = profile(**PLANNER)
+    current = {m.slot_id: m.option_id for m in week.meals}
+    choice = suggest_replacements(user, bundle, current=current, slot="D3_DINNER").options[-1]
+    result = substitute_slot(
+        user,
+        bundle,
+        current=current,
+        slot="D3_DINNER",
+        week_id="week-1-r3",
+        start_date=START,
+        replacement_combination_id=choice.combination_id,
+    )
+    assert result.status is PlanStatus.FEASIBLE, result.message
+    after = {m.slot_id: m for m in result.meals}
+    assert after["D3_DINNER"].combination_id == choice.combination_id
+    assert [s for s in current if current[s] != after[s].option_id] == ["D3_DINNER"]
+
+
+def test_substitution_refuses_a_replacement_that_is_not_eligible(
+    bundle: CatalogueBundle, week: WeekPlan
+) -> None:
+    current = {m.slot_id: m.option_id for m in week.meals}
+    saved = next(m.combination_id for m in week.meals if m.slot_id == "D2_LUNCH")
+    result = substitute_slot(
+        profile(**PLANNER),
+        bundle,
+        current=current,
+        slot="D2_LUNCH",
+        week_id="w",
+        start_date=START,
+        replacement_combination_id=saved,  # the meal being replaced is never eligible
+    )
+    assert result.status is PlanStatus.INSUFFICIENT_DATA and not result.meals
+    assert "no longer eligible" in result.message

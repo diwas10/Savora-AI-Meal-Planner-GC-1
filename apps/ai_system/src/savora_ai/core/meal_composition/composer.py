@@ -40,7 +40,9 @@ class CompositionLimits:
     staples_per_main: int = 2
     vegetables_per_main_staple: int = 1
     add_ons_per_base: int = 2
-    max_per_meal_type: int = 600  # safety bound: exceeding it is an error, not a cut
+    # Safety bound: exceeding it is an error, not a cut. 600 fitted 7 cuisines; the 19-cuisine
+    # catalogue (21 Oct 2026) composes about 1,100 lunch/dinner meals.
+    max_per_meal_type: int = 2500
 
 
 DEFAULT_LIMITS = CompositionLimits()

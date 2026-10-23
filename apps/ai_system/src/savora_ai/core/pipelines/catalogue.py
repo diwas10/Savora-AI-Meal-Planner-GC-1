@@ -15,16 +15,25 @@ from savora_ai.core.recommendation.ranking import PopularityScorer
 
 @dataclass(frozen=True)
 class CatalogueBundle:
-    version: str  # the export's catalogueVersion, e.g. "20261019T012206Z"
+    version: str  # the export's catalogueVersion, e.g. "20261021T073631Z"
     dishes: dict[str, CatalogueRecipe]
     combinations: dict[str, MealCombination]
     popularity: PopularityScorer = field(compare=False)
+    # The cuisines the catalogue was built to cover; other names are incidental Food.com
+    # tags (e.g. British). Empty for exports that predate the field: then every cuisine.
+    target_cuisines: tuple[str, ...] = ()
 
     @property
     def cuisine_ids(self) -> dict[str, str]:
         """Canonical cuisine ID (`NEPALI`) -> catalogue cuisine name (`Nepali`)."""
         names = sorted({c for d in self.dishes.values() for c in d.cuisines})
         return {cuisine_id(name): name for name in names}
+
+    @property
+    def target_cuisine_ids(self) -> dict[str, str]:
+        """`cuisine_ids` limited to the target cuisines (what a profile may choose)."""
+        targets = set(self.target_cuisines)
+        return {k: v for k, v in self.cuisine_ids.items() if not targets or v in targets}
 
 
 def cuisine_id(name: str) -> str:
@@ -61,4 +70,5 @@ def load_catalogue_export(directory: Path, version: str | None = None) -> Catalo
         dishes=dishes,
         combinations={m.combination_id: m for m in meals},
         popularity=PopularityScorer(counts),
+        target_cuisines=tuple(sorted(catalogue.get("targetCuisines", ()))),
     )

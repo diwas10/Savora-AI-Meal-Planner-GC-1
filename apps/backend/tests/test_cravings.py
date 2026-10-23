@@ -104,7 +104,7 @@ async def test_cravings_with_fake_gateway_and_fake_qwen(tmp_path: Path) -> None:
         assert res.status_code == 200
         data = res.json()["data"]
         assert data["kind"] == "RECOMMENDATIONS"
-        assert data["parse"]["parser"] == "QWEN"
+        assert data["parse"]["parser"] == "HYBRID"
         assert data["result"]["status"] == "OK"
         assert len(data["result"]["items"]) == 3
 

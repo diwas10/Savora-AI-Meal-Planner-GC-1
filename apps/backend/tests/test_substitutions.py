@@ -58,7 +58,8 @@ async def test_substitution_creates_revision_and_preserves_locked_slots(
 ) -> None:
     headers = await _register_and_profile(db_client)
     app = _get_app(db_client)
-    app.dependency_overrides[get_ai_gateway] = lambda: FakeAiGateway()
+    gateway = FakeAiGateway()
+    app.dependency_overrides[get_ai_gateway] = lambda: gateway
 
     plan_post = await db_client.post(
         "/api/meal-plans",
@@ -101,6 +102,13 @@ async def test_substitution_creates_revision_and_preserves_locked_slots(
     assert sub_data["slotId"] == "D2_LUNCH"
     assert sub_data["beforeSnapshot"]["optionId"] == plan1_slots["D2_LUNCH"]["optionId"]
     assert sub_data["afterSnapshot"]["optionId"] != plan1_slots["D2_LUNCH"]["optionId"]
+    # Member 2's compact B1 proof ran on the saved week and the chosen option.
+    (proved,) = gateway.proved
+    assert proved["saved"] == {sid: s["optionId"] for sid, s in plan1_slots.items()}
+    assert proved["option"] == sub_data["afterSnapshot"]["optionId"]
+    assert (proved["plan"], proved["revision"], proved["slot"]) == (plan1_id, 1, "D2_LUNCH")
+    assert sub_data["proof"]["status"] == "VALID" and sub_data["proof"]["verified"] is True
+    assert sub_data["proof"]["certificateDigest"] == "c" * 64
 
     # Check old plan is no longer current
     plan1_after = await db_client.get(f"/api/meal-plans/{plan1_id}", headers=headers)
@@ -116,9 +124,7 @@ async def test_substitution_creates_revision_and_preserves_locked_slots(
     plan2_slots = {s["slotId"]: s for s in plan2["slots"]}
 
     changed_slots = [
-        sid
-        for sid in plan1_slots
-        if plan1_slots[sid]["optionId"] != plan2_slots[sid]["optionId"]
+        sid for sid in plan1_slots if plan1_slots[sid]["optionId"] != plan2_slots[sid]["optionId"]
     ]
     assert changed_slots == ["D2_LUNCH"]
     for sid in plan1_slots:
@@ -163,9 +169,7 @@ async def test_substitution_conflicts_on_revision_and_profile_change(
     sub_insuf_id = sub_insuf.json()["data"]["substitutionId"]
     await wait_for_background_tasks()
 
-    sub_insuf_get = await db_client.get(
-        f"/api/substitutions/{sub_insuf_id}", headers=headers
-    )
+    sub_insuf_get = await db_client.get(f"/api/substitutions/{sub_insuf_id}", headers=headers)
     assert sub_insuf_get.json()["data"]["status"] == "INSUFFICIENT_DATA"
     assert sub_insuf_get.json()["data"]["toPlanId"] is None
 
@@ -195,4 +199,31 @@ async def test_substitution_conflicts_on_revision_and_profile_change(
         json={"slotId": "D1_LUNCH", "expectedRevision": 1},
     )
     assert prof_changed.status_code == 409
-    assert prof_changed.json()["message"] == "profile changed; generate a new plan"
+    assert "profile changed" in prof_changed.json()["message"]
+
+
+async def test_unverified_swap_proof_leaves_the_plan_unchanged(
+    db_client: httpx.AsyncClient,
+) -> None:
+    headers = await _register_and_profile(db_client, email="subproof@example.com")
+    app = _get_app(db_client)
+    app.dependency_overrides[get_ai_gateway] = lambda: FakeAiGateway(proof_status="REJECTED")
+    plan_post = await db_client.post(
+        "/api/meal-plans", headers=headers, json={"weekStart": "2026-10-19"}
+    )
+    plan_id = plan_post.json()["data"]["planId"]
+    await wait_for_background_tasks()
+
+    sub_post = await db_client.post(
+        f"/api/meal-plans/{plan_id}/substitutions",
+        headers=headers,
+        json={"slotId": "D3_DINNER", "expectedRevision": 1, "excludeCombinationIds": []},
+    )
+    await wait_for_background_tasks()
+    sub_id = sub_post.json()["data"]["substitutionId"]
+    sub_data = (await db_client.get(f"/api/substitutions/{sub_id}", headers=headers)).json()["data"]
+    assert sub_data["status"] == "INFEASIBLE"
+    assert sub_data["toPlanId"] is None
+    assert sub_data["proof"]["status"] == "REJECTED" and sub_data["proof"]["verified"] is False
+    plan = (await db_client.get(f"/api/meal-plans/{plan_id}", headers=headers)).json()["data"]
+    assert plan["isCurrent"] is True and plan["revision"] == 1

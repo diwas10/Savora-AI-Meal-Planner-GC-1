@@ -1,0 +1,345 @@
+{
+  "promptVersion": "craving_nlu_feasibility_v2",
+  "gold": "craving_nlu_feasibility.jsonl (58 utterances)",
+  "decoding": "temperature 0, seed 7, thinking off, max 200 tokens, 30 s timeout, Ollama default quantization (Q4_K_M)",
+  "hardware": "Apple M3 Pro, 18 GB, Ollama 0.35.1",
+  "results": [
+    {
+      "model": "qwen3:0.6b",
+      "mode": "schema",
+      "cases": 58,
+      "schemaValidity": 1.0,
+      "intentAccuracy": 0.9655172413793104,
+      "clarificationAccuracy": 0.9310344827586207,
+      "slotPrecision": 0.6704545454545454,
+      "slotRecall": 0.7023809523809523,
+      "slotF1": 0.6860465116279069,
+      "exactMatch": 0.41379310344827586,
+      "latencyMsP50": 340.00799956265837,
+      "latencyMsP95": 436.1369999824092,
+      "invalidExamples": []
+    },
+    {
+      "model": "qwen3:0.6b",
+      "mode": "grounded",
+      "cases": 58,
+      "schemaValidity": 1.0,
+      "intentAccuracy": 0.9655172413793104,
+      "clarificationAccuracy": 0.9655172413793104,
+      "slotPrecision": 0.9705882352941176,
+      "slotRecall": 0.7857142857142857,
+      "slotF1": 0.8684210526315789,
+      "exactMatch": 0.6724137931034483,
+      "latencyMsP50": 303.12437552493066,
+      "latencyMsP95": 387.67895800992846,
+      "invalidExamples": []
+    },
+    {
+      "model": "qwen3:0.6b",
+      "mode": "free",
+      "cases": 58,
+      "schemaValidity": 0.7758620689655172,
+      "intentAccuracy": 0.7413793103448276,
+      "clarificationAccuracy": 0.7241379310344828,
+      "slotPrecision": 0.7704918032786885,
+      "slotRecall": 0.5595238095238095,
+      "slotF1": 0.6482758620689655,
+      "exactMatch": 0.3793103448275862,
+      "latencyMsP50": 363.2201040163636,
+      "latencyMsP95": 664.9230420589447,
+      "invalidExamples": [
+        {
+          "text": "craving chinese food but no noodles please",
+          "output": "{\"intent\":\"CRAVING_RECOMMEND\",\"cuisineIds\":[\"CHINESE\"],\"flavorTags\":[\"SOUR\"],\"excludedIngredientIds\":[\"Noodles\"],\"requiresClarification\":false}",
+          "error": "1 validation error for CravingRequest\nexcludedIngredientIds.0\n  String should match pattern '^[A-Z][A-Z0-9_]{0,63}$' [type=string_pattern_mismatch, input_value="
+        },
+        {
+          "text": "I feel like Mexican tonight, smoky if possible",
+          "output": "{\"intent\":\"CRAVING_RECOMMEND\",\"cuisineIds\":[\"MEXICAN\"],\"flavorTags\":[\"SMOKY\"],\"excludedIngredientIds\":[\"NO ...\",\"NO ...\",\"NO ...\"],\"mealSlotId\":null,\"requiresClarification\":false}",
+          "error": "3 validation errors for CravingRequest\nexcludedIngredientIds.0\n  String should match pattern '^[A-Z][A-Z0-9_]{0,63}$' [type=string_pattern_mismatch, input_value"
+        },
+        {
+          "text": "a Malaysian dish without peanuts",
+          "output": "{\"intent\":\"CRAVING_RECOMMEND\",\"cuisineIds\":[\"MALAYSIAN\"],\"flavorTags\":[\"NO_PEANUTS\"],\"excludedIngredientIds\":[\"PEANUTS\"],\"mealSlotId\":null,\"requiresClarification\":false}",
+          "error": "1 validation error for CravingRequest\nflavorTags.0\n  Input should be 'SPICY', 'SWEET', 'SOUR', 'SMOKY' or 'CREAMY' [type=enum, input_value='NO_PEANUTS', input_t"
+        },
+        {
+          "text": "Japanese, no fish",
+          "output": "{\"intent\":\"CRAVING_RECOMMEND\",\"cuisineIds\":[\"JAPANESE\"],\"flavorTags\":[\"NO_FISH\"],\"excludedIngredientIds\":[\"NO_FISH\"],\"mealSlotId\":null,\"requiresClarification\":false}",
+          "error": "1 validation error for CravingRequest\nflavorTags.0\n  Input should be 'SPICY', 'SWEET', 'SOUR', 'SMOKY' or 'CREAMY' [type=enum, input_value='NO_FISH', input_type"
+        },
+        {
+          "text": "French dinner idea, creamy",
+          "output": "{\"intent\":\"CRAVING_RECOMMEND\",\"cuisineIds\":[\"FRAN\u00c7AIS\"],\"flavorTags\":[\"CREAMY\"],\"excludedIngredientIds\":[],\"mealSlotId\":null,\"requiresClarification\":false}",
+          "error": "1 validation error for CravingRequest\ncuisineIds.0\n  String should match pattern '^[A-Z][A-Z0-9_]{0,63}$' [type=string_pattern_mismatch, input_value='FRAN\u00c7AIS',"
+        }
+      ]
+    },
+    {
+      "model": "qwen3:1.7b",
+      "mode": "schema",
+      "cases": 58,
+      "schemaValidity": 0.8620689655172413,
+      "intentAccuracy": 0.7931034482758621,
+      "clarificationAccuracy": 0.7931034482758621,
+      "slotPrecision": 0.8082191780821918,
+      "slotRecall": 0.7023809523809523,
+      "slotF1": 0.751592356687898,
+      "exactMatch": 0.603448275862069,
+      "latencyMsP50": 624.5266665355302,
+      "latencyMsP95": 705.896458006464,
+      "invalidExamples": [
+        {
+          "text": "a Malaysian dish without peanuts",
+          "output": "{\"intent\":\"SWAP_MEAL\",\"cuisineIds\":[\"MALAYSIAN\"],\"flavorTags\":[],\"excludedIngredientIds\":[\"PEANUTS\"],\"mealSlotId\":null,\"requiresClarification\":false}",
+          "error": "1 validation error for CravingRequest\n  Value error, SWAP_MEAL needs mealSlotId or requiresClarification=true [type=value_error, input_value={'intent': 'SWAP_ME"
+        },
+        {
+          "text": "Something Moroccan and spicy",
+          "output": "{\"intent\":\"SWAP_MEAL\",\"cuisineIds\":[\"MOROCCAN\"],\"flavorTags\":[\"SPICY\"],\"excludedIngredientIds\":[],\"mealSlotId\":null,\"requiresClarification\":false}",
+          "error": "1 validation error for CravingRequest\n  Value error, SWAP_MEAL needs mealSlotId or requiresClarification=true [type=value_error, input_value={'intent': 'SWAP_ME"
+        },
+        {
+          "text": "filipino adobo",
+          "output": "{\"intent\":\"SWAP_MEAL\",\"cuisineIds\":[\"FILIPINO\"],\"flavorTags\":[],\"excludedIngredientIds\":[],\"mealSlotId\":null,\"requiresClarification\":false}",
+          "error": "1 validation error for CravingRequest\n  Value error, SWAP_MEAL needs mealSlotId or requiresClarification=true [type=value_error, input_value={'intent': 'SWAP_ME"
+        },
+        {
+          "text": "indonesian food, spicy, no beef",
+          "output": "{\"intent\":\"SWAP_MEAL\",\"cuisineIds\":[\"INDONESIAN\"],\"flavorTags\":[\"SPICY\"],\"excludedIngredientIds\":[\"BEEF\"],\"mealSlotId\":null,\"requiresClarification\":false}",
+          "error": "1 validation error for CravingRequest\n  Value error, SWAP_MEAL needs mealSlotId or requiresClarification=true [type=value_error, input_value={'intent': 'SWAP_ME"
+        },
+        {
+          "text": "middle eastern without chickpeas",
+          "output": "{\"intent\":\"SWAP_MEAL\",\"cuisineIds\":[\"MIDDLE_EASTERN\"],\"flavorTags\":[],\"excludedIngredientIds\":[\"CHICKPEAS\"],\"mealSlotId\":null,\"requiresClarification\":false}",
+          "error": "1 validation error for CravingRequest\n  Value error, SWAP_MEAL needs mealSlotId or requiresClarification=true [type=value_error, input_value={'intent': 'SWAP_ME"
+        }
+      ]
+    },
+    {
+      "model": "qwen3:1.7b",
+      "mode": "grounded",
+      "cases": 58,
+      "schemaValidity": 1.0,
+      "intentAccuracy": 0.7931034482758621,
+      "clarificationAccuracy": 0.7758620689655172,
+      "slotPrecision": 0.95,
+      "slotRecall": 0.9047619047619048,
+      "slotF1": 0.9268292682926829,
+      "exactMatch": 0.6551724137931034,
+      "latencyMsP50": 572.3359370604157,
+      "latencyMsP95": 722.6803329540417,
+      "invalidExamples": []
+    },
+    {
+      "model": "qwen3:1.7b",
+      "mode": "free",
+      "cases": 58,
+      "schemaValidity": 0.8448275862068966,
+      "intentAccuracy": 0.7758620689655172,
+      "clarificationAccuracy": 0.7758620689655172,
+      "slotPrecision": 0.8169014084507042,
+      "slotRecall": 0.6904761904761905,
+      "slotF1": 0.7483870967741935,
+      "exactMatch": 0.603448275862069,
+      "latencyMsP50": 610.4189164470881,
+      "latencyMsP95": 695.4132500104606,
+      "invalidExamples": [
+        {
+          "text": "craving chinese food but no noodles please",
+          "output": "{\"intent\":\"CRAVING_RECOMMEND\",\"cuisineIds\":[\"CHINESE\"],\"flavorTags\":[],\"excludedIngredientIds\":[\"Noodles\"],\"mealSlotId\":null,\"requiresClarification\":false}",
+          "error": "1 validation error for CravingRequest\nexcludedIngredientIds.0\n  String should match pattern '^[A-Z][A-Z0-9_]{0,63}$' [type=string_pattern_mismatch, input_value="
+        },
+        {
+          "text": "a Malaysian dish without peanuts",
+          "output": "{\"intent\":\"SWAP_MEAL\",\"cuisineIds\":[\"MALAYSIAN\"],\"flavorTags\":[],\"excludedIngredientIds\":[\"PEANUTS\"],\"mealSlotId\":null,\"requiresClarification\":false}",
+          "error": "1 validation error for CravingRequest\n  Value error, SWAP_MEAL needs mealSlotId or requiresClarification=true [type=value_error, input_value={'intent': 'SWAP_ME"
+        },
+        {
+          "text": "Something Moroccan and spicy",
+          "output": "{\"intent\":\"SWAP_MEAL\",\"cuisineIds\":[\"MOROCCAN\"],\"flavorTags\":[\"SPICY\"],\"excludedIngredientIds\":[],\"mealSlotId\":null,\"requiresClarification\":false}",
+          "error": "1 validation error for CravingRequest\n  Value error, SWAP_MEAL needs mealSlotId or requiresClarification=true [type=value_error, input_value={'intent': 'SWAP_ME"
+        },
+        {
+          "text": "filipino adobo",
+          "output": "{\"intent\":\"SWAP_MEAL\",\"cuisineIds\":[\"FILIPINO\"],\"flavorTags\":[],\"excludedIngredientIds\":[],\"mealSlotId\":null,\"requiresClarification\":false}",
+          "error": "1 validation error for CravingRequest\n  Value error, SWAP_MEAL needs mealSlotId or requiresClarification=true [type=value_error, input_value={'intent': 'SWAP_ME"
+        },
+        {
+          "text": "indonesian food, spicy, no beef",
+          "output": "{\"intent\":\"SWAP_MEAL\",\"cuisineIds\":[\"INDONESIAN\"],\"flavorTags\":[\"SPICY\"],\"excludedIngredientIds\":[\"BEEF\"],\"mealSlotId\":null,\"requiresClarification\":false}",
+          "error": "1 validation error for CravingRequest\n  Value error, SWAP_MEAL needs mealSlotId or requiresClarification=true [type=value_error, input_value={'intent': 'SWAP_ME"
+        }
+      ]
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "mode": "schema",
+      "cases": 58,
+      "schemaValidity": 0.7413793103448276,
+      "intentAccuracy": 0.3275862068965517,
+      "clarificationAccuracy": 0.603448275862069,
+      "slotPrecision": 0.352,
+      "slotRecall": 0.5238095238095238,
+      "slotF1": 0.42105263157894735,
+      "exactMatch": 0.10344827586206896,
+      "latencyMsP50": 337.94043806847185,
+      "latencyMsP95": 406.55316691845655,
+      "invalidExamples": [
+        {
+          "text": "change my meal",
+          "output": "{\"intent\":\"SWAP_MEAL\",\"cuisineIds\":[\"AMERICAN\"],\"flavorTags\":[],\"excludedIngredientIds\":[\"BREAKFAST\"],\"mealSlotId\":null,\"requiresClarification\":false}",
+          "error": "1 validation error for CravingRequest\n  Value error, SWAP_MEAL needs mealSlotId or requiresClarification=true [type=value_error, input_value={'intent': 'SWAP_ME"
+        },
+        {
+          "text": "Japanese, no fish",
+          "output": "{\"intent\":\"SWAP_MEAL\",\"cuisineIds\":[\"JAPANESE\"],\"flavorTags\":[],\"excludedIngredientIds\":[\"FISH\"],\"mealSlotId\":null,\"requiresClarification\":false}",
+          "error": "1 validation error for CravingRequest\n  Value error, SWAP_MEAL needs mealSlotId or requiresClarification=true [type=value_error, input_value={'intent': 'SWAP_ME"
+        },
+        {
+          "text": "I want Greek food with no onions or garlic",
+          "output": "{\"intent\":\"SWAP_MEAL\",\"cuisineIds\":[\"GREEK\"],\"flavorTags\":[],\"excludedIngredientIds\":[\"ONIONS\",\"GARLIC\"],\"mealSlotId\":null,\"requiresClarification\":false}",
+          "error": "1 validation error for CravingRequest\n  Value error, SWAP_MEAL needs mealSlotId or requiresClarification=true [type=value_error, input_value={'intent': 'SWAP_ME"
+        },
+        {
+          "text": "filipino adobo",
+          "output": "{\"intent\":\"SWAP_MEAL\",\"cuisineIds\":[\"PHILIPPINE\"],\"flavorTags\":[\"SOUR\"],\"excludedIngredientIds\":[\"ADOBO\"],\"mealSlotId\":null,\"requiresClarification\":false}",
+          "error": "1 validation error for CravingRequest\n  Value error, SWAP_MEAL needs mealSlotId or requiresClarification=true [type=value_error, input_value={'intent': 'SWAP_ME"
+        },
+        {
+          "text": "indonesian food, spicy, no beef",
+          "output": "{\"intent\":\"SWAP_MEAL\",\"cuisineIds\":[\"INDONESIAN\"],\"flavorTags\":[\"SPICY\"],\"excludedIngredientIds\":[\"BEEF\"],\"mealSlotId\":null,\"requiresClarification\":false}",
+          "error": "1 validation error for CravingRequest\n  Value error, SWAP_MEAL needs mealSlotId or requiresClarification=true [type=value_error, input_value={'intent': 'SWAP_ME"
+        }
+      ]
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "mode": "grounded",
+      "cases": 58,
+      "schemaValidity": 1.0,
+      "intentAccuracy": 0.3448275862068966,
+      "clarificationAccuracy": 0.3448275862068966,
+      "slotPrecision": 0.8,
+      "slotRecall": 0.8095238095238095,
+      "slotF1": 0.8047337278106509,
+      "exactMatch": 0.1724137931034483,
+      "latencyMsP50": 280.8826664695516,
+      "latencyMsP95": 340.07074998226017,
+      "invalidExamples": []
+    },
+    {
+      "model": "qwen2.5:0.5b",
+      "mode": "free",
+      "cases": 58,
+      "schemaValidity": 0.20689655172413793,
+      "intentAccuracy": 0.15517241379310345,
+      "clarificationAccuracy": 0.1896551724137931,
+      "slotPrecision": 0.4642857142857143,
+      "slotRecall": 0.15476190476190477,
+      "slotF1": 0.23214285714285718,
+      "exactMatch": 0.05172413793103448,
+      "latencyMsP50": 311.1952500184998,
+      "latencyMsP95": 417.6132919965312,
+      "invalidExamples": [
+        {
+          "text": "I want something spicy and Thai",
+          "output": "{\"mealSlotId\":\"D1_TEA\"}",
+          "error": "2 validation errors for CravingRequest\nintent\n  Field required [type=missing, input_value={'mealSlotId': 'D1_TEA'}, input_type=dict]\n    For further information"
+        },
+        {
+          "text": "craving chinese food but no noodles please",
+          "output": "{\"mealSlotId\":\"D1_LUNCH\"}",
+          "error": "1 validation error for CravingRequest\nintent\n  Field required [type=missing, input_value={'mealSlotId': 'D1_LUNCH'}, input_type=dict]\n    For further informatio"
+        },
+        {
+          "text": "Give me a creamy Indian curry",
+          "output": "{\"mealSlotId\":\"D1_CHEEVED\",\"meal\":\"Indian Curry\",\"cuisineIds\":[\"INDIAN\"],\"flavorTags\":[\"CREAMY\"],\"excludedIngredientIds\":[\"CHEESE\"],\"requiresClarification\":false}",
+          "error": "3 validation errors for CravingRequest\nmeal\n  Extra inputs are not permitted [type=extra_forbidden, input_value='Indian Curry', input_type=str]\n    For further "
+        },
+        {
+          "text": "I feel like Mexican tonight, smoky if possible",
+          "output": "{\"mealSlotId\":\"D1_MEXICAN\",\"meal\":\"LUNCH\",\"cuisineIds\":[\"MEXICAN\"],\"flavorTags\":[\"SMOKY\"],\"excludedIngredientIds\":[\"NO_SUGAR\"],\"requiresClarification\":true}",
+          "error": "3 validation errors for CravingRequest\nmeal\n  Extra inputs are not permitted [type=extra_forbidden, input_value='LUNCH', input_type=str]\n    For further informa"
+        },
+        {
+          "text": "anything Korean",
+          "output": "{\"mealSlotId\":\"D1_KOREAN\",\"meal\":\"breakfast\",\"cuisineIds\":[\"KOREAN\"],\"flavorTags\":[\"SOUR\"],\"excludedIngredientIds\":[\"KOREAN\"],\"requiresClarification\":true}",
+          "error": "3 validation errors for CravingRequest\nmeal\n  Extra inputs are not permitted [type=extra_forbidden, input_value='breakfast', input_type=str]\n    For further inf"
+        }
+      ]
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "mode": "schema",
+      "cases": 58,
+      "schemaValidity": 0.9655172413793104,
+      "intentAccuracy": 0.9655172413793104,
+      "clarificationAccuracy": 0.8793103448275862,
+      "slotPrecision": 0.8823529411764706,
+      "slotRecall": 0.8928571428571429,
+      "slotF1": 0.8875739644970414,
+      "exactMatch": 0.7068965517241379,
+      "latencyMsP50": 559.5113339368254,
+      "latencyMsP95": 670.5688750371337,
+      "invalidExamples": [
+        {
+          "text": "change my meal",
+          "output": "{\"intent\":\"SWAP_MEAL\",\"cuisineIds\":[],\"flavorTags\":[],\"excludedIngredientIds\":[],\"mealSlotId\":null,\"requiresClarification\":false}",
+          "error": "1 validation error for CravingRequest\n  Value error, SWAP_MEAL needs mealSlotId or requiresClarification=true [type=value_error, input_value={'intent': 'SWAP_ME"
+        },
+        {
+          "text": "no eggs, korean breakfast",
+          "output": "{\"intent\":\"SWAP_MEAL\",\"cuisineIds\":[\"KOREAN\"],\"flavorTags\":[],\"excludedIngredientIds\":[\"EGGS\"],\"mealSlotId\":null,\"requiresClarification\":false}",
+          "error": "1 validation error for CravingRequest\n  Value error, SWAP_MEAL needs mealSlotId or requiresClarification=true [type=value_error, input_value={'intent': 'SWAP_ME"
+        }
+      ]
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "mode": "grounded",
+      "cases": 58,
+      "schemaValidity": 1.0,
+      "intentAccuracy": 0.9827586206896551,
+      "clarificationAccuracy": 0.9310344827586207,
+      "slotPrecision": 0.927710843373494,
+      "slotRecall": 0.9166666666666666,
+      "slotF1": 0.9221556886227544,
+      "exactMatch": 0.7758620689655172,
+      "latencyMsP50": 505.426041490864,
+      "latencyMsP95": 668.1788749992847,
+      "invalidExamples": []
+    },
+    {
+      "model": "qwen2.5:1.5b",
+      "mode": "free",
+      "cases": 58,
+      "schemaValidity": 0.9482758620689655,
+      "intentAccuracy": 0.9482758620689655,
+      "clarificationAccuracy": 0.8620689655172413,
+      "slotPrecision": 0.8823529411764706,
+      "slotRecall": 0.8928571428571429,
+      "slotF1": 0.8875739644970414,
+      "exactMatch": 0.6896551724137931,
+      "latencyMsP50": 572.6746249711141,
+      "latencyMsP95": 635.0266669178382,
+      "invalidExamples": [
+        {
+          "text": "change my meal",
+          "output": "{\"intent\":\"SWAP_MEAL\",\"cuisineIds\":[],\"flavorTags\":[],\"excludedIngredientIds\":[],\"mealSlotId\":null,\"requiresClarification\":false}",
+          "error": "1 validation error for CravingRequest\n  Value error, SWAP_MEAL needs mealSlotId or requiresClarification=true [type=value_error, input_value={'intent': 'SWAP_ME"
+        },
+        {
+          "text": "what's the weather like today",
+          "output": "{\"intent\":null,\"cuisineIds\":[],\"flavorTags\":[],\"excludedIngredientIds\":[],\"mealSlotId\":null,\"requiresClarification\":true}",
+          "error": "1 validation error for CravingRequest\nintent\n  Input should be 'CRAVING_RECOMMEND' or 'SWAP_MEAL' [type=enum, input_value=None, input_type=NoneType]\n    For fur"
+        },
+        {
+          "text": "no eggs, korean breakfast",
+          "output": "{\"intent\":\"SWAP_MEAL\",\"cuisineIds\":[\"KOREAN\"],\"flavorTags\":[],\"excludedIngredientIds\":[\"EGGS\"],\"mealSlotId\":null,\"requiresClarification\":false}",
+          "error": "1 validation error for CravingRequest\n  Value error, SWAP_MEAL needs mealSlotId or requiresClarification=true [type=value_error, input_value={'intent': 'SWAP_ME"
+        }
+      ]
+    }
+  ]
+}

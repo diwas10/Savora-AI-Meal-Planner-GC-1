@@ -20,7 +20,18 @@
         "Nepali",
         "Chinese",
         "Thai",
-        "Mexican"
+        "Mexican",
+        "Malaysian",
+        "Indonesian",
+        "Vietnamese",
+        "Korean",
+        "Japanese",
+        "Filipino",
+        "Middle Eastern",
+        "Greek",
+        "Moroccan",
+        "Spanish",
+        "Caribbean"
       ],
       "dietTags": [
         "vegan",
@@ -182,7 +193,10 @@
       ],
       "cuisines": [
         "Thai",
-        "Chinese"
+        "Chinese",
+        "Malaysian",
+        "Indonesian",
+        "Vietnamese"
       ],
       "dietTags": [
         "vegan",
@@ -336,7 +350,12 @@
       ],
       "cuisines": [
         "American",
-        "Italian"
+        "Italian",
+        "Middle Eastern",
+        "Greek",
+        "Moroccan",
+        "Spanish",
+        "French"
       ],
       "dietTags": [
         "vegetarian"
@@ -416,7 +435,10 @@
         "DINNER"
       ],
       "cuisines": [
-        "American"
+        "American",
+        "Greek",
+        "Spanish",
+        "French"
       ],
       "dietTags": [
         "vegan",
@@ -802,6 +824,126 @@
         "standardQuantity": 2.0
       },
       "rationale": "whole boiled egg, exact FNDDS identity; optional breakfast protein. Ovo-vegetarian: some vegetarians exclude eggs, so the Rule Engine must decide from the ingredient",
+      "curatedBy": "ai-review:claude"
+    },
+    {
+      "dishId": "USDA_2707714",
+      "fdcId": 2707714,
+      "name": "puri",
+      "expectedDescription": "Bread, puri",
+      "roles": [
+        "BREAKFAST_BASE"
+      ],
+      "dishClass": "COMPLETE_MEAL",
+      "mealTypes": [
+        "BREAKFAST"
+      ],
+      "cuisines": [
+        "Indian",
+        "Nepali"
+      ],
+      "dietTags": [
+        "vegan",
+        "vegetarian"
+      ],
+      "ingredients": [
+        "whole wheat flour",
+        "water",
+        "salt",
+        "vegetable oil"
+      ],
+      "portion": {
+        "unit": "PIECE",
+        "usdaPortionId": 299427,
+        "allowedQuantities": [
+          2.0,
+          3.0,
+          4.0
+        ],
+        "standardQuantity": 3.0
+      },
+      "rationale": "deep-fried whole-wheat bread, exact FNDDS identity; puri is a common Nepali and North Indian breakfast (usually with a potato or chickpea curry, which the breakfast template does not compose)",
+      "curatedBy": "ai-review:claude"
+    },
+    {
+      "dishId": "USDA_2707715",
+      "fdcId": 2707715,
+      "name": "paratha",
+      "expectedDescription": "Bread, paratha",
+      "roles": [
+        "BREAKFAST_BASE"
+      ],
+      "dishClass": "COMPLETE_MEAL",
+      "mealTypes": [
+        "BREAKFAST"
+      ],
+      "cuisines": [
+        "Indian",
+        "Nepali"
+      ],
+      "dietTags": [
+        "vegetarian"
+      ],
+      "ingredients": [
+        "whole wheat flour",
+        "water",
+        "salt",
+        "ghee"
+      ],
+      "portion": {
+        "unit": "PIECE",
+        "usdaPortionId": 299429,
+        "allowedQuantities": [
+          1.0,
+          2.0,
+          3.0
+        ],
+        "standardQuantity": 2.0
+      },
+      "rationale": "layered pan-fried flatbread, exact FNDDS identity; a staple Nepali and North Indian breakfast. Ghee is listed as the typical fat, so the dish is vegetarian, not vegan",
+      "curatedBy": "ai-review:claude"
+    },
+    {
+      "dishId": "USDA_2708984",
+      "fdcId": 2708984,
+      "name": "rice congee with egg",
+      "expectedDescription": "Congee, with egg",
+      "roles": [
+        "BREAKFAST_BASE"
+      ],
+      "dishClass": "COMPLETE_MEAL",
+      "mealTypes": [
+        "BREAKFAST"
+      ],
+      "cuisines": [
+        "Chinese",
+        "Korean",
+        "Vietnamese",
+        "Filipino",
+        "Indonesian",
+        "Malaysian",
+        "Thai"
+      ],
+      "dietTags": [
+        "vegetarian"
+      ],
+      "ingredients": [
+        "white rice",
+        "water",
+        "egg",
+        "salt"
+      ],
+      "portion": {
+        "unit": "CUP",
+        "usdaPortionId": 305447,
+        "allowedQuantities": [
+          1.0,
+          1.5,
+          2.0
+        ],
+        "standardQuantity": 1.0
+      },
+      "rationale": "rice porridge with egg, exact FNDDS identity; the everyday breakfast porridge of these cuisines (Chinese zhou, Korean juk, Vietnamese chao, Filipino lugaw, Indonesian and Malaysian bubur, Thai jok). Ovo-vegetarian: the Rule Engine decides from the egg ingredient",
       "curatedBy": "ai-review:claude"
     }
   ]

@@ -59,14 +59,13 @@ class TransformRoute(APIRoute):
                         "status": status_code,
                     }
                     headers = {
-                        k: v
-                        for k, v in response.headers.items()
-                        if k.lower() != "content-length"
+                        k: v for k, v in response.headers.items() if k.lower() != "content-length"
                     }
                     return JSONResponse(
                         content=envelope,
                         status_code=status_code,
                         headers=headers,
+                        background=response.background,  # e.g. the reset email
                     )
                 return response
             finally:

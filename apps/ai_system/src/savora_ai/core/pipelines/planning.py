@@ -7,22 +7,26 @@
       -> Transformer: rank_combinations, history = the profile's seed dishes
       -> one meal per slot: best-ranked anchors rotated over the week, so an anchor dish
          repeats at most twice (MAX_REPEATS_PER_WEEK)
-      -> Rule Engine + weekly CSP: Member 2's solve_weekly_plan over the 21 slots
+      -> Rule Engine + weekly CSP: Member 2's solve_weekly_plan_v2 over the 21 slots
       -> explanation per meal; per-day nutrient totals
 
 GC1 limits, all visible in the result:
 - The KB is the stand-in (stand_in_kb.py): structural DAY/WEEK checks only, no nutrient
   or clinical constraints, so the CSP verifies a complete week rather than trading
-  portions against targets. Each slot therefore offers ONE option (the ranked meal at its
-  STANDARD portion): Member 2's solver orders a slot's options by ID, not by rank, so
-  offering more would let ID order, not the ranker, decide.
-- Energy is not a CSP constraint yet (member2_adapter assumption 3): day totals are
-  reported, never claimed to fit the targets.
+  portions against targets. Each slot therefore offers ONE option: Member 2's solver
+  orders a slot's options by ID, not by rank, so offering more would let ID order, not
+  the ranker, decide.
+- Portions are sized BEFORE the CSP (ADR 0006): when the profile carries day targets,
+  each day's three presets are chosen to bring planned energy into the band and protein
+  to its minimum (`_fit_portions`). Without targets every meal keeps STANDARD. Energy is
+  not a CSP constraint yet, so day totals are reported with how many days fit, never
+  claimed to be verified against the targets.
 
 Substitution re-solves the week with every other slot LOCKED to its saved option and the
 target slot offered the next-ranked meal the week does not already repeat (section 4.4).
-It runs as a WEEKLY_PLAN context (Member 2's CSP does not admit PLANNED_SWAP yet); the
-result is still labelled PLANNED_SWAP.
+It runs as a WEEKLY_PLAN context (Member 2's weekly CSP does not admit PLANNED_SWAP); the
+result is labelled PLANNED_SWAP, and the swap job then proves it as a real PLANNED_SWAP with
+Member 2's compact B1 protocol (`swap_proof.py`, ADR 0007).
 """
 
 import hashlib
@@ -31,6 +35,7 @@ from collections.abc import Callable, Iterable, Mapping, Sequence
 from dataclasses import dataclass
 from datetime import date, timedelta
 from enum import StrEnum
+from itertools import product
 from time import monotonic
 from typing import Annotated, Literal
 
@@ -54,15 +59,18 @@ from savora_ai.core.meal_composition.member2_adapter import (
 )
 from savora_ai.core.meal_composition.models import MealCombination, PortionConfiguration
 from savora_ai.core.pipelines.catalogue import CatalogueBundle
+from savora_ai.core.pipelines.craving import _flavored, _has_word
 from savora_ai.core.pipelines.profile import (
+    DayTargets,
     PlanningProfile,
     SafetyVerification,
     _PipelineModel,
     combination_allowed,
     safety_verification,
+    with_cook_without,
 )
 from savora_ai.core.pipelines.stand_in_kb import build_stand_in_knowledge, stand_in_context
-from savora_ai.core.reasoning.weekly import solve_weekly_plan
+from savora_ai.core.reasoning.weekly_search_v2 import solve_weekly_plan_v2
 from savora_ai.core.recommendation.ranking import (
     CombinationRanking,
     FallbackReason,
@@ -70,7 +78,10 @@ from savora_ai.core.recommendation.ranking import (
     SequenceScorer,
     rank_combinations,
 )
+from savora_ai.schemas.candidates import CandidateRecipeFacts, RuleContext
+from savora_ai.schemas.craving import CravingRequest, FlavorTag
 from savora_ai.schemas.daily import (
+    DailyMealOption,
     DailyOutcome,
     DailySlotDomain,
     DailySourceReference,
@@ -78,14 +89,19 @@ from savora_ai.schemas.daily import (
     MealSlot,
 )
 from savora_ai.schemas.enums import MealType, PortionPreset
-from savora_ai.schemas.knowledge_base import KnowledgeWorkflow
+from savora_ai.schemas.knowledge_base import KnowledgeBaseSnapshot, KnowledgeWorkflow
 from savora_ai.schemas.weekly import (
     WeekDayReference,
     WeeklyDayDomain,
     WeeklyPlanningRequest,
-    WeeklySearchLimits,
     WeeklySourceReference,
     WeeklySourceSnapshot,
+)
+from savora_ai.schemas.weekly_search_v2 import (
+    WeeklySearchLimitsV2,
+    WeeklySearchStrategyV2,
+    WeeklyStrategyPolicyV2,
+    WeeklyWorkV2,
 )
 
 DAYS = 7
@@ -93,6 +109,32 @@ SLOT_ID = r"^D[1-7]_(BREAKFAST|LUNCH|DINNER)$"
 _SlotId = Annotated[str, StringConstraints(pattern=SLOT_ID)]
 _NUTRIENTS = tuple(NutrientVector.model_fields)
 _Workflow = Literal["WEEKLY_PLAN", "PLANNED_SWAP"]
+
+# Member 2's weekly search v2 (Phase 7): independently verified FIRST_FEASIBLE with known
+# failure forward checking, incremental evaluation and preparation reuse. On a strict
+# Indian vegetarian week it returns the same witness as v1 in 50 s instead of 175 s.
+STRATEGY = WeeklySearchStrategyV2(
+    policy=WeeklyStrategyPolicyV2.INCREMENTAL_FORWARD_CHECKING,
+    variable_order="CHRONOLOGICAL",
+    value_order="OPTION_ID_ASC",
+    propagation="KNOWN_FAILURE_FORWARD_CHECK",
+)
+_WORK = 1_000_000  # one option per slot: the ceilings bound runaway work, not normal runs
+DEFAULT_LIMITS = WeeklySearchLimitsV2(
+    max_nodes=10_000,
+    max_reserved_work=WeeklyWorkV2(
+        candidate_preparations=_WORK,
+        combination_preparations=_WORK,
+        predicate_obligations=_WORK,
+        day_assessments=_WORK,
+        week_assessments=_WORK,
+        heuristic_evaluations=_WORK,
+        proof_verification_steps=_WORK,
+    ),
+    max_proof_records=8192,
+    max_proof_bytes=1_048_576,
+    max_cache_entries=1,
+)
 
 
 class PlanStatus(StrEnum):
@@ -151,17 +193,87 @@ def slot_id(day_index: int, meal: MealType) -> str:
     return f"D{day_index}_{meal.value}"
 
 
+def _measurable(config: PortionConfiguration) -> bool:
+    """Validated with a known sodium total (the one meal measurement the CSP carries;
+    unknown would make the day UNKNOWN)."""
+    return config.nutrition is not None and config.nutrition.totals.sodium_mg is not None
+
+
 def _standard(combination: MealCombination) -> PortionConfiguration | None:
-    """The STANDARD configuration, if validated with a known sodium total (the one meal
-    measurement the CSP carries; unknown would make the day UNKNOWN)."""
+    """The STANDARD configuration, if measurable."""
     for config in combination.configurations:
-        if (
-            config.preset is PortionPreset.STANDARD
-            and config.nutrition is not None
-            and config.nutrition.totals.sodium_mg is not None
-        ):
+        if config.preset is PortionPreset.STANDARD and _measurable(config):
             return config
     return None
+
+
+def _sizes(combination: MealCombination) -> list[PortionConfiguration]:
+    """STANDARD first, then every other measurable preset with known energy."""
+    standard = _standard(combination)
+    assert standard is not None  # _ranked_meals keeps only measurable meals
+    others = [
+        c
+        for c in combination.configurations
+        if c is not standard
+        and _measurable(c)
+        and c.nutrition is not None
+        and c.nutrition.totals.energy_kcal is not None
+    ]
+    return [standard, *sorted(others, key=lambda c: c.preset.value)]
+
+
+def _day_cost(configs: Sequence[PortionConfiguration], targets: DayTargets) -> tuple[float, ...]:
+    """Lower is better: kcal outside the energy band plus protein shortfall (4 kcal/g),
+    then fewer resized meals, then distance from the energy target."""
+    energy = protein = 0.0
+    protein_known = True
+    for config in configs:
+        assert config.nutrition is not None
+        totals = config.nutrition.totals
+        if totals.energy_kcal is None:  # a STANDARD with unknown energy: nothing to fit
+            return (0.0, 0.0, 0.0)
+        energy += totals.energy_kcal
+        if totals.protein_g is None:
+            protein_known = False
+        else:
+            protein += totals.protein_g
+    miss = max(0.0, targets.energy_kcal_min - energy) + max(0.0, energy - targets.energy_kcal_max)
+    if protein_known and targets.protein_g_min is not None:
+        miss += 4.0 * max(0.0, targets.protein_g_min - protein)
+    resized = sum(c.preset is not PortionPreset.STANDARD for c in configs)
+    return (round(miss, 3), float(resized), round(abs(energy - targets.energy_kcal_target), 3))
+
+
+def _fit_portions(
+    chosen: Mapping[str, tuple[MealCombination, PortionConfiguration]],
+    targets: DayTargets | None,
+    *,
+    vary: Iterable[str] | None = None,
+) -> dict[str, tuple[MealCombination, PortionConfiguration]]:
+    """Each day's presets that best fit the targets (ADR 0006); slots outside `vary` keep
+    their configuration (a swap resizes only the new meal). At most 5^3 tries per day."""
+    fitted = dict(chosen)
+    if targets is None:
+        return fitted
+    variable = set(chosen) if vary is None else set(vary)
+    for d in range(1, DAYS + 1):
+        slots = [slot_id(d, m) for m in MealType]
+        choices = [_sizes(chosen[s][0]) if s in variable else [chosen[s][1]] for s in slots]
+        best = min(product(*choices), key=lambda configs: _day_cost(configs, targets))
+        for s, config in zip(slots, best, strict=True):
+            fitted[s] = (chosen[s][0], config)
+    return fitted
+
+
+def _energy_fit(day_totals: Sequence["DayTotals"], targets: DayTargets | None) -> str:
+    if targets is None:
+        return " Meals use their standard portions (no targets on this profile version)."
+    known = [t.totals.energy_kcal for t in day_totals if t.totals.energy_kcal is not None]
+    within = sum(targets.energy_kcal_min <= e <= targets.energy_kcal_max for e in known)
+    return (
+        f" Portions were sized toward your targets: {within} of {DAYS} days are within the "
+        "estimated energy band (not yet a verified constraint)."
+    )
 
 
 def _ranked_meals(
@@ -229,30 +341,38 @@ def _sum(values: Iterable[NutrientVector]) -> NutrientVector:
     return NutrientVector(**totals)
 
 
-def _solve(
+@dataclass(frozen=True)
+class _WeekInputs:
+    """Everything Member 2's weekly contracts need for one fixed option per slot."""
+
+    dish_ids: list[str]
+    knowledge: KnowledgeBaseSnapshot
+    context: RuleContext
+    candidates: dict[str, CandidateRecipeFacts]
+    provider: DailySourceReference
+    options: dict[str, DailyMealOption]
+    weekly: WeeklySourceSnapshot
+    days: tuple[WeekDayReference, ...]
+    request: WeeklyPlanningRequest
+
+
+def _week_inputs(
     bundle: CatalogueBundle,
     profile: PlanningProfile,
-    workflow: _Workflow,
     week_id: str,
     start: date,
     chosen: Mapping[str, tuple[MealCombination, PortionConfiguration]],
-    ranking: CombinationRanking,
-    limits: WeeklySearchLimits | None,
-    clock: Callable[[], float],
-) -> WeekPlan:
-    """Member 2's weekly CSP over one option per slot; maps the witness to `PlannedMeal`s."""
-    started = clock()
+    extra_dish_ids: Iterable[str] = (),
+) -> _WeekInputs:
     dish_ids = sorted({p.dish_id for c, _ in chosen.values() for p in c.components})
-    knowledge = build_stand_in_knowledge(bundle, dish_ids)
-    # Member 2's daily/weekly contracts admit only WEEKLY_PLAN contexts (no PLANNED_SWAP
-    # yet), so a swap is solved as a week whose other 20 slots are locked.
+    knowledge = build_stand_in_knowledge(bundle, sorted({*dish_ids, *extra_dish_ids}))
     context = stand_in_context(knowledge, profile, KnowledgeWorkflow.WEEKLY_PLAN)
     binding = KnowledgeBinding(knowledge=knowledge, context=context)
     candidates = {
         i: candidate_facts(
             bundle.dishes[i], bundle.version, knowledge.graph_id, knowledge.graph_version
         )
-        for i in dish_ids
+        for i in sorted({*dish_ids, *extra_dish_ids})
     }
     provider = DailySourceReference(  # who declared suitability/measurements: the export
         source_id="m1-catalogue-export",
@@ -332,21 +452,62 @@ def _solve(
             ),
         )
     )
-    result = solve_weekly_plan(
+    return _WeekInputs(
+        dish_ids=dish_ids,
+        knowledge=knowledge,
+        context=context,
+        candidates=candidates,
+        provider=provider,
+        options=options,
+        weekly=weekly,
+        days=days,
+        request=request,
+    )
+
+
+def _solve(
+    bundle: CatalogueBundle,
+    profile: PlanningProfile,
+    workflow: _Workflow,
+    week_id: str,
+    start: date,
+    chosen: Mapping[str, tuple[MealCombination, PortionConfiguration]],
+    ranking: CombinationRanking,
+    limits: WeeklySearchLimitsV2 | None,
+    clock: Callable[[], float],
+) -> WeekPlan:
+    """Member 2's weekly CSP over one option per slot; maps the witness to `PlannedMeal`s."""
+    started = clock()
+    inputs = _week_inputs(bundle, profile, week_id, start, chosen)
+    request, knowledge, context, weekly = (
+        inputs.request,
+        inputs.knowledge,
+        inputs.context,
+        inputs.weekly,
+    )
+    dish_ids, candidates = inputs.dish_ids, inputs.candidates
+    result = solve_weekly_plan_v2(
         request,
         candidates=tuple(candidates[i] for i in dish_ids),
         knowledge=knowledge,
         context=context,
         sources=weekly,
-        limits=limits,
+        strategy=STRATEGY,
+        limits=limits or DEFAULT_LIMITS,
         clock=clock,
+        reuse_preparation=True,  # one rule-filter pass per week, not one per option
+        preparation_cache_entries=1,
     )
-    stats = result.certificate.statistics
+    accounting = result.certificate.accounting
     search = SearchSummary(
         outcome=result.outcome,
-        nodes=stats.nodes,
-        exhaustive=stats.exhaustive,
-        diagnostics=tuple(f"{d.stage}:{d.code}: {d.message}" for d in result.diagnostics),
+        nodes=accounting.logical_nodes,
+        exhaustive=result.certificate.exhaustive,
+        diagnostics=(
+            ()
+            if result.termination is None
+            else (f"search:TERMINATED: {result.termination} budget reached",)
+        ),
         seconds=round(clock() - started, 3),
     )
     job = _Job(bundle, profile, workflow, week_id, start, ranking)
@@ -373,8 +534,15 @@ def _solve(
             planning = PlanningOutcome(
                 outcome="FEASIBLE",
                 slot_id=sid,
-                search_nodes=stats.nodes,
-                constraints=("stand-in: every slot resolved; all seven days resolved",),
+                search_nodes=accounting.logical_nodes,
+                constraints=(
+                    "stand-in: every slot resolved; all seven days resolved",
+                    *(
+                        ()
+                        if profile.targets is None
+                        else ("portion sized toward the day's energy and protein targets",)
+                    ),
+                ),
             )
             meals.append(
                 PlannedMeal(
@@ -386,14 +554,18 @@ def _solve(
                     combination_id=combo.combination_id,
                     configuration_id=config.configuration_id,
                     preset=config.preset,
-                    explanation=explain_meal(
-                        combo,
-                        config,
-                        bundle.dishes,
-                        slot_id=sid,
-                        ranking=ranking,
-                        rules=rules,
-                        planning=planning,
+                    explanation=with_cook_without(
+                        explain_meal(
+                            combo,
+                            config,
+                            bundle.dishes,
+                            slot_id=sid,
+                            ranking=ranking,
+                            rules=rules,
+                            planning=planning,
+                        ),
+                        [bundle.dishes[c.dish_id] for c in combo.components],
+                        profile,
                     ),
                 )
             )
@@ -409,7 +581,8 @@ def _solve(
     return _week_plan(
         job,
         PlanStatus.FEASIBLE,
-        "21 meals verified by the weekly CSP against the stand-in rule set.",
+        "21 meals verified by the weekly CSP against the stand-in rule set."
+        + _energy_fit(totals, profile.targets),
         meals=meals,
         day_totals=totals,
         kb=kb,
@@ -464,7 +637,7 @@ def plan_week(
     week_id: str,
     start_date: date,
     scorer: SequenceScorer | None = None,
-    limits: WeeklySearchLimits | None = None,
+    limits: WeeklySearchLimitsV2 | None = None,
     clock: Callable[[], float] = monotonic,
 ) -> WeekPlan:
     """A new 21-slot plan for the profile; store it only when `status` is FEASIBLE."""
@@ -487,30 +660,66 @@ def plan_week(
         config = _standard(combo)
         assert config is not None  # _ranked_meals keeps only measurable meals
         chosen[sid] = (combo, config)
+    chosen = _fit_portions(chosen, profile.targets)
     return _solve(bundle, profile, workflow, week_id, start_date, chosen, ranking, limits, clock)
 
 
-def substitute_slot(
+class ReplacementOption(_PipelineModel):
+    """One eligible meal for a saved slot, at its STANDARD portion, before the CSP runs."""
+
+    combination_id: str
+    rank: int  # 1 = first choice for this slot
+    cuisines: tuple[str, ...]
+    repeats_in_week: int  # how often its anchor dish already appears in the other 20 slots
+    explanation: MealExplanation  # dishes, portions, totals, ranking reason
+
+
+class ReplacementOptions(_PipelineModel):
+    slot_id: _SlotId
+    meal_type: MealType
+    current_combination_id: str
+    preference: CravingRequest | None
+    options: tuple[ReplacementOption, ...]
+    unknown_cuisine_ids: tuple[str, ...]
+    unmatched_flavor_tags: tuple[FlavorTag, ...]
+    model_version: str | None
+    fallback_reason: FallbackReason | None
+    message: str
+    safety: SafetyVerification
+
+
+@dataclass(frozen=True)
+class _Candidates:
+    chosen: dict[str, tuple[MealCombination, PortionConfiguration]]
+    ranking: CombinationRanking
+    meal: MealType
+    combos: list[MealCombination]  # eligible replacements, best first
+    repeats: dict[str, int]  # combination ID -> repeats of its anchor in the week
+    unknown_cuisine_ids: tuple[str, ...]
+    unmatched_flavor_tags: tuple[FlavorTag, ...]
+
+
+def _matches(
+    combo: MealCombination, bundle: CatalogueBundle, wanted: set[str], request: CravingRequest
+) -> bool:
+    dishes = [bundle.dishes[p.dish_id] for p in combo.components]
+    return (not wanted or bool(wanted & set(combo.cuisines))) and not any(
+        _has_word(d, x.replace("_", " ").lower())
+        for d in dishes
+        for x in request.excluded_ingredient_ids
+    )
+
+
+def _replacement_candidates(
     profile: PlanningProfile,
     bundle: CatalogueBundle,
     *,
     current: Mapping[str, str],
     slot: str,
-    week_id: str,
-    start_date: date,
-    exclude_combination_ids: Iterable[str] = (),
-    scorer: SequenceScorer | None = None,
-    limits: WeeklySearchLimits | None = None,
-    clock: Callable[[], float] = monotonic,
-) -> WeekPlan:
-    """Replace one saved slot; every other slot stays LOCKED to its saved option.
-
-    `current` maps all 21 slot IDs to their saved option IDs (`PlannedMeal.option_id`).
-    The new meal is the best-ranked allowed meal for that meal type, not in
-    `exclude_combination_ids` (e.g. earlier replacements the user rejected), whose anchor
-    dish is not yet in the week, else used fewer than MAX_REPEATS_PER_WEEK times. The
-    result is a full revision to store as new."""
-    workflow: _Workflow = "PLANNED_SWAP"
+    exclude_combination_ids: Iterable[str],
+    preference: CravingRequest | None,
+    scorer: SequenceScorer | None,
+) -> _Candidates:
     expected = {slot_id(d, m) for d in range(1, DAYS + 1) for m in MealType}
     if set(current) != expected:
         raise ValueError("current must map all 21 slot IDs (D1_BREAKFAST..D7_DINNER)")
@@ -538,26 +747,171 @@ def substitute_slot(
     meal = MealType(slot.split("_", 1)[1])
     kind = MealType.BREAKFAST if meal is MealType.BREAKFAST else MealType.LUNCH
     used = Counter(c.components[0].dish_id for sid, (c, _) in chosen.items() if sid != slot)
-    old_combo = chosen[slot][0]
-    excluded = {*exclude_combination_ids, old_combo.combination_id}
-    # Prefer a dish not yet in the week, then one used fewer than MAX_REPEATS_PER_WEEK times.
-    replacement = next(
-        (
-            c
-            for repeats in range(MAX_REPEATS_PER_WEEK)
-            for c in by_meal[kind]
-            if c.combination_id not in excluded and used[c.components[0].dish_id] == repeats
-        ),
-        None,
+    excluded = {*exclude_combination_ids, chosen[slot][0].combination_id}
+    pool = [
+        c
+        for c in by_meal[kind]
+        if c.combination_id not in excluded
+        and used[c.components[0].dish_id] < MAX_REPEATS_PER_WEEK
+        and (kind is MealType.BREAKFAST or meal in c.meal_types)
+    ]
+    unknown: tuple[str, ...] = ()
+    unmatched: tuple[FlavorTag, ...] = ()
+    if preference is not None:
+        known = bundle.cuisine_ids
+        unknown = tuple(c for c in preference.cuisine_ids if c not in known)
+        wanted = {known[c] for c in preference.cuisine_ids if c in known}
+        if preference.cuisine_ids and not wanted:
+            pool = []
+        pool = [c for c in pool if _matches(c, bundle, wanted, preference)]
+
+        def flavored(c: MealCombination, tag: FlavorTag) -> bool:
+            return any(_flavored(bundle.dishes[p.dish_id], tag) for p in c.components)
+
+        unmatched = tuple(
+            t for t in preference.flavor_tags if not any(flavored(c, t) for c in pool)
+        )
+        matched = [t for t in preference.flavor_tags if t not in unmatched]
+        pool = [c for c in pool if all(flavored(c, t) for t in matched)]
+    # Prefer a dish not yet in the week, then one used fewer than MAX_REPEATS_PER_WEEK
+    # times; the ranker's order decides within each group (sorted() is stable).
+    pool.sort(key=lambda c: used[c.components[0].dish_id])
+    return _Candidates(
+        chosen=chosen,
+        ranking=ranking,
+        meal=meal,
+        combos=pool,
+        repeats={c.combination_id: used[c.components[0].dish_id] for c in pool},
+        unknown_cuisine_ids=unknown,
+        unmatched_flavor_tags=unmatched,
     )
-    if replacement is None:
+
+
+def suggest_replacements(
+    profile: PlanningProfile,
+    bundle: CatalogueBundle,
+    *,
+    current: Mapping[str, str],
+    slot: str,
+    preference: CravingRequest | None = None,
+    exclude_combination_ids: Iterable[str] = (),
+    scorer: SequenceScorer | None = None,
+    limit: int = 6,
+) -> ReplacementOptions:
+    """Eligible meals the user may pick for one saved slot (section 4.4 steps 1 to 3).
+
+    Retrieval, the stand-in rule screen and the Transformer ranking run here; the options
+    are not yet CSP-verified. The chosen one goes to `substitute_slot`, which re-solves the
+    week with the other 20 slots locked and stores nothing unless it is FEASIBLE."""
+    found = _replacement_candidates(
+        profile,
+        bundle,
+        current=current,
+        slot=slot,
+        exclude_combination_ids=exclude_combination_ids,
+        preference=preference,
+        scorer=scorer,
+    )
+    options = []
+    for rank, combo in enumerate(found.combos[: max(1, limit)], start=1):
+        config = _standard(combo)
+        assert config is not None  # _ranked_meals keeps only measurable meals
+        options.append(
+            ReplacementOption(
+                combination_id=combo.combination_id,
+                rank=rank,
+                cuisines=combo.cuisines,
+                repeats_in_week=found.repeats[combo.combination_id],
+                explanation=with_cook_without(
+                    explain_meal(combo, config, bundle.dishes, slot_id=slot, ranking=found.ranking),
+                    [bundle.dishes[c.dish_id] for c in combo.components],
+                    profile,
+                ),
+            )
+        )
+    meal_name = found.meal.value.lower()
+    message = (
+        f"{len(options)} eligible {meal_name} option(s), ranked; the week is checked again "
+        "with the other 20 meals locked before anything is saved."
+        if options
+        else f"No eligible {meal_name} meal matches this request and the rest of the week."
+    )
+    return ReplacementOptions(
+        slot_id=slot,
+        meal_type=found.meal,
+        current_combination_id=found.chosen[slot][0].combination_id,
+        preference=preference,
+        options=tuple(options),
+        unknown_cuisine_ids=found.unknown_cuisine_ids,
+        unmatched_flavor_tags=found.unmatched_flavor_tags,
+        model_version=found.ranking.model_version,
+        fallback_reason=found.ranking.fallback_reason,
+        message=message,
+        safety=safety_verification(profile),
+    )
+
+
+def substitute_slot(
+    profile: PlanningProfile,
+    bundle: CatalogueBundle,
+    *,
+    current: Mapping[str, str],
+    slot: str,
+    week_id: str,
+    start_date: date,
+    exclude_combination_ids: Iterable[str] = (),
+    replacement_combination_id: str | None = None,
+    preference: CravingRequest | None = None,
+    scorer: SequenceScorer | None = None,
+    limits: WeeklySearchLimitsV2 | None = None,
+    clock: Callable[[], float] = monotonic,
+) -> WeekPlan:
+    """Replace one saved slot; every other slot stays LOCKED to its saved option.
+
+    `current` maps all 21 slot IDs to their saved option IDs (`PlannedMeal.option_id`).
+    The new meal is `replacement_combination_id` when the user picked one from
+    `suggest_replacements` (it must still be eligible), else the best-ranked eligible meal
+    matching `preference` (if any): allowed for the profile, not in
+    `exclude_combination_ids`, and whose anchor dish the week does not already serve
+    MAX_REPEATS_PER_WEEK times, preferring a dish not yet in the week. The result is a
+    full revision to store as new."""
+    workflow: _Workflow = "PLANNED_SWAP"
+    found = _replacement_candidates(
+        profile,
+        bundle,
+        current=current,
+        slot=slot,
+        exclude_combination_ids=exclude_combination_ids,
+        preference=None if replacement_combination_id else preference,
+        scorer=scorer,
+    )
+    job = _Job(bundle, profile, workflow, week_id, start_date, found.ranking)
+    if replacement_combination_id is not None:
+        replacement = next(
+            (c for c in found.combos if c.combination_id == replacement_combination_id), None
+        )
+        if replacement is None:
+            return _week_plan(
+                job,
+                PlanStatus.INSUFFICIENT_DATA,
+                "The chosen meal is no longer eligible for this slot (profile rules, "
+                "repeats in the week, or a catalogue change). Pick another option.",
+            )
+    elif found.combos:
+        replacement = found.combos[0]
+    else:
+        wish = " matching your request" if preference is not None else ""
         return _week_plan(
-            _Job(bundle, profile, workflow, week_id, start_date, ranking),
+            job,
             PlanStatus.INSUFFICIENT_DATA,
-            f"No allowed {meal.value.lower()} meal left that the week does not already "
-            f"serve {MAX_REPEATS_PER_WEEK} times.",
+            f"No allowed {found.meal.value.lower()} meal{wish} left that the week does not "
+            f"already serve {MAX_REPEATS_PER_WEEK} times.",
         )
     config = _standard(replacement)
     assert config is not None
+    chosen = dict(found.chosen)
     chosen[slot] = (replacement, config)
-    return _solve(bundle, profile, workflow, week_id, start_date, chosen, ranking, limits, clock)
+    chosen = _fit_portions(chosen, profile.targets, vary=(slot,))  # the other 20 stay locked
+    return _solve(
+        bundle, profile, workflow, week_id, start_date, chosen, found.ranking, limits, clock
+    )

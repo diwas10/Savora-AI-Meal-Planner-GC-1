@@ -17,7 +17,7 @@ from savora_ai.core.recommendation.seeds import (
 from savora_ai.schemas.enums import CulinaryRole
 
 REPO = Path(__file__).parents[3]
-CATALOGUE = REPO / "Data/catalogue/20261019T012206Z_catalogue.json"
+CATALOGUE = sorted((REPO / "Data/catalogue").glob("*_catalogue.json"))[-1]  # latest export
 
 
 def dish(source_id: int, cuisine: str, count: int | None, *tags: str) -> CatalogueRecipe:
@@ -58,9 +58,11 @@ def test_suggestions_interleave_cuisines_by_popularity() -> None:
 
 def test_preferred_cuisines_come_first_and_the_rest_fill_in() -> None:
     result = suggest_seed_dishes(ALL, preferred_cuisines=("Mexican", "Korean"), limit=10)
-    first = [s.cuisines[0] for s in result.suggestions[:3]]
-    assert first == ["Mexican", "Indian", "Thai"]  # Korean has no dish: ignored
-    assert len(result.suggestions) == 10  # Mexican runs out; the others keep filling
+    cuisines = [s.cuisines[0] for s in result.suggestions]
+    mexican = cuisines.count("Mexican")
+    assert cuisines[:mexican] == ["Mexican"] * mexican  # Korean has no dish: ignored
+    assert len(result.suggestions) == 10  # Mexican runs out; the others top the list up
+    assert 0 < mexican < 10
     assert len({s.recipe_id for s in result.suggestions}) == 10
 
 
@@ -77,7 +79,7 @@ def test_suggestions_are_deterministic_and_wire_camel_case() -> None:
     assert first == suggest_seed_dishes(tuple(reversed(ALL)))
     wire = first.model_dump(by_alias=True)
     assert set(wire) == {"suggestions", "method", "minPicks", "maxPicks"}
-    assert set(wire["suggestions"][0]) == {"recipeId", "name", "cuisines", "rank"}
+    assert set(wire["suggestions"][0]) == {"recipeId", "name", "cuisines", "rank", "swaps"}
 
 
 def test_too_few_suggestions_is_a_caller_error() -> None:

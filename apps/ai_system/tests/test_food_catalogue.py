@@ -87,7 +87,14 @@ def test_percent_dv_converts_with_reference() -> None:
     assert n.carbohydrate_g == pytest.approx(60.0)  # 20% of 300 g
     assert n.protein_g == pytest.approx(10.0)  # 20% of 50 g
     assert n.sodium_mg == pytest.approx(240.0)  # 10% of 2400 mg
-    assert n.sugars_g is None  # unknown, never converted or zero
+    assert n.sugars_g == pytest.approx(2.5)  # 10% of the verified 25 g sugar reference
+
+
+def test_sugar_above_carbohydrate_stays_unknown() -> None:
+    # 40% of 25 g = 10 g sugar, but 1% of 300 g = 3 g carbohydrate: a data error.
+    n = to_serving_nutrition(parse_nutrition([100.0, 0.0, 40.0, 0.0, 0.0, 0.0, 1.0]), FDA_1993)
+    assert n.carbohydrate_g == pytest.approx(3.0)
+    assert n.sugars_g is None  # unknown, never trusted or zero
 
 
 def test_energy_ratio_matches_atwater() -> None:
@@ -100,7 +107,7 @@ def test_per_100g_needs_a_verified_mass() -> None:
     assert per_100g(n, None) is None
     half = per_100g(n, 200.0)
     assert half is not None and half.energy_kcal == pytest.approx(200.0)
-    assert half.sugars_g is None
+    assert half.sugars_g == pytest.approx(1.25)
 
 
 def test_parse_string_list() -> None:
@@ -125,7 +132,7 @@ def test_good_row_becomes_catalogue_entry() -> None:
     assert recipe.nutrition.source is NutritionSource.FOODCOM_DERIVED
     assert recipe.nutrition.basis is NutritionBasis.PER_SERVING
     assert recipe.nutrition.source_reference == FDA_1993.name
-    assert recipe.nutrition.values.sugars_g is None
+    assert recipe.nutrition.values.sugars_g == pytest.approx(2.5)
 
 
 @pytest.mark.parametrize(
