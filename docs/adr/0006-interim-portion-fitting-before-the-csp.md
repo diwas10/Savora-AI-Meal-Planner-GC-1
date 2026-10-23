@@ -1,6 +1,6 @@
 # ADR 0006: Interim portion fitting before the CSP
 
-- **Status:** Proposed (Member 1), interim until Member 2's nutrient DAY rules are integrated
+- **Status:** Accepted for GC1 (2026-10-23), interim until Member 2's nutrient search prunes bands
 - **Date:** 2026-10-22
 - **Owner:** Member 1 (planning pipeline); Member 2 owns the CSP that replaces this
 - **Relates to:** ARCHITECTURE.md section 8 (CSP and portions); ADR 0002 (portion presets);
@@ -83,3 +83,13 @@ measurable presets after it, make the band a DAY rule, and delete `_fit_portions
    fat ranges should also count before the CSP takes over.
 2. Whether to show per-day "within band" status in the UI rather than only the summary
    count in the plan message.
+
+## Decision (2026-10-23)
+
+1. **Cost weights accepted.** 4 kcal per gram of protein shortfall is protein's Atwater
+   factor, so a protein gap is weighed as the energy it would supply. Carbohydrate and fat
+   ranges do not count before the CSP: they are wide, and fitting them too would trade the
+   energy band away. They stay reported against their ranges.
+2. **Per-day status is already shown.** Each day's range bars on Home and My Plan mark
+   whether planned energy and protein fall inside the estimated range, and the plan
+   message gives the weekly count. No extra UI.

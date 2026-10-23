@@ -115,9 +115,10 @@ with the 125-utterance gold set.
    toward the energy band and protein minimum before the CSP, which still checks
    completeness only. Fitted days are mostly in band (for example 6 of 7 instead of 0 for
    a strict Indian vegetarian week); the plan message reports the count.
-3. **Ranking**: the shipped hybrid ties popularity on the catalogue
-   (`docs/reports/catalogue_ranking_evaluation.md`); choosing it, model-only weighting, or
-   retraining is a Member 1 decision. Model hosting (ADR 0005 D2) is still deferred.
+3. **Ranking** (decided 2026-10-23): keep the shipped hybrid and ANCHOR aggregation; it
+   ties popularity on the catalogue (`docs/reports/catalogue_ranking_evaluation.md`). The
+   model is not published for GC1 (ADR 0005): the demo machine holds the verified file,
+   others run the labelled popularity fallback.
 4. **Strict single-cuisine weeks**: every target cuisine works; Nepali has exactly the 4
    breakfasts a week needs (no spare), so strict vegan Nepali returns INSUFFICIENT_DATA.
 5. **Curation** marked `ai-review:claude` in `Data/curated/` awaits a person's review.

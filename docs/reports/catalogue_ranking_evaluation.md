@@ -68,3 +68,11 @@ The previous 186-dish catalogue gave hybrid NDCG@10 0.339 against 0.338 for popu
 - Retrain with catalogue-aware validation, choosing the weight on catalogue cases. With
   223 test cases (and fewer validation cases) the interval would stay wide, so this is
   unlikely to change the conclusion.
+
+## Decision (2026-10-23)
+
+**Keep the shipped hybrid (weight 8.0) and ANCHOR aggregation for GC1.** The hybrid is
+safe and the report states that it ties popularity. MEAN aggregation has a higher point
+estimate on meals (NDCG@10 0.237 against 0.223) but no interval was computed, and
+switching would change every plan and explanation the day before the demo. Retraining is
+not expected to change the conclusion (223 test cases). Both are post-GC1 options.

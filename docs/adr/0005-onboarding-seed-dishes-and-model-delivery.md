@@ -96,3 +96,13 @@ evaluated model.
 1. Decide D2 hosting (public release or private Supabase bucket) after checking the
    Food.com dataset terms; then upload `model-sasrec-content-v2` and update `sourceUrl`
    in the manifest if the location changes.
+
+## Decision (2026-10-23): D2 hosting for GC1
+
+The model is **not published** for GC1. The Food.com dataset terms have not been
+confirmed, and a public release would redistribute a model trained on it. The demo
+machine holds `sasrec_content.pt`, verified against `manifest.json` at startup; any other
+machine runs the labelled popularity fallback (`MODEL_UNAVAILABLE`), which ties the
+hybrid on the catalogue (`docs/reports/catalogue_ranking_evaluation.md`), so results do
+not get worse. Publishing (public release or private Supabase bucket) is a post-GC1 item
+once the terms are checked; the manifest mechanism stays as decided.

@@ -1,6 +1,6 @@
 # ADR 0007: Member 2's compact B1 swap proof in the swap job
 
-- **Status:** Proposed (Member 1), needs joint DTO/release approval with Member 2 (PR #21)
+- **Status:** Accepted by Member 1 (2026-10-23); Member 2's review of the adapter is requested on PR #19
 - **Date:** 2026-10-23
 - **Owner:** Member 1 (resolver, saved-plan authority, persistence, API/UI); Member 2 owns
   `execute_compact_swap` / `verify_compact_swap`
@@ -70,3 +70,15 @@ in the background and the sheet says so.
    execution already performs a mandatory independent check.
 3. Storing a VERIFIED_AT_SAVE certificate when a plan is generated, so later swaps need not
    replay the original week.
+
+## Decision (2026-10-23)
+
+1. **DTO and release use:** as above. The adapter only calls Member 2's public entry
+   points and builds no proof of its own; Member 2 is asked to review
+   `pipelines/swap_proof.py` on PR #19, and any change they request is applied there.
+2. **Keep the external `verify_compact_swap`.** Correctness comes before speed
+   (AGENTS.md), and the handoff names the persistence boundary as the place for an
+   external recheck. `SWAP_PROOF_MODE=record` is the speed option.
+3. **No VERIFIED_AT_SAVE in GC1.** Member 2's handoff requires a separately approved
+   saved-history adapter and forbids manufacturing that metadata; saved plans stay
+   UNVERIFIED and both weeks are replayed. Revisit after GC1.
