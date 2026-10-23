@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/Badge";
 import { InlineAlert } from "@/components/ui/States";
 import { Sheet } from "@/components/ui/Sheet";
 import { NUTRIENT_ROWS, dishName, nutrient } from "@/lib/format";
-import { REASON_LABEL, reasonsByKind } from "@/core/private/MealPlanning/lib/meal";
+import { REASON_LABEL, cookWithout, reasonsByKind } from "@/core/private/MealPlanning/lib/meal";
 
 type CravingItem = Schema<"CravingItem">;
 
@@ -55,6 +55,11 @@ export function RecipeSheet({
             </tbody>
           </table>
         </section>
+        {cookWithout(exp.reasons) && (
+          <InlineAlert tone="warning" title="Cook it your way">
+            {cookWithout(exp.reasons)}
+          </InlineAlert>
+        )}
         <InlineAlert tone="info" icon={<Info className="size-4" aria-hidden />}>
           Not checked against today&apos;s remaining targets.
         </InlineAlert>

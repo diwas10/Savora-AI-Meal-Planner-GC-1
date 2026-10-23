@@ -1549,6 +1549,26 @@
         "title": "HealthCondition",
         "description": "The three conditions in GC1 scope (ARCHITECTURE.md section 1)."
       },
+      "IngredientSwap": {
+        "properties": {
+          "ingredient": {
+            "type": "string",
+            "title": "Ingredient"
+          },
+          "instead": {
+            "type": "string",
+            "title": "Instead"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "ingredient",
+          "instead"
+        ],
+        "title": "IngredientSwap",
+        "description": "An excluded ingredient the dish uses, and what to cook with instead."
+      },
       "LoginRequest": {
         "properties": {
           "email": {
@@ -2902,6 +2922,14 @@
             "type": "integer",
             "minimum": 1.0,
             "title": "Rank"
+          },
+          "swaps": {
+            "items": {
+              "$ref": "#/components/schemas/IngredientSwap"
+            },
+            "type": "array",
+            "title": "Swaps",
+            "default": []
           }
         },
         "additionalProperties": false,

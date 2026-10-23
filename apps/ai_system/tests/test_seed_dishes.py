@@ -79,7 +79,7 @@ def test_suggestions_are_deterministic_and_wire_camel_case() -> None:
     assert first == suggest_seed_dishes(tuple(reversed(ALL)))
     wire = first.model_dump(by_alias=True)
     assert set(wire) == {"suggestions", "method", "minPicks", "maxPicks"}
-    assert set(wire["suggestions"][0]) == {"recipeId", "name", "cuisines", "rank"}
+    assert set(wire["suggestions"][0]) == {"recipeId", "name", "cuisines", "rank", "swaps"}
 
 
 def test_too_few_suggestions_is_a_caller_error() -> None:

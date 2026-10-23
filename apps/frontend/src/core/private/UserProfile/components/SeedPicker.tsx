@@ -20,6 +20,8 @@ interface Dish {
   recipeId: string;
   name: string;
   cuisines: string[];
+  /** Excluded ingredients this dish uses and what to cook with instead (never allergies). */
+  swaps?: { ingredient: string; instead: string }[];
 }
 
 /** ADR 0005: 3-5 liked dishes give the ranker a starting history (cold start). */
@@ -33,7 +35,7 @@ export function SeedPicker({ initial, onDone }: { initial: string[]; onDone: () 
 
   const list: Dish[] = deferred
     ? (search.data ?? []).map((d) => ({ ...d, cuisines: [...d.cuisines] }))
-    : (suggestions.data?.suggestions ?? []);
+    : (suggestions.data?.suggestions ?? []).map((s) => ({ ...s, cuisines: [...s.cuisines], swaps: [...(s.swaps ?? [])] }));
   const count = picked.length;
 
   const toggle = (id: string) =>
@@ -85,6 +87,16 @@ export function SeedPicker({ initial, onDone }: { initial: string[]; onDone: () 
                   )}
                 >
                   <span className="pr-6 text-sm font-semibold leading-snug">{name.title}</span>
+                  {dish.swaps && dish.swaps.length > 0 && (
+                    <span className="mt-1.5 flex flex-col gap-0.5 text-[11px] leading-snug" aria-label="Cook it with these swaps">
+                      {dish.swaps.map((s) => (
+                        <span key={s.ingredient}>
+                          <span className="text-accent">No {s.ingredient}:</span>{" "}
+                          <span className="text-muted-foreground">use {s.instead}</span>
+                        </span>
+                      ))}
+                    </span>
+                  )}
                   <span className="mt-2 truncate text-xs text-muted-foreground">{dish.cuisines.join(" · ")}</span>
                   <span
                     className={cn(

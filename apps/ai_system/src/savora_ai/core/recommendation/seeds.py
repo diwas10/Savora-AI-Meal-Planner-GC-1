@@ -32,11 +32,20 @@ ANCHOR_ROLES = frozenset({CulinaryRole.MAIN_DISH, CulinaryRole.BREAKFAST_BASE})
 NO_CUISINE = "Other"
 
 
+class IngredientSwap(_RankingModel):
+    """An excluded ingredient the dish uses, and what to cook with instead."""
+
+    ingredient: str
+    instead: str
+
+
 class SeedSuggestion(_RankingModel):
     recipe_id: str
     name: str
     cuisines: tuple[str, ...]
     rank: int = Field(ge=1)
+    # Empty when the dish already fits; else how to cook it without the excluded words.
+    swaps: tuple[IngredientSwap, ...] = ()
 
 
 class SeedSuggestions(_RankingModel):

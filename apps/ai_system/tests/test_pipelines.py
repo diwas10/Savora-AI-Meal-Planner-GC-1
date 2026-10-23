@@ -28,6 +28,7 @@ from savora_ai.core.pipelines import (
     suggest_replacements,
     suggest_seeds,
 )
+from savora_ai.core.pipelines.allergens import block_rules
 from savora_ai.core.pipelines.catalogue import CatalogueBundle
 from savora_ai.core.pipelines.craving import retrieve_for_craving
 from savora_ai.core.pipelines.profile import dish_allowed
@@ -228,8 +229,8 @@ def test_seed_suggestions_lead_with_the_chosen_cuisines_unless_strict(
 def test_seed_suggestions_stay_in_the_chosen_cuisines_after_exclusions(
     bundle: CatalogueBundle,
 ) -> None:
-    # Onion and garlic leave few Indian and Nepali dishes, but still at least three: the
-    # list is short rather than topped up with other cuisines.
+    # Onion and garlic leave only six Indian dishes as they are; the rest of the list is
+    # Indian and Nepali dishes cooked with a swap, not other cuisines.
     user = profile(
         diet="VEGETARIAN",
         cuisinePolicy="MIXED",
@@ -238,8 +239,17 @@ def test_seed_suggestions_stay_in_the_chosen_cuisines_after_exclusions(
         excludedIngredients=["mushroom", "onion", "garlic"],
     )
     offered = suggest_seeds(user, bundle).suggestions
-    assert 3 <= len(offered) < 12
+    assert len(offered) == 12  # strict fits first, then dishes cooked with a swap
     assert {bundle.dishes[s.recipe_id].cuisines[0] for s in offered} <= {"Indian", "Nepali"}
+    plain = [s for s in offered if not s.swaps]
+    assert plain and offered[: len(plain)] == tuple(plain)  # no-swap dishes come first
+    peanut = block_rules(("peanut",))
+    for s in offered:
+        dish = bundle.dishes[s.recipe_id]
+        assert not any(r.blocks(t) for t in (dish.name, *dish.ingredients) for r in peanut)
+        assert {w.ingredient for w in s.swaps} <= {"mushroom", "onion", "garlic"}
+    swapped = [s.recipe_id for s in offered if s.swaps][:3]
+    assert confirm_seeds(user, bundle, swapped) == tuple(swapped)  # a swapped pick is usable
     # Cuisines with fewer than three left are topped up so onboarding can still finish.
     rare = profile(diet="VEGAN", cuisinePolicy="MIXED", cuisines=["Korean"], allergies=["soy"])
     filled = suggest_seeds(rare, bundle).suggestions

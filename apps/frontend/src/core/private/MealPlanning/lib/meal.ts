@@ -54,3 +54,8 @@ export const SOURCE_LABEL: Record<Schema<"NutritionSource">, string> = {
   USDA_FOUNDATION: "USDA Foundation",
   CURATED: "Curated",
 };
+
+/** The "cook it without" note for ingredients the user avoids, if the meal has one. */
+export function cookWithout(reasons: Reason[]): string | null {
+  return reasons.find((r) => r.code === "COOK_WITHOUT_EXCLUDED")?.message ?? null;
+}

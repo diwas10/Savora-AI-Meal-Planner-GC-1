@@ -67,6 +67,7 @@ from savora_ai.core.pipelines.profile import (
     _PipelineModel,
     combination_allowed,
     safety_verification,
+    with_cook_without,
 )
 from savora_ai.core.pipelines.stand_in_kb import build_stand_in_knowledge, stand_in_context
 from savora_ai.core.reasoning.weekly_search_v2 import solve_weekly_plan_v2
@@ -553,14 +554,18 @@ def _solve(
                     combination_id=combo.combination_id,
                     configuration_id=config.configuration_id,
                     preset=config.preset,
-                    explanation=explain_meal(
-                        combo,
-                        config,
-                        bundle.dishes,
-                        slot_id=sid,
-                        ranking=ranking,
-                        rules=rules,
-                        planning=planning,
+                    explanation=with_cook_without(
+                        explain_meal(
+                            combo,
+                            config,
+                            bundle.dishes,
+                            slot_id=sid,
+                            ranking=ranking,
+                            rules=rules,
+                            planning=planning,
+                        ),
+                        [bundle.dishes[c.dish_id] for c in combo.components],
+                        profile,
                     ),
                 )
             )
@@ -817,8 +822,10 @@ def suggest_replacements(
                 rank=rank,
                 cuisines=combo.cuisines,
                 repeats_in_week=found.repeats[combo.combination_id],
-                explanation=explain_meal(
-                    combo, config, bundle.dishes, slot_id=slot, ranking=found.ranking
+                explanation=with_cook_without(
+                    explain_meal(combo, config, bundle.dishes, slot_id=slot, ranking=found.ranking),
+                    [bundle.dishes[c.dish_id] for c in combo.components],
+                    profile,
                 ),
             )
         )

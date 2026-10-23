@@ -131,6 +131,10 @@ export interface components {
       detail?: (components["schemas"]["ValidationError"])[];
     };
     HealthCondition: "TYPE_2_DIABETES" | "HYPERTENSION" | "DYSLIPIDEMIA";
+    IngredientSwap: {
+      ingredient: string;
+      instead: string;
+    };
     LoginRequest: {
       email: string;
       password: string;
@@ -340,6 +344,7 @@ export interface components {
       name: string;
       cuisines: (string)[];
       rank: number;
+      swaps?: (components["schemas"]["IngredientSwap"])[];
     };
     SeedSuggestions: {
       suggestions: (components["schemas"]["SeedSuggestion"])[];

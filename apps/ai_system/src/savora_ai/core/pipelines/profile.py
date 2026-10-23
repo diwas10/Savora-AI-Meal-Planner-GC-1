@@ -7,11 +7,13 @@ proxy as the coverage report (`meal_composition/coverage.py`):
 
 - diet: every dish must carry the Food.com diet tag (unverified metadata); a missing tag
   excludes the dish (fail closed).
-- explicit exclusions and allergies: whole-word match on the dish name and ingredients
-  ("egg" never matches "eggplant"). A word naming a known allergen group ("milk",
+- allergies: whole-word match on the dish name and ingredients, in ANY amount ("egg"
+  never matches "eggplant"). A word naming a known allergen group ("milk",
   "tree nut", "gluten") also blocks the ingredients that contain it (ghee, pesto, soy
   sauce; `allergens.py`). The table is team-reviewed but cannot see what a recipe omits, so
   results are never reported as allergy-verified; see `SafetyVerification`.
+- excluded ingredients (preferences): block only as a MAIN ingredient; a minor one is
+  swapped or left out, and the meal says so (`ingredient_swaps.py`, `dish_swaps`).
 - conditions (type 2 diabetes, hypertension, dyslipidemia) are NOT enforced; results say so.
 
 When Member 2 ships the production KB, these checks move into `filter_candidates` and
@@ -25,9 +27,17 @@ from typing import Annotated, Literal, Self
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints, model_validator
 from pydantic.alias_generators import to_camel
 
+from savora_ai.core.explainability.explanation import (
+    MealExplanation,
+    Reason,
+    ReasonKind,
+    RecipeExplanation,
+)
 from savora_ai.core.food_data.models import CatalogueRecipe
 from savora_ai.core.meal_composition.models import MealCombination
 from savora_ai.core.pipelines.allergens import all_derived, block_rules
+from savora_ai.core.pipelines.ingredient_swaps import exclusion_swaps
+from savora_ai.core.recommendation.seeds import IngredientSwap
 from savora_ai.schemas.enums import CuisinePolicy, HealthCondition
 
 _Word = Annotated[str, StringConstraints(min_length=1, max_length=64, strip_whitespace=True)]
@@ -106,6 +116,11 @@ def safety_verification(profile: PlanningProfile) -> SafetyVerification:
             "Some allergies were matched by ingredient name only; derived ingredients are "
             "not detected for them. Do not rely on this for allergy safety."
         )
+    if profile.excluded_ingredients:
+        parts.append(
+            "Ingredients you avoid remove a dish only when they are a main ingredient; a "
+            "minor one is listed on the meal to leave out or swap."
+        )
     if profile.diet is not None:
         parts.append("Diet is checked with unverified Food.com tags.")
     if profile.conditions:
@@ -124,13 +139,25 @@ def safety_verification(profile: PlanningProfile) -> SafetyVerification:
     )
 
 
-def dish_allowed(dish: CatalogueRecipe, profile: PlanningProfile) -> bool:
-    """Diet tag present and no excluded or allergen term in the dish name or any
-    ingredient (fail closed)."""
+def dish_swaps(
+    dish: CatalogueRecipe, profile: PlanningProfile
+) -> tuple[IngredientSwap, ...] | None:
+    """None when the dish is not allowed; else how to cook it without the user's EXCLUDED
+    ingredients (empty when none is in it).
+
+    Diet tag present and no allergen term in the name or any ingredient, in any amount
+    (fail closed). An excluded ingredient blocks only as a main ingredient; a minor one is
+    swapped or left out (`ingredient_swaps.py`)."""
     if profile.diet is not None and profile.diet.value.lower() not in dish.diet_tags:
-        return False
-    rules = block_rules((*profile.excluded_ingredients, *profile.allergies))
-    return not any(r.blocks(t) for t in (dish.name, *dish.ingredients) for r in rules)
+        return None
+    allergens = block_rules(tuple(profile.allergies))
+    if any(r.blocks(t) for t in (dish.name, *dish.ingredients) for r in allergens):
+        return None
+    return exclusion_swaps(dish, profile.excluded_ingredients, profile.allergies)
+
+
+def dish_allowed(dish: CatalogueRecipe, profile: PlanningProfile) -> bool:
+    return dish_swaps(dish, profile) is not None
 
 
 def cuisine_allowed(cuisines: Sequence[str], profile: PlanningProfile) -> bool:
@@ -147,3 +174,27 @@ def combination_allowed(
     return cuisine_allowed(combination.cuisines, profile) and all(
         dish_allowed(dishes[c.dish_id], profile) for c in combination.components
     )
+
+
+def with_cook_without[E: (MealExplanation, RecipeExplanation)](
+    explanation: E, dishes: Sequence[CatalogueRecipe], profile: PlanningProfile
+) -> E:
+    """Adds what to leave out or swap, when an excluded ingredient is a minor part."""
+    lines: list[str] = []
+    refs: list[str] = []
+    for dish in dishes:
+        for swap in dish_swaps(dish, profile) or ():
+            instead = "leave it out" if swap.instead == "leave it out" else f"use {swap.instead}"
+            lines.append(f"no {swap.ingredient} in {dish.name.strip()}: {instead}")
+            refs.append(dish.recipe_id)
+    if not lines:
+        return explanation
+    reason = Reason(
+        kind=ReasonKind.COMPOSITION,
+        code="COOK_WITHOUT_EXCLUDED",
+        message="Cook it your way: "
+        + "; ".join(lines)
+        + ". These are a minor part of the recipe; the nutrition shown still includes them.",
+        references=tuple(dict.fromkeys(refs)),
+    )
+    return explanation.model_copy(update={"reasons": (*explanation.reasons, reason)})

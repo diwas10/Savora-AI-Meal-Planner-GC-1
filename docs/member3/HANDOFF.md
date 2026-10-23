@@ -118,6 +118,8 @@ with the 125-utterance gold set.
    groups plus gluten and seafood (`pipelines/allergens.py`, reviewed by Member 1; for example milk
    blocks ghee and paneer, wheat blocks soy sauce, shellfish blocks Thai curry paste).
    Conditions are recorded but not enforced; every result shows the safety notice.
+   Excluded ingredients (preferences) block only as a main ingredient; a minor one is
+   listed on the meal to leave out or swap (ADR 0008). Allergies block in any amount.
 2. **Energy is fitted, not verified** (ADR 0006): each day's portion presets are chosen
    toward the energy band and protein minimum before the CSP, which still checks
    completeness only. Fitted days are mostly in band (for example 6 of 7 instead of 0 for

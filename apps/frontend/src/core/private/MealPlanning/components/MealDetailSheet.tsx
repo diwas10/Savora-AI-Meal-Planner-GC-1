@@ -7,8 +7,9 @@ import { Button } from "@/components/ui/Button";
 import { MealArt } from "@/components/ui/MealArt";
 import { SafetyNotice } from "@/components/ui/SafetyNotice";
 import { Sheet } from "@/components/ui/Sheet";
+import { InlineAlert } from "@/components/ui/States";
 import { MEAL_LABEL, NUTRIENT_ROWS, dishName, longDate, nutrient } from "@/lib/format";
-import { REASON_LABEL, SOURCE_LABEL, mealTitle, reasonsByKind, roleLabel } from "../lib/meal";
+import { REASON_LABEL, SOURCE_LABEL, cookWithout, mealTitle, reasonsByKind, roleLabel } from "../lib/meal";
 
 type PlannedMeal = Schema<"PlannedMeal">;
 type SafetyVerification = Schema<"SafetyVerification">;
@@ -80,6 +81,11 @@ export function MealDetailSheet({ meal, safety, open, onOpenChange, onSwap }: Me
               );
             })}
           </ul>
+          {cookWithout(exp.reasons) && (
+            <InlineAlert tone="warning" title="Cook it your way" className="mt-3">
+              {cookWithout(exp.reasons)}
+            </InlineAlert>
+          )}
         </section>
 
         <section aria-labelledby="meal-nutrients">
