@@ -27,7 +27,12 @@ export function PageHeader({
       </div>
       <div className="flex shrink-0 items-center gap-2">
         {action}
-        {showThemeToggle && <ThemeToggle />}
+        {/* On large screen (desktop), the theme switcher lives at the bottom of the sidebar. */}
+        {showThemeToggle && (
+          <div className="lg:hidden">
+            <ThemeToggle />
+          </div>
+        )}
       </div>
     </header>
   );

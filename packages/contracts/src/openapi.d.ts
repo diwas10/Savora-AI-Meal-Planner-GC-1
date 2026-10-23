@@ -15,6 +15,17 @@ export interface components {
       target?: number | null;
       max?: number | null;
     };
+    CatalogueDishDetailDto: {
+      recipeId: string;
+      name: string;
+      cuisines: (string)[];
+      roles: (string)[];
+      mealTypes: (string)[];
+      ingredients: (string)[];
+      steps: (string)[];
+      standardPortion: string;
+      standardNutrients: components["schemas"]["NutrientVector"];
+    };
     CatalogueDishDto: {
       recipeId: string;
       name: string;
@@ -113,6 +124,8 @@ export interface components {
       role: string;
       portion: string;
       nutritionSource: components["schemas"]["NutritionSource"];
+      ingredients?: (string)[];
+      steps?: (string)[];
     };
     FallbackReason: "NO_HISTORY" | "MODEL_UNAVAILABLE" | "CANDIDATES_UNKNOWN_TO_MODEL";
     FlavorTag: "SPICY" | "SWEET" | "SOUR" | "SMOKY" | "CREAMY";
@@ -279,6 +292,8 @@ export interface components {
       name: string;
       standardPortion: string;
       standardNutrients: components["schemas"]["NutrientVector"];
+      ingredients?: (string)[];
+      steps?: (string)[];
       reasons: (components["schemas"]["Reason"])[];
     };
     RegisterRequest: {
@@ -470,6 +485,12 @@ export interface paths {
     get: {
       requestBody?: never;
       response: (components["schemas"]["CatalogueDishDto"])[];
+    };
+  };
+  "/api/catalogue/dishes/{recipe_id}": {
+    get: {
+      requestBody?: never;
+      response: components["schemas"]["CatalogueDishDetailDto"];
     };
   };
   "/api/onboarding/seed-suggestions": {

@@ -5,7 +5,7 @@ import { motion } from "motion/react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import { Field, Input } from "@/components/ui/Field";
+import { Input } from "@/components/ui/Field";
 import { InlineAlert } from "@/components/ui/States";
 import { useOnline } from "@/hooks/useOnline";
 import { ApiError } from "@/lib/api-request";
@@ -52,10 +52,32 @@ export function GeneratePanel({
         }}
       >
         {compact && <h2 className="text-base font-semibold sm:hidden">{title}</h2>}
-        <Field id="week-start" label="Week starts" hint={shortRange(weekStart)} className="sm:flex-1">
-          <Input id="week-start" type="date" value={weekStart} required onChange={(e) => setWeekStart(e.target.value)} />
-        </Field>
-        <Button type="submit" size="lg" loading={mutation.isPending} disabled={!online} icon={<CalendarPlus className="size-5" aria-hidden />}>
+        <div className="flex flex-1 flex-col gap-1.5">
+          <div className="flex items-center justify-between">
+            <label htmlFor="week-start" className="text-sm font-medium text-foreground">
+              Week starts
+            </label>
+            <span className="text-xs font-normal text-muted-foreground">
+              {shortRange(weekStart)}
+            </span>
+          </div>
+          <Input
+            id="week-start"
+            type="date"
+            value={weekStart}
+            required
+            onChange={(e) => setWeekStart(e.target.value)}
+            className="h-12"
+          />
+        </div>
+        <Button
+          type="submit"
+          size="md"
+          className="h-12 w-full rounded-2xl px-6 text-[15px] font-semibold sm:w-auto"
+          loading={mutation.isPending}
+          disabled={!online}
+          icon={<CalendarPlus className="size-5" aria-hidden />}
+        >
           {compact ? "Generate" : "Generate plan"}
         </Button>
       </form>

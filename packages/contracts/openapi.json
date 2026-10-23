@@ -340,6 +340,48 @@
         }
       }
     },
+    "/api/catalogue/dishes/{recipe_id}": {
+      "get": {
+        "tags": [
+          "catalogue"
+        ],
+        "summary": "Get Dish",
+        "operationId": "get_dish_api_catalogue_dishes__recipe_id__get",
+        "parameters": [
+          {
+            "name": "recipe_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Recipe Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogueDishDetailDto"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/onboarding/seed-suggestions": {
       "get": {
         "tags": [
@@ -835,6 +877,73 @@
         "type": "object",
         "title": "Bounds",
         "description": "None means unknown or unbounded, never zero."
+      },
+      "CatalogueDishDetailDto": {
+        "properties": {
+          "recipeId": {
+            "type": "string",
+            "title": "Recipeid"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "cuisines": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Cuisines"
+          },
+          "roles": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Roles"
+          },
+          "mealTypes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Mealtypes"
+          },
+          "ingredients": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Ingredients"
+          },
+          "steps": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Steps"
+          },
+          "standardPortion": {
+            "type": "string",
+            "title": "Standardportion"
+          },
+          "standardNutrients": {
+            "$ref": "#/components/schemas/NutrientVector"
+          }
+        },
+        "type": "object",
+        "required": [
+          "recipeId",
+          "name",
+          "cuisines",
+          "roles",
+          "mealTypes",
+          "ingredients",
+          "steps",
+          "standardPortion",
+          "standardNutrients"
+        ],
+        "title": "CatalogueDishDetailDto"
       },
       "CatalogueDishDto": {
         "properties": {
@@ -1437,6 +1546,22 @@
           },
           "nutritionSource": {
             "$ref": "#/components/schemas/NutritionSource"
+          },
+          "ingredients": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Ingredients",
+            "default": []
+          },
+          "steps": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Steps",
+            "default": []
           }
         },
         "additionalProperties": false,
@@ -2530,6 +2655,22 @@
           },
           "standardNutrients": {
             "$ref": "#/components/schemas/NutrientVector"
+          },
+          "ingredients": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Ingredients",
+            "default": []
+          },
+          "steps": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Steps",
+            "default": []
           },
           "reasons": {
             "items": {

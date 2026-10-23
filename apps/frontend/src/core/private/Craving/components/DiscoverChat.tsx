@@ -132,7 +132,9 @@ export function DiscoverChat() {
             <p className="text-sm text-muted-foreground">Dishes for a craving, screened by your profile</p>
           </div>
         </div>
-        <ThemeToggle />
+        <div className="lg:hidden">
+          <ThemeToggle />
+        </div>
       </header>
 
       <div className="flex flex-1 flex-col gap-4 pb-64 lg:pb-40" role="log" aria-live="polite" aria-label="Conversation">
