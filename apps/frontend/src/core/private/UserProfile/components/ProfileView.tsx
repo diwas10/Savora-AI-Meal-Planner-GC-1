@@ -90,7 +90,7 @@ export function ProfileView() {
             <h2 id="targets-title" className="sr-only">
               Daily targets
             </h2>
-            <TargetsCard targets={profile.data.targets} profileVersion={p.version} />
+            <TargetsCard targets={profile.data.targets} profileVersion={p.version} profile={p} />
           </motion.section>
 
           <motion.section variants={fadeUp}>

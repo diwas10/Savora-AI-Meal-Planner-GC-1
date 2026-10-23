@@ -138,7 +138,7 @@ export function OnboardingWizard() {
 
           {current.id === "targets" && targets && (
             <div className="flex flex-1 flex-col gap-6">
-              <TargetsCard targets={targets.targets} profileVersion={targets.profile.version} />
+              <TargetsCard targets={targets.targets} profileVersion={targets.profile.version} profile={targets.profile} />
               <div className="mt-auto flex flex-col gap-2 pt-2">
                 <Button size="lg" block onClick={() => go(4)} icon={<ArrowRight className="size-5" aria-hidden />}>
                   Looks good

@@ -33,3 +33,5 @@ then returned VALID, was independently verified, and was stored with certificate
 |---|---|
 | Swap: CSP passed, independent proof running | `24-swap-verifying.png` |
 | Swap result with "Swap independently verified" | `25-swap-verified.png` |
+
+| Targets card with nutrient ranges, per-meal energy and the calculation steps (23 October) | `26-targets-breakdown.png` |
