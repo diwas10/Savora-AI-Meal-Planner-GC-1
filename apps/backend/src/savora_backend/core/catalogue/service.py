@@ -3,7 +3,11 @@
 from savora_ai.core.food_data.portions import standard_portion
 from savora_ai.core.pipelines import CatalogueBundle
 from savora_ai.core.recommendation.seeds import is_seed_eligible
-from savora_backend.core.catalogue.dto import CatalogueDishDetailDto, CatalogueDishDto, CuisineOptionDto
+from savora_backend.core.catalogue.dto import (
+    CatalogueDishDetailDto,
+    CatalogueDishDto,
+    CuisineOptionDto,
+)
 
 MAX_DISH_RESULTS = 50
 
