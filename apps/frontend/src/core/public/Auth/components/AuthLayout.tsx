@@ -4,6 +4,7 @@ import { Coffee, Leaf, Salad, Soup, Sparkles } from "lucide-react";
 import { motion } from "motion/react";
 import type { ReactNode } from "react";
 import { Wordmark } from "@/components/functional/Brand";
+import { ThemeToggle } from "@/core/common/theme/ThemeToggle";
 
 const FLOATERS = [
   { Icon: Salad, className: "left-[8%] top-[18%] size-14", delay: 0 },
@@ -28,8 +29,9 @@ export function AuthLayout({ title, subtitle, children }: { title: string; subti
             <Icon className="size-full" strokeWidth={1.4} />
           </motion.span>
         ))}
-        <div className="pt-6 lg:pt-0">
+        <div className="flex items-center justify-between pt-6 lg:pt-0">
           <Wordmark className="[&_span]:text-hero-ink" />
+          <ThemeToggle onHero />
         </div>
         <div className="relative mt-8 max-w-md lg:mt-0">
           <p className="mb-3 inline-flex items-center gap-1.5 rounded-pill bg-hero-ink/15 px-3 py-1 text-xs font-semibold">
@@ -45,7 +47,7 @@ export function AuthLayout({ title, subtitle, children }: { title: string; subti
         </div>
         <p className="relative hidden text-sm opacity-75 lg:block">Savora GC1</p>
       </div>
-      <main className="relative z-10 -mt-8 flex justify-center px-4 pb-10 lg:mt-0 lg:items-center lg:px-12">
+      <main className="relative z-10 -mt-8 flex flex-col justify-center px-4 pb-10 lg:mt-0 lg:items-center lg:px-12">
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}

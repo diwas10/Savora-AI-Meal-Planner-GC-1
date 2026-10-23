@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { Wordmark } from "@/components/functional/Brand";
 import { LinkButton } from "@/components/ui/Button";
+import { ThemeToggle } from "@/core/common/theme/ThemeToggle";
 import { useIsClient } from "@/hooks/useIsClient";
 import { hasSession } from "@/lib/api-request";
 import { fadeUp, stagger } from "@/lib/motion";
@@ -37,9 +38,12 @@ export function LandingView() {
         />
         <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-5">
           <Wordmark className="[&_span]:text-hero-ink" />
-          <LinkButton href="/login" variant="ghost" size="sm" className="text-hero-ink hover:bg-hero-ink/10">
-            Sign in
-          </LinkButton>
+          <div className="flex items-center gap-2 sm:gap-3">
+            <ThemeToggle onHero />
+            <LinkButton href="/login" variant="ghost" size="sm" className="text-hero-ink hover:bg-hero-ink/10">
+              Sign in
+            </LinkButton>
+          </div>
         </div>
         <motion.div variants={stagger} initial="hidden" animate="show" className="mx-auto max-w-5xl px-6 pt-10 sm:pt-16">
           <motion.p variants={fadeUp} className="inline-flex items-center gap-1.5 rounded-pill bg-hero-ink/15 px-3 py-1 text-sm font-semibold">
@@ -62,26 +66,23 @@ export function LandingView() {
           </motion.div>
         </motion.div>
       </section>
-      <motion.ul
-        variants={stagger}
-        initial="hidden"
-        whileInView="show"
-        viewport={{ once: true, amount: 0.2 }}
-        className="relative mx-auto -mt-12 grid max-w-5xl gap-3 px-6 pb-16 sm:grid-cols-2 lg:grid-cols-4"
-      >
-        {FEATURES.map(({ Icon, title, text }) => (
-          <motion.li key={title} variants={fadeUp} className="rounded-card bg-surface p-5 shadow-card ring-1 ring-border/70">
-            <span className="grid size-11 place-items-center rounded-2xl bg-primary-soft text-primary-soft-foreground">
-              <Icon className="size-5" aria-hidden />
-            </span>
-            <h2 className="mt-4 font-semibold">{title}</h2>
-            <p className="mt-1 text-sm text-muted-foreground">{text}</p>
-          </motion.li>
-        ))}
-      </motion.ul>
-      <p className="pb-10 text-center text-xs text-muted-foreground">
-        Savora GC1 · planning guidance, not medical advice
-      </p>
+
+      <section className="mx-auto max-w-5xl px-6 py-16 sm:py-24">
+        <h2 className="text-center text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+          Built for how people really eat
+        </h2>
+        <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          {FEATURES.map(({ Icon, title, text }) => (
+            <div key={title} className="rounded-card border border-border/70 bg-surface p-5 shadow-card">
+              <span className="grid size-11 place-items-center rounded-2xl bg-primary-soft text-primary-soft-foreground">
+                <Icon className="size-5" aria-hidden />
+              </span>
+              <h3 className="mt-4 font-semibold">{title}</h3>
+              <p className="mt-1.5 text-sm text-muted-foreground">{text}</p>
+            </div>
+          ))}
+        </div>
+      </section>
     </div>
   );
 }

@@ -21,6 +21,7 @@ import type { CravingResponse } from "../service/craving.api";
 import { useCravingMutation } from "../service/craving.query";
 import { RecipeCard } from "./RecipeCard";
 import { RecipeSheet } from "./RecipeSheet";
+import { ThemeToggle } from "@/core/common/theme/ThemeToggle";
 
 type CravingRequest = Schema<"CravingRequest">;
 type CravingItem = Schema<"CravingItem">;
@@ -120,14 +121,17 @@ export function DiscoverChat() {
 
   return (
     <div className="flex min-h-[calc(100dvh-8rem)] flex-col">
-      <header className="flex items-center gap-3 pb-4 pt-6 lg:pt-10">
-        <span className="grid size-11 place-items-center rounded-2xl bg-gradient-to-br from-hero-from via-hero-via to-hero-to text-hero-ink shadow-glow">
-          <Sparkles className="size-5" aria-hidden />
-        </span>
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Discover</h1>
-          <p className="text-sm text-muted-foreground">Dishes for a craving, screened by your profile</p>
+      <header className="flex items-center justify-between gap-3 pb-4 pt-6 lg:pt-10">
+        <div className="flex items-center gap-3">
+          <span className="grid size-11 place-items-center rounded-2xl bg-gradient-to-br from-hero-from via-hero-via to-hero-to text-hero-ink shadow-glow">
+            <Sparkles className="size-5" aria-hidden />
+          </span>
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">Discover</h1>
+            <p className="text-sm text-muted-foreground">Dishes for a craving, screened by your profile</p>
+          </div>
         </div>
+        <ThemeToggle />
       </header>
 
       <div className="flex flex-1 flex-col gap-4 pb-64 lg:pb-40" role="log" aria-live="polite" aria-label="Conversation">

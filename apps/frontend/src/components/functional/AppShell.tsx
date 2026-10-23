@@ -7,6 +7,7 @@ import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import { Wordmark } from "@/components/functional/Brand";
 import { OfflineBanner } from "@/components/functional/OfflineBanner";
+import { ThemeToggle } from "@/core/common/theme/ThemeToggle";
 import { spring } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 
@@ -35,10 +36,13 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       {/* Desktop: the same four destinations as a sidebar. */}
       <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 flex-col border-r border-border/70 bg-surface/60 px-4 py-6 lg:flex">
-        <Link href="/dashboard" className="px-3" aria-label="Savora home">
-          <Wordmark />
-        </Link>
-        <nav aria-label="Primary" className="mt-8">
+        <div className="flex items-center justify-between px-3">
+          <Link href="/dashboard" aria-label="Savora home">
+            <Wordmark />
+          </Link>
+          <ThemeToggle />
+        </div>
+        <nav aria-label="Primary" className="mt-8 flex-1">
           <LayoutGroup id="sidebar">
             <ul className="flex flex-col gap-1">
               {TABS.map(({ href, label, Icon }) => {

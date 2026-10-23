@@ -17,6 +17,7 @@ import { useProfileQuery, useUpsertProfileMutation } from "../service/profile.qu
 import { AboutYouSection, FoodSection, HealthSection } from "./ProfileSections";
 import { SeedPicker } from "./SeedPicker";
 import { TargetsCard } from "./TargetsCard";
+import { ThemeToggle } from "@/core/common/theme/ThemeToggle";
 
 type StepId = "about" | "food" | "health" | "targets" | "seeds" | "done";
 
@@ -89,9 +90,12 @@ export function OnboardingWizard() {
           ) : (
             <Wordmark />
           )}
-          <span className="text-sm font-medium tabular-nums text-muted-foreground">
-            Step {step + 1} of {STEPS.length}
-          </span>
+          <div className="flex items-center gap-3">
+            <span className="text-sm font-medium tabular-nums text-muted-foreground">
+              Step {step + 1} of {STEPS.length}
+            </span>
+            <ThemeToggle />
+          </div>
         </div>
         <div className="mt-3 h-1.5 overflow-hidden rounded-pill bg-surface-sunken" role="progressbar" aria-valuemin={1} aria-valuemax={STEPS.length} aria-valuenow={step + 1} aria-label="Onboarding progress">
           <motion.div className="h-full rounded-pill bg-primary" initial={false} animate={{ width: `${((step + 1) / STEPS.length) * 100}%` }} transition={gentle} />
