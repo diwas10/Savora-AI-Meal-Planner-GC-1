@@ -21,3 +21,15 @@ Transformer (`sasrec-content-v2+pop8`), Member 2's weekly search v2 and local Ol
 | Dark mode | `r-dark-plan.png` |
 | Offline: saved plan still readable | `r-offline-plan.png` |
 | Desktop (1280 wide) with sidebar | `23-desktop-plan.png` |
+
+## Swap with Member 2's compact B1 proof (23 October 2026)
+
+Same stack, `SWAP_PROOF_MODE=required` (ADR 0007): mixed Indian vegetarian with a milk
+allergy, D1 breakfast swapped. The weekly CSP accepted the swap in 48 s. The compact B1 proof
+then returned VALID, was independently verified, and was stored with certificate
+`ea94019c…4540e34` and the changed day's exact native totals (proof 235 s, 282 s in all).
+
+| Screen | File |
+|---|---|
+| Swap: CSP passed, independent proof running | `24-swap-verifying.png` |
+| Swap result with "Swap independently verified" | `25-swap-verified.png` |
