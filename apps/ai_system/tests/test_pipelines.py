@@ -216,11 +216,21 @@ def test_craving_is_deterministic(bundle: CatalogueBundle) -> None:
 # --- onboarding seeds (ADR 0005) ---------------------------------------------------------
 
 
+def test_seed_suggestions_lead_with_the_chosen_cuisines_unless_strict(
+    bundle: CatalogueBundle,
+) -> None:
+    user = profile(diet="VEGETARIAN", cuisinePolicy="MIXED", cuisines=["Indian", "Nepali"])
+    offered = suggest_seeds(user, bundle).suggestions
+    firsts = [bundle.dishes[s.recipe_id].cuisines[0] for s in offered]
+    assert set(firsts) == {"Indian", "Nepali"}  # both have enough dishes to fill the list
+
+
 def test_seed_suggestions_are_rule_safe_and_confirmable(bundle: CatalogueBundle) -> None:
     user = profile(diet="VEGETARIAN", cuisinePolicy="STRICT", cuisines=["Indian"])
     offered = suggest_seeds(user, bundle).suggestions
     assert len(offered) == 12
     assert bundle.dishes[offered[0].recipe_id].cuisines[0] == "Indian"
+    assert all("Indian" in bundle.dishes[s.recipe_id].cuisines for s in offered)  # STRICT
     for s in offered:
         assert is_seed_eligible(bundle.dishes[s.recipe_id])
         assert dish_allowed(bundle.dishes[s.recipe_id], user)

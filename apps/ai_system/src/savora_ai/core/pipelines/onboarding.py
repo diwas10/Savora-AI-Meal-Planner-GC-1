@@ -12,7 +12,7 @@ like the craving pipeline, so onboarding stays fast.
 from collections.abc import Sequence
 
 from savora_ai.core.pipelines.catalogue import CatalogueBundle
-from savora_ai.core.pipelines.profile import PlanningProfile, dish_allowed
+from savora_ai.core.pipelines.profile import PlanningProfile, cuisine_allowed, dish_allowed
 from savora_ai.core.pipelines.rules import check_recipes
 from savora_ai.core.recommendation.seeds import (
     DEFAULT_SUGGESTIONS,
@@ -37,8 +37,13 @@ def _rule_safe(bundle: CatalogueBundle, profile: PlanningProfile, ids: Sequence[
 def suggest_seeds(
     profile: PlanningProfile, bundle: CatalogueBundle, limit: int = DEFAULT_SUGGESTIONS
 ) -> SeedSuggestions:
-    """Popular rule-safe dishes, the profile's cuisines first (`suggest_seed_dishes`)."""
-    pool = [d for d in bundle.dishes.values() if is_seed_eligible(d) and dish_allowed(d, profile)]
+    """Popular rule-safe dishes of the profile's cuisines (`suggest_seed_dishes`); a STRICT
+    cuisine policy offers no other cuisine, as in the plan."""
+    pool = [
+        d
+        for d in bundle.dishes.values()
+        if is_seed_eligible(d) and dish_allowed(d, profile) and cuisine_allowed(d.cuisines, profile)
+    ]
     if len(pool) < MIN_SEED_PICKS:
         return SeedSuggestions(suggestions=())
     order = [

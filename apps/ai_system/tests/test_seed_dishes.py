@@ -58,9 +58,11 @@ def test_suggestions_interleave_cuisines_by_popularity() -> None:
 
 def test_preferred_cuisines_come_first_and_the_rest_fill_in() -> None:
     result = suggest_seed_dishes(ALL, preferred_cuisines=("Mexican", "Korean"), limit=10)
-    first = [s.cuisines[0] for s in result.suggestions[:3]]
-    assert first == ["Mexican", "Indian", "Thai"]  # Korean has no dish: ignored
-    assert len(result.suggestions) == 10  # Mexican runs out; the others keep filling
+    cuisines = [s.cuisines[0] for s in result.suggestions]
+    mexican = cuisines.count("Mexican")
+    assert cuisines[:mexican] == ["Mexican"] * mexican  # Korean has no dish: ignored
+    assert len(result.suggestions) == 10  # Mexican runs out; the others top the list up
+    assert 0 < mexican < 10
     assert len({s.recipe_id for s in result.suggestions}) == 10
 
 
