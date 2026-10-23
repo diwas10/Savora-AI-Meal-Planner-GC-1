@@ -16,8 +16,14 @@ const FLOATERS = [
 /** Brand panel + form; on phones the panel becomes a short header. */
 export function AuthLayout({ title, subtitle, children }: { title: string; subtitle: string; children: ReactNode }) {
   return (
-    <div className="min-h-dvh bg-background lg:grid lg:grid-cols-2">
-      <div className="relative isolate overflow-hidden bg-gradient-to-br from-hero-from via-hero-via to-hero-to px-6 pb-14 pt-safe text-hero-ink lg:flex lg:flex-col lg:justify-between lg:p-12">
+    <div className="flex min-h-dvh flex-col bg-background lg:grid lg:grid-cols-2">
+      {/* Brand panel: on mobile, a compact top header; on desktop, a full-height editorial panel */}
+      <div
+        className="relative isolate overflow-hidden bg-gradient-to-br from-hero-from via-hero-via to-hero-to px-6 py-4 text-hero-ink lg:flex lg:flex-col lg:justify-between lg:p-12 lg:min-h-dvh"
+        style={{
+          backgroundImage: "linear-gradient(135deg, var(--hero-from), var(--hero-via), var(--hero-to))",
+        }}
+      >
         {FLOATERS.map(({ Icon, className, delay }) => (
           <motion.span
             key={className}
@@ -29,25 +35,27 @@ export function AuthLayout({ title, subtitle, children }: { title: string; subti
             <Icon className="size-full" strokeWidth={1.4} />
           </motion.span>
         ))}
-        <div className="flex items-center justify-between pt-6 lg:pt-0">
+        <div className="flex items-center justify-between">
           <Wordmark className="[&_span]:text-hero-ink" />
           <ThemeToggle onHero />
         </div>
-        <div className="relative mt-8 max-w-md lg:mt-0">
+        <div className="relative mt-8 hidden max-w-md lg:block lg:mt-0">
           <p className="mb-3 inline-flex items-center gap-1.5 rounded-pill bg-hero-ink/15 px-3 py-1 text-xs font-semibold">
             <Sparkles className="size-3.5" aria-hidden /> Explainable meal planning
           </p>
           <h2 className="text-3xl font-bold leading-tight tracking-tight lg:text-5xl">
             Seven days of meals that fit you, and say why.
           </h2>
-          <p className="mt-3 hidden text-lg opacity-90 lg:block">
+          <p className="mt-3 text-lg opacity-90">
             Your cuisines, your rules, your allergies. Every plan is checked as a whole week and
             every swap keeps the rest of it.
           </p>
         </div>
         <p className="relative hidden text-sm opacity-75 lg:block">Savora GC1</p>
       </div>
-      <main className="relative z-10 -mt-8 flex flex-col justify-center px-4 pb-10 lg:mt-0 lg:items-center lg:px-12">
+
+      {/* Main form: cleanly centered on all screen sizes */}
+      <main className="flex flex-1 flex-col items-center justify-center px-4 py-8 lg:px-12 lg:py-12">
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}

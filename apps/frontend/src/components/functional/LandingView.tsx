@@ -29,7 +29,10 @@ export function LandingView() {
 
   return (
     <div className="min-h-dvh bg-background">
-      <section className="relative isolate overflow-hidden bg-gradient-to-br from-hero-from via-hero-via to-hero-to pb-24 pt-safe text-hero-ink">
+      <section
+        className="relative isolate overflow-hidden bg-gradient-to-br from-hero-from via-hero-via to-hero-to pb-24 pt-safe text-hero-ink"
+        style={{ backgroundImage: "linear-gradient(135deg, var(--hero-from), var(--hero-via), var(--hero-to))" }}
+      >
         <motion.div
           className="absolute -right-24 -top-24 size-80 rounded-full bg-hero-ink/10 blur-2xl"
           animate={{ scale: [1, 1.08, 1] }}
