@@ -34,8 +34,8 @@ export function AppShell({ children }: { children: ReactNode }) {
         Skip to content
       </a>
 
-      {/* Desktop: the same four destinations as a sidebar. */}
-      <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 flex-col border-r border-border/70 bg-surface/60 px-4 py-6 lg:flex">
+      {/* Desktop: the same four destinations as a frosted glass sidebar. */}
+      <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 flex-col border-r border-border/70 bg-surface/75 backdrop-blur-xl px-4 py-6 lg:flex">
         <div className="flex items-center justify-between px-3">
           <Link href="/dashboard" aria-label="Savora home">
             <Wordmark />
@@ -60,7 +60,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                       {active && (
                         <motion.span
                           layoutId="sidebar-active"
-                          className="absolute inset-0 rounded-2xl bg-primary-soft"
+                          className="absolute inset-0 rounded-2xl bg-primary-soft shadow-[inset_0_1px_1px_rgba(255,255,255,0.6)] ring-1 ring-primary/15"
                           transition={spring}
                         />
                       )}
@@ -82,10 +82,13 @@ export function AppShell({ children }: { children: ReactNode }) {
         </main>
       </div>
 
-      {/* Mobile and tablet: floating glass tab bar above the home indicator. */}
-      <nav aria-label="Primary" className="fixed inset-x-0 bottom-safe z-40 flex justify-center px-4 lg:hidden">
+      {/* Mobile and tablet: Apple Liquid Glass tab bar fixed to the bottom. */}
+      <nav
+        aria-label="Primary"
+        className="fixed inset-x-0 bottom-0 z-50 flex justify-center px-4 pb-[max(0.75rem,env(safe-area-inset-bottom,0.75rem))] pt-2 pointer-events-none lg:hidden"
+      >
         <LayoutGroup id="tabbar">
-          <ul className="glass flex w-full max-w-md items-center justify-between rounded-pill p-1.5">
+          <ul className="glass pointer-events-auto flex w-full max-w-md items-center justify-between rounded-pill p-1.5 transition-all">
             {TABS.map(({ href, label, Icon }) => {
               const active = isActive(pathname, href);
               return (
@@ -94,18 +97,18 @@ export function AppShell({ children }: { children: ReactNode }) {
                     href={href}
                     aria-current={active ? "page" : undefined}
                     className={cn(
-                      "relative flex h-14 flex-col items-center justify-center gap-0.5 rounded-pill text-[11px] font-semibold transition-colors",
-                      active ? "text-primary-soft-foreground" : "text-muted-foreground",
+                      "relative flex h-14 flex-col items-center justify-center gap-0.5 rounded-pill text-[11px] font-semibold transition-all duration-200 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                      active ? "text-primary-soft-foreground" : "text-muted-foreground hover:text-foreground",
                     )}
                   >
                     {active && (
                       <motion.span
                         layoutId="tab-active"
-                        className="absolute inset-0 rounded-pill bg-primary-soft"
+                        className="absolute inset-0 rounded-pill bg-primary-soft/90 shadow-[inset_0_1px_1px_rgba(255,255,255,0.7),0_2px_8px_-2px_rgba(31,107,84,0.2)] ring-1 ring-primary/20 dark:bg-primary-soft/60 dark:shadow-[inset_0_1px_1px_rgba(255,255,255,0.15)] dark:ring-primary/30"
                         transition={spring}
                       />
                     )}
-                    <Icon className="relative size-[22px]" strokeWidth={active ? 2.3 : 1.9} aria-hidden />
+                    <Icon className="relative size-[22px]" strokeWidth={active ? 2.35 : 1.9} aria-hidden />
                     <span className="relative">{label}</span>
                   </Link>
                 </li>

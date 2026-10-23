@@ -22,6 +22,7 @@ import { useCravingMutation } from "../service/craving.query";
 import { RecipeCard } from "./RecipeCard";
 import { RecipeSheet } from "./RecipeSheet";
 import { ThemeToggle } from "@/core/common/theme/ThemeToggle";
+import { Skeleton } from "@/components/ui/Skeleton";
 
 type CravingRequest = Schema<"CravingRequest">;
 type CravingItem = Schema<"CravingItem">;
@@ -188,20 +189,45 @@ export function DiscoverChat() {
         </AnimatePresence>
 
         {mutation.isPending && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center gap-2.5" aria-label="Savora is thinking">
-            <span className="grid size-8 place-items-center rounded-xl bg-primary-soft text-primary-soft-foreground">
-              <Bot className="size-4" aria-hidden />
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex max-w-full gap-2.5"
+            aria-label="Savora is thinking and matching recipes"
+          >
+            <span className="mt-1 grid size-8 shrink-0 place-items-center rounded-xl bg-primary-soft text-primary-soft-foreground">
+              <Bot className="size-4 animate-pulse" aria-hidden />
             </span>
-            <span className="flex gap-1 rounded-3xl rounded-bl-lg bg-surface px-4 py-3.5 ring-1 ring-border">
-              {[0, 1, 2].map((i) => (
-                <motion.span
-                  key={i}
-                  className="size-2 rounded-pill bg-subtle-foreground"
-                  animate={reduceMotion ? undefined : { y: [0, -4, 0], opacity: [0.5, 1, 0.5] }}
-                  transition={{ duration: 0.9, repeat: Infinity, delay: i * 0.15 }}
-                />
-              ))}
-            </span>
+            <div className="flex min-w-0 flex-1 flex-col gap-3">
+              <div className="flex items-center gap-2">
+                <span className="flex gap-1 rounded-3xl rounded-bl-lg bg-surface px-3 py-2 ring-1 ring-border">
+                  {[0, 1, 2].map((i) => (
+                    <motion.span
+                      key={i}
+                      className="size-1.5 rounded-pill bg-subtle-foreground"
+                      animate={reduceMotion ? undefined : { y: [0, -3, 0], opacity: [0.5, 1, 0.5] }}
+                      transition={{ duration: 0.8, repeat: Infinity, delay: i * 0.15 }}
+                    />
+                  ))}
+                </span>
+                <span className="text-xs text-muted-foreground animate-pulse">Reading craving and matching dishes...</span>
+              </div>
+              <div className="flex flex-col gap-2">
+                {[0, 1, 2].map((i) => (
+                  <div key={i} className="flex items-center gap-3 rounded-2xl bg-surface p-3.5 shadow-card ring-1 ring-border/70">
+                    <Skeleton className="size-16 shrink-0 rounded-xl" />
+                    <div className="min-w-0 flex-1 space-y-2">
+                      <Skeleton className="h-4 w-4/5" />
+                      <div className="flex gap-2">
+                        <Skeleton className="h-3.5 w-14 rounded-pill" />
+                        <Skeleton className="h-3.5 w-20 rounded-pill" />
+                      </div>
+                      <Skeleton className="h-3 w-1/3" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </motion.div>
         )}
         <div ref={endRef} className="scroll-mb-64 lg:scroll-mb-40" />
@@ -360,6 +386,41 @@ function AssistantReply({ message, onOpenItem }: { message: Message; onOpenItem:
         </>
       )}
       <SafetyNotice safety={result.safety} compact />
+    </div>
+  );
+}
+
+export function DiscoverSkeleton() {
+  return (
+    <div className="flex min-h-[calc(100dvh-8rem)] flex-col" aria-hidden>
+      <header className="flex items-center justify-between gap-3 pb-4 pt-6 lg:pt-10">
+        <div className="flex items-center gap-3">
+          <Skeleton className="size-11 rounded-2xl" />
+          <div className="space-y-1.5">
+            <Skeleton className="h-6 w-32" />
+            <Skeleton className="h-4 w-48" />
+          </div>
+        </div>
+      </header>
+      <div className="flex flex-1 flex-col gap-4 pt-4">
+        <div className="flex gap-2">
+          <Skeleton className="h-8 w-24 rounded-pill" />
+          <Skeleton className="h-8 w-32 rounded-pill" />
+          <Skeleton className="h-8 w-28 rounded-pill" />
+        </div>
+        {[0, 1, 2].map((i) => (
+          <div key={i} className="flex items-center gap-3 rounded-2xl bg-surface p-3.5 shadow-card ring-1 ring-border/70">
+            <Skeleton className="size-16 shrink-0 rounded-xl" />
+            <div className="min-w-0 flex-1 space-y-2">
+              <Skeleton className="h-4 w-3/4" />
+              <div className="flex gap-2">
+                <Skeleton className="h-3.5 w-16 rounded-pill" />
+                <Skeleton className="h-3.5 w-24 rounded-pill" />
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

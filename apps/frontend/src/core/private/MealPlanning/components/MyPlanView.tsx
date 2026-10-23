@@ -323,7 +323,7 @@ function PlanPicker({
   );
 }
 
-function PlanSkeleton() {
+export function PlanSkeleton() {
   return (
     <div className="flex flex-col gap-3" aria-hidden>
       <div className="flex gap-2">

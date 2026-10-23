@@ -8,6 +8,8 @@ import { useState } from "react";
 import { useForm, type FieldPath } from "react-hook-form";
 import { Wordmark } from "@/components/functional/Brand";
 import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+import { Skeleton } from "@/components/ui/Skeleton";
 import { ErrorSummary } from "@/components/ui/Field";
 import { GeneratePanel } from "@/core/private/MealPlanning/components/GeneratePanel";
 import { ApiError } from "@/lib/api-request";
@@ -78,6 +80,10 @@ export function OnboardingWizard() {
     .filter((m): m is string => Boolean(m));
 
   const targets = upsert.data ?? existing;
+
+  if (profile.isPending) {
+    return <OnboardingSkeleton />;
+  }
 
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-xl flex-col px-5 pb-10 pt-safe">
@@ -169,6 +175,30 @@ export function OnboardingWizard() {
           )}
         </motion.section>
       </AnimatePresence>
+    </div>
+  );
+}
+
+export function OnboardingSkeleton() {
+  return (
+    <div className="mx-auto flex min-h-dvh w-full max-w-xl flex-col px-5 pb-10 pt-safe" aria-hidden>
+      <header className="sticky top-0 z-10 -mx-5 bg-background/85 px-5 pb-3 pt-4 backdrop-blur-md">
+        <div className="flex h-11 items-center justify-between">
+          <Skeleton className="h-6 w-24" />
+          <Skeleton className="h-5 w-20 rounded-pill" />
+        </div>
+        <Skeleton className="mt-3 h-1.5 w-full rounded-pill" />
+      </header>
+      <div className="flex flex-1 flex-col pt-6 space-y-4">
+        <Skeleton className="h-8 w-48" />
+        <Skeleton className="h-4 w-72" />
+        <Card className="flex flex-col gap-4 p-5">
+          <Skeleton className="h-10 w-full rounded-xl" />
+          <Skeleton className="h-10 w-full rounded-xl" />
+          <Skeleton className="h-10 w-full rounded-xl" />
+        </Card>
+        <Skeleton className="mt-4 h-12 w-full rounded-2xl" />
+      </div>
     </div>
   );
 }

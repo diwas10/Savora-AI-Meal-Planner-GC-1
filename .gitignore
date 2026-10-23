@@ -71,3 +71,7 @@ Data/catalogue/*_review.json
 # Trained models are too large for git; the tracked manifest pins the shipped one.
 Data/models/*
 !Data/models/manifest.json
+
+# Hugging Face deployment bundles
+hf_model_deploy/
+deploy_hf/

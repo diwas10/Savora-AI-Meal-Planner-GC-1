@@ -9,11 +9,45 @@ import { PageHeader } from "@/components/functional/PageHeader";
 import { Button, LinkButton } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { ErrorSummary } from "@/components/ui/Field";
+import { Skeleton } from "@/components/ui/Skeleton";
 import { InlineAlert } from "@/components/ui/States";
 import { ApiError } from "@/lib/api-request";
 import { profileFormSchema, toFormValues, toUpsertRequest, type ProfileFormValues } from "../schema/profile.schema";
 import { useProfileQuery, useUpsertProfileMutation } from "../service/profile.query";
 import { AboutYouSection, FoodSection, HealthSection } from "./ProfileSections";
+
+export function ProfileEditSkeleton() {
+  return (
+    <div className="flex flex-col gap-8 pb-8" aria-hidden>
+      <div className="flex flex-col gap-4">
+        <Skeleton className="h-6 w-32" />
+        <Card className="flex flex-col gap-4 p-5">
+          <Skeleton className="h-10 w-full rounded-xl" />
+          <div className="grid grid-cols-2 gap-4">
+            <Skeleton className="h-10 rounded-xl" />
+            <Skeleton className="h-10 rounded-xl" />
+          </div>
+          <Skeleton className="h-10 w-full rounded-xl" />
+        </Card>
+      </div>
+      <div className="flex flex-col gap-4">
+        <Skeleton className="h-6 w-40" />
+        <Card className="flex flex-col gap-4 p-5">
+          <Skeleton className="h-10 w-full rounded-xl" />
+          <Skeleton className="h-24 w-full rounded-xl" />
+        </Card>
+      </div>
+      <div className="flex flex-col gap-4">
+        <Skeleton className="h-6 w-48" />
+        <Card className="flex flex-col gap-4 p-5">
+          <Skeleton className="h-10 w-full rounded-xl" />
+          <Skeleton className="h-10 w-full rounded-xl" />
+        </Card>
+      </div>
+      <Skeleton className="h-12 w-full rounded-2xl" />
+    </div>
+  );
+}
 
 export function ProfileEditView() {
   const router = useRouter();
@@ -24,6 +58,7 @@ export function ProfileEditView() {
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
     defaultValues: toFormValues(profile.data?.profile),
+    values: profile.data?.profile ? toFormValues(profile.data.profile) : undefined,
     mode: "onTouched",
   });
 
@@ -57,7 +92,9 @@ export function ProfileEditView() {
           </LinkButton>
         }
       />
-      {changed ? (
+      {profile.isPending ? (
+        <ProfileEditSkeleton />
+      ) : changed ? (
         <Card className="flex flex-col gap-4 p-5">
           <InlineAlert tone="success" icon={<Check className="size-4" aria-hidden />} title={`Saved as profile version ${upsert.data.profile.version}`}>
             Your targets were recalculated. Your current plan was made for the earlier profile, so

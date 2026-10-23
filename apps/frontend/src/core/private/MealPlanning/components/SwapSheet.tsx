@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/Field";
 import { MealArt } from "@/components/ui/MealArt";
 import { SafetyNotice } from "@/components/ui/SafetyNotice";
 import { Sheet } from "@/components/ui/Sheet";
+import { Skeleton } from "@/components/ui/Skeleton";
 import { InlineAlert } from "@/components/ui/States";
 import { ApiError } from "@/lib/api-request";
 import { FLAVOR_LABEL, MEAL_LABEL, cuisineLabel, ingredientLabel, longDate, nutrient } from "@/lib/format";
@@ -165,6 +166,26 @@ export function SwapSheet({ plan, meal, open, onOpenChange, initialText = "", on
               <Button type="submit" size="lg" block loading={optionsMutation.isPending} icon={<Search className="size-5" aria-hidden />}>
                 Show eligible meals
               </Button>
+              {optionsMutation.isPending && (
+                <div className="flex flex-col gap-2.5 pt-2" aria-live="polite">
+                  <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
+                    <Sparkles className="size-3.5 text-accent animate-spin" aria-hidden />
+                    <span>Finding and scoring replacement meals...</span>
+                  </div>
+                  {[0, 1, 2].map((i) => (
+                    <div key={i} className="flex items-center gap-3 rounded-2xl bg-surface p-3 ring-1 ring-border">
+                      <Skeleton className="size-10 rounded-xl" />
+                      <div className="min-w-0 flex-1 space-y-2">
+                        <Skeleton className="h-4 w-3/4" />
+                        <div className="flex gap-2">
+                          <Skeleton className="h-3 w-16" />
+                          <Skeleton className="h-3 w-20" />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </form>
           </motion.div>
         )}

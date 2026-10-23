@@ -75,10 +75,7 @@ export function ProfileView() {
     <>
       <PageHeader title="Profile" description={user.data?.email} />
       {profile.isPending ? (
-        <div className="flex flex-col gap-3" aria-hidden>
-          <Skeleton className="h-56 rounded-card" />
-          <Skeleton className="h-72 rounded-card" />
-        </div>
+        <ProfileSkeleton />
       ) : profile.isError || !p || !profile.data ? (
         <Card>
           <ErrorState message="We couldn't load your profile." offline={!online} onRetry={() => void profile.refetch()} />
@@ -271,5 +268,32 @@ function ProfileLink({
     <button type="button" onClick={onClick} className={className}>
       {body}
     </button>
+  );
+}
+
+export function ProfileSkeleton() {
+  return (
+    <div className="flex flex-col gap-6" aria-hidden>
+      <div className="flex items-center gap-4">
+        <Skeleton className="size-16 rounded-[22px]" />
+        <div className="flex-1 space-y-2">
+          <Skeleton className="h-5 w-36" />
+          <Skeleton className="h-4 w-24" />
+        </div>
+        <Skeleton className="h-9 w-16 rounded-pill" />
+      </div>
+      <div className="space-y-2">
+        <Skeleton className="h-5 w-28" />
+        <Skeleton className="h-48 rounded-card" />
+      </div>
+      <div className="space-y-2">
+        <Skeleton className="h-5 w-24" />
+        <Skeleton className="h-40 rounded-card" />
+      </div>
+      <div className="space-y-2">
+        <Skeleton className="h-5 w-32" />
+        <Skeleton className="h-36 rounded-card" />
+      </div>
+    </div>
   );
 }
