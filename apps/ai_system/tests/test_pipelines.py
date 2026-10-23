@@ -225,6 +225,27 @@ def test_seed_suggestions_lead_with_the_chosen_cuisines_unless_strict(
     assert set(firsts) == {"Indian", "Nepali"}  # both have enough dishes to fill the list
 
 
+def test_seed_suggestions_stay_in_the_chosen_cuisines_after_exclusions(
+    bundle: CatalogueBundle,
+) -> None:
+    # Onion and garlic leave few Indian and Nepali dishes, but still at least three: the
+    # list is short rather than topped up with other cuisines.
+    user = profile(
+        diet="VEGETARIAN",
+        cuisinePolicy="MIXED",
+        cuisines=["Nepali", "Indian"],
+        allergies=["peanut"],
+        excludedIngredients=["mushroom", "onion", "garlic"],
+    )
+    offered = suggest_seeds(user, bundle).suggestions
+    assert 3 <= len(offered) < 12
+    assert {bundle.dishes[s.recipe_id].cuisines[0] for s in offered} <= {"Indian", "Nepali"}
+    # Cuisines with fewer than three left are topped up so onboarding can still finish.
+    rare = profile(diet="VEGAN", cuisinePolicy="MIXED", cuisines=["Korean"], allergies=["soy"])
+    filled = suggest_seeds(rare, bundle).suggestions
+    assert len(filled) >= 3
+
+
 def test_seed_suggestions_are_rule_safe_and_confirmable(bundle: CatalogueBundle) -> None:
     user = profile(diet="VEGETARIAN", cuisinePolicy="STRICT", cuisines=["Indian"])
     offered = suggest_seeds(user, bundle).suggestions

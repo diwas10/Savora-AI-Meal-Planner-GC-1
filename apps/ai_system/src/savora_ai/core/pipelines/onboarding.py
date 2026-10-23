@@ -11,6 +11,7 @@ like the craving pipeline, so onboarding stays fast.
 
 from collections.abc import Sequence
 
+from savora_ai.core.food_data.models import CatalogueRecipe
 from savora_ai.core.pipelines.catalogue import CatalogueBundle
 from savora_ai.core.pipelines.profile import PlanningProfile, cuisine_allowed, dish_allowed
 from savora_ai.core.pipelines.rules import check_recipes
@@ -34,16 +35,10 @@ def _rule_safe(bundle: CatalogueBundle, profile: PlanningProfile, ids: Sequence[
     return set(check_recipes(bundle, profile, _WORKFLOW, screened).eligible_ids)
 
 
-def suggest_seeds(
-    profile: PlanningProfile, bundle: CatalogueBundle, limit: int = DEFAULT_SUGGESTIONS
+def _offer(
+    profile: PlanningProfile, bundle: CatalogueBundle, pool: list[CatalogueRecipe], limit: int
 ) -> SeedSuggestions:
-    """Popular rule-safe dishes of the profile's cuisines (`suggest_seed_dishes`); a STRICT
-    cuisine policy offers no other cuisine, as in the plan."""
-    pool = [
-        d
-        for d in bundle.dishes.values()
-        if is_seed_eligible(d) and dish_allowed(d, profile) and cuisine_allowed(d.cuisines, profile)
-    ]
+    """Up to `limit` rule-safe dishes from `pool`, the profile's cuisines first."""
     if len(pool) < MIN_SEED_PICKS:
         return SeedSuggestions(suggestions=())
     order = [
@@ -60,6 +55,28 @@ def suggest_seeds(
         return SeedSuggestions(suggestions=())
     dishes = [bundle.dishes[i] for i in passed]
     return suggest_seed_dishes(dishes, profile.cuisines, min(limit, len(dishes)))
+
+
+def suggest_seeds(
+    profile: PlanningProfile, bundle: CatalogueBundle, limit: int = DEFAULT_SUGGESTIONS
+) -> SeedSuggestions:
+    """Popular rule-safe dishes of the profile's cuisines (`suggest_seed_dishes`).
+
+    A STRICT cuisine policy offers no other cuisine, as in the plan. Otherwise the list
+    still stays within the chosen cuisines when they have at least MIN_SEED_PICKS dishes
+    left after the profile's exclusions (a short list of what the user asked for beats a
+    full list of what they did not); only then are other cuisines offered to fill it."""
+    pool = [
+        d
+        for d in bundle.dishes.values()
+        if is_seed_eligible(d) and dish_allowed(d, profile) and cuisine_allowed(d.cuisines, profile)
+    ]
+    chosen = [d for d in pool if d.cuisines and d.cuisines[0] in profile.cuisines]
+    if profile.cuisines and len(chosen) >= MIN_SEED_PICKS:
+        offered = _offer(profile, bundle, chosen, limit)
+        if offered.suggestions:
+            return offered
+    return _offer(profile, bundle, pool, limit)
 
 
 def confirm_seeds(
