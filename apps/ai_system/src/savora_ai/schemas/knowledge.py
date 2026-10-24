@@ -1,5 +1,6 @@
 """Provisional, versioned rule declarations; no predicate execution or clinical limits."""
 
+import functools
 import json
 from enum import StrEnum
 from math import isfinite
@@ -102,6 +103,7 @@ class _ContractModel(BaseModel):
                 raise ValueError("malformed or colliding DTO field/alias keys")
 
 
+@functools.cache
 def _model_field_keys(model_type: type[_ContractModel]) -> tuple[dict[str, set[str]], bool]:
     """Reserve field names and aliases from both subclasses and original contracts."""
     field_keys: dict[str, set[str]] = {}
@@ -129,7 +131,10 @@ def _model_field_keys(model_type: type[_ContractModel]) -> tuple[dict[str, set[s
 
 def _require_builtin_container(value: object) -> None:
     """Reject container subclasses before invoking any of their methods."""
-    if isinstance(value, (dict, list, tuple)) and type(value) not in (dict, list, tuple):
+    val_type = type(value)
+    if val_type in (dict, list, tuple):
+        return
+    if isinstance(value, (dict, list, tuple)):
         raise ValidationError.from_exception_data(
             "ContractPayload",
             [
@@ -145,6 +150,8 @@ def _require_builtin_container(value: object) -> None:
 
 def _validation_payload(value: object) -> object:
     """Flatten DTOs without coercing, overwriting or dropping unchecked fields."""
+    if type(value) in (str, int, float, bool) or value is None:
+        return value
     _require_builtin_container(value)
     if isinstance(value, _ContractModel):
         fields = vars(value)

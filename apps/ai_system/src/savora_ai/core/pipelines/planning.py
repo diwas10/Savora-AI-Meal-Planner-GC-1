@@ -726,11 +726,7 @@ def _replacement_candidates(
         raise ValueError("current must map all 21 slot IDs (D1_BREAKFAST..D7_DINNER)")
     if slot not in expected:
         raise ValueError(f"unknown slot {slot!r}")
-    configs = {
-        option_id(cfg): (combo, cfg)
-        for combo in bundle.combinations.values()
-        for cfg in combo.configurations
-    }
+    configs = bundle.option_configs
     missing = sorted(o for o in current.values() if o not in configs)
     if missing:
         raise ValueError(f"saved options not in catalogue {bundle.version}: {missing[:3]}")
