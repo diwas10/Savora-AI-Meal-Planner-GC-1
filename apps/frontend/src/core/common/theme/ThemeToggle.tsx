@@ -41,7 +41,7 @@ export function ThemeToggle({
           "flex items-center gap-1 rounded-pill p-1 ring-1",
           onHero
             ? "bg-hero-ink/10 ring-hero-ink/20"
-            : "bg-surface-muted ring-border",
+            : "bg-surface-muted/80 backdrop-blur-sm ring-border",
           className,
         )}
       >
@@ -80,7 +80,7 @@ export function ThemeToggle({
         "relative flex size-9 shrink-0 items-center justify-center rounded-full transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
         onHero
           ? "bg-hero-ink/15 text-hero-ink hover:bg-hero-ink/25 ring-1 ring-hero-ink/30"
-          : "bg-surface/90 text-foreground shadow-sm ring-1 ring-border/80 hover:bg-surface-muted hover:text-primary",
+          : "bg-surface/85 backdrop-blur-sm text-foreground shadow-sm ring-1 ring-border/80 hover:bg-surface-muted/90 hover:text-primary",
         className,
       )}
       aria-label={`Current theme: ${THEME_LABELS[theme]}. Click to switch to ${nextLabel}.`}

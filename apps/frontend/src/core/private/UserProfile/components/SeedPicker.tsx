@@ -90,7 +90,7 @@ function DishPickerContent({
                   onClick={() => toggle(dish.recipeId)}
                   className={cn(
                     "relative flex h-full min-h-24 w-full flex-col justify-between rounded-2xl p-3 text-left ring-1 transition-[box-shadow,background-color] active:scale-[0.98]",
-                    on ? "bg-primary-soft ring-2 ring-primary" : "bg-surface ring-border hover:shadow-card",
+                    on ? "bg-primary-soft/90 backdrop-blur-sm ring-2 ring-primary" : "bg-surface/80 backdrop-blur-sm ring-border hover:bg-surface hover:shadow-card",
                   )}
                 >
                   <span className="pr-6 text-sm font-semibold leading-snug">{name.title}</span>
@@ -256,7 +256,7 @@ export function SeedPicker({
       />
 
       {!hideFooter && (
-        <div className="sticky bottom-0 -mx-5 flex items-center justify-between gap-3 border-t border-border/70 bg-background/95 px-5 py-3 backdrop-blur-md pb-safe">
+        <div className="sticky bottom-0 -mx-5 flex items-center justify-between gap-3 border-t border-border/70 bg-background/85 px-5 py-3 backdrop-blur-md pb-safe">
           <p className="flex-1 text-sm" aria-live="polite">
             <span className="font-semibold tabular-nums">{count}</span> of {MIN}–{MAX} picked
           </p>
