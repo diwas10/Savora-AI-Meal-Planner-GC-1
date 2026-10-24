@@ -56,6 +56,8 @@ export function SwapSheet({ plan, meal, open, onOpenChange, initialText = "", on
   const [choice, setChoice] = useState<string | null>(null);
   const [excluded, setExcluded] = useState<string[]>([]);
   const [substitutionId, setSubstitutionId] = useState<string | null>(null);
+  const [checkingStartedAt, setCheckingStartedAt] = useState<number | null>(null);
+  const [checkNow, setCheckNow] = useState(() => Date.now());
   const reported = useRef<string | null>(null);
 
   const optionsMutation = useReplacementOptionsMutation(plan.id, slotId);
@@ -65,6 +67,15 @@ export function SwapSheet({ plan, meal, open, onOpenChange, initialText = "", on
 
   // "checking" becomes "done" as soon as the polled swap settles.
   const settled = sub !== undefined && sub.status !== "GENERATING";
+
+  useEffect(() => {
+    if (step !== "checking" || settled) return;
+    const interval = setInterval(() => setCheckNow(Date.now()), 1000);
+    return () => clearInterval(interval);
+  }, [step, settled]);
+
+  const elapsedSeconds = checkingStartedAt ? Math.max(0, Math.round((checkNow - checkingStartedAt) / 1000)) : 0;
+  const elapsedClock = `${Math.floor(elapsedSeconds / 60)}:${String(elapsedSeconds % 60).padStart(2, "0")}`;
   const view: Step = step === "checking" && settled ? "done" : step;
 
   // Hand a finished swap to the page once, even if the sheet was closed meanwhile.
@@ -92,29 +103,39 @@ export function SwapSheet({ plan, meal, open, onOpenChange, initialText = "", on
 
   const startSwap = async () => {
     if (!choice) return;
-    const accepted = await swapMutation.mutateAsync({
-      slotId,
-      expectedRevision: plan.revision,
-      replacementCombinationId: choice,
-      excludeCombinationIds: excluded,
-    });
-    setSubstitutionId(accepted.substitutionId);
+    setCheckingStartedAt(Date.now());
     setStep("checking");
+    try {
+      const accepted = await swapMutation.mutateAsync({
+        slotId,
+        expectedRevision: plan.revision,
+        replacementCombinationId: choice,
+        excludeCombinationIds: excluded,
+      });
+      setSubstitutionId(accepted.substitutionId);
+    } catch {
+      setStep("choose");
+      setCheckingStartedAt(null);
+    }
   };
 
   const tryAnother = () => {
     if (choice) setExcluded((prev) => [...new Set([...prev, choice])]);
     setSubstitutionId(null);
+    setCheckingStartedAt(null);
     setStep("ask");
   };
 
   const reset = (next: boolean) => {
     onOpenChange(next);
-    if (!next && view !== "checking") {
-      setStep("ask");
-      setOptions(null);
-      setSubstitutionId(null);
-      setExcluded([]);
+    if (!next) {
+      if (settled || !substitutionId || swapMutation.isError) {
+        setStep("ask");
+        setOptions(null);
+        setSubstitutionId(null);
+        setCheckingStartedAt(null);
+        setExcluded([]);
+      }
     }
   };
 
@@ -285,20 +306,44 @@ export function SwapSheet({ plan, meal, open, onOpenChange, initialText = "", on
         )}
 
         {view === "checking" && (
-          <motion.div key="checking" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} className="flex flex-col items-center py-8 text-center" aria-live="polite">
-            <div className="relative mb-6 grid size-24 place-items-center">
+          <motion.div key="checking" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} className="flex flex-col items-center py-6 text-center" aria-live="polite">
+            <div className="relative mb-4 grid size-20 place-items-center">
               <span className="absolute inset-0 animate-ping rounded-pill bg-primary-soft opacity-60 motion-reduce:hidden" />
-              <span className="relative grid size-20 place-items-center rounded-pill bg-primary text-primary-foreground shadow-glow">
-                <Repeat2 className="size-8 animate-spin [animation-duration:2.4s]" aria-hidden />
+              <span className="relative grid size-16 place-items-center rounded-pill bg-primary text-primary-foreground shadow-glow">
+                <Repeat2 className="size-7 animate-spin [animation-duration:2.4s]" aria-hidden />
               </span>
             </div>
-            <h3 className="text-lg font-semibold">Checking your week</h3>
-            {sub?.message && <p className="mt-1.5 text-sm font-medium text-primary">{sub.message}</p>}
-            <p className="mt-1.5 max-w-sm text-sm text-muted-foreground">
-              The new meal is validated with your other 20 meals locked, then the swap is
-              checked again independently. This can take a few minutes. You can close this
-              sheet; we&apos;ll update your plan when it&apos;s done.
+            <div className="flex items-center gap-2 font-mono text-xs font-semibold text-primary">
+              <span className="size-2 rounded-full bg-primary animate-pulse" />
+              <span>{elapsedClock} elapsed</span>
+            </div>
+            <h3 className="mt-2 text-lg font-semibold">Checking your week</h3>
+            <p className="mt-1 text-sm font-medium text-primary">
+              {sub?.message || (elapsedSeconds > 25 ? "Independently verifying with compact B1 proof..." : "Checking locked meals with weekly CSP...")}
             </p>
+            <p className="mt-2 max-w-sm text-xs text-muted-foreground">
+              The new meal is validated with your other 20 meals locked, then the swap is
+              checked again independently. You can close this sheet; we&apos;ll update your plan when it&apos;s done.
+            </p>
+            <div className="mt-4 flex flex-col items-center gap-2">
+              {errorMessage && <InlineAlert tone="danger">{errorMessage}</InlineAlert>}
+              {elapsedSeconds >= 45 && (
+                <p className="text-xs text-muted-foreground">
+                  The solver and independent proof are taking longer than usual. You can close this sheet or go back.
+                </p>
+              )}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setSubstitutionId(null);
+                  setCheckingStartedAt(null);
+                  setStep("choose");
+                }}
+              >
+                Go back to choices
+              </Button>
+            </div>
             {swapQuery.isError && (
               <div className="mt-4 flex flex-col gap-3">
                 <InlineAlert tone="warning">

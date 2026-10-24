@@ -92,19 +92,22 @@ class _ContractModel(BaseModel):
     @classmethod
     def _validate_alias_keys(cls, value: object) -> None:
         if isinstance(value, dict):
-            field_keys, invalid = _model_field_keys(cls)
-            seen: set[str] = set()
-            for key in value:
-                names = field_keys.get(key, set())
-                if seen.intersection(names):
-                    invalid = True
-                seen.update(names)
+            field_keys, invalid, _ = _model_field_keys(cls)
             if invalid:
                 raise ValueError("malformed or colliding DTO field/alias keys")
+            seen: set[str] = set()
+            for key in value:
+                names = field_keys.get(key)
+                if names is not None:
+                    if not seen.isdisjoint(names):
+                        raise ValueError("malformed or colliding DTO field/alias keys")
+                    seen.update(names)
 
 
 @functools.cache
-def _model_field_keys(model_type: type[_ContractModel]) -> tuple[dict[str, set[str]], bool]:
+def _model_field_keys(
+    model_type: type[_ContractModel],
+) -> tuple[dict[str, frozenset[str]], bool, bool]:
     """Reserve field names and aliases from both subclasses and original contracts."""
     field_keys: dict[str, set[str]] = {}
     invalid = False
@@ -126,7 +129,9 @@ def _model_field_keys(model_type: type[_ContractModel]) -> tuple[dict[str, set[s
                             invalid = True
             for key in keys:
                 field_keys.setdefault(key, set()).add(name)
-    return field_keys, invalid
+    frozen = {k: frozenset(v) for k, v in field_keys.items()}
+    has_aliased_keys = any(v != frozenset({k}) for k, v in frozen.items())
+    return frozen, invalid, has_aliased_keys
 
 
 def _require_builtin_container(value: object) -> None:
@@ -150,7 +155,8 @@ def _require_builtin_container(value: object) -> None:
 
 def _validation_payload(value: object) -> object:
     """Flatten DTOs without coercing, overwriting or dropping unchecked fields."""
-    if type(value) in (str, int, float, bool) or value is None:
+    val_type = type(value)
+    if val_type in (str, int, float, bool) or value is None:
         return value
     _require_builtin_container(value)
     if isinstance(value, _ContractModel):
@@ -160,14 +166,23 @@ def _validation_payload(value: object) -> object:
         # before key iteration, collision checks or either dict union operand.
         _require_builtin_container(fields)
         _require_builtin_container(extras)
-        field_keys, invalid = _model_field_keys(type(value))
+        field_keys, invalid, has_aliased_keys = _model_field_keys(type(value))
         invalid = invalid or (extras is not None and not isinstance(extras, dict))
         extra_fields = extras if isinstance(extras, dict) else {}
-        invalid = invalid or (
-            any(type(key) is not str for key in (*fields, *extra_fields))
-            or any(key in fields or key in field_keys for key in extra_fields)
-            or any(key in field_keys and field_keys[key] != {key} for key in fields)
-        )
+        if has_aliased_keys or extra_fields:
+            invalid = invalid or (
+                any(type(key) is not str for key in (*fields, *extra_fields))
+                or any(key in fields or key in field_keys for key in extra_fields)
+                or (
+                    has_aliased_keys
+                    and any(
+                        key in field_keys and field_keys[key] != frozenset({key})
+                        for key in fields
+                    )
+                )
+            )
+        else:
+            invalid = invalid or any(type(key) is not str for key in fields)
         if invalid:
             raise ValidationError.from_exception_data(
                 type(value).__name__,
@@ -186,13 +201,28 @@ def _validation_payload(value: object) -> object:
         for key, item in value.items():
             # Keys can contain tuple subclasses too. Inspect them before the
             # new dictionary invokes their hash or equality methods.
-            _validation_payload(key)
-            payload[key] = _validation_payload(item)
+            if type(key) is not str:
+                _validation_payload(key)
+            item_type = type(item)
+            if item_type in (str, int, float, bool) or item is None:
+                payload[key] = item
+            else:
+                payload[key] = _validation_payload(item)
         return payload
     if isinstance(value, tuple):
-        return tuple(_validation_payload(item) for item in value)
+        return tuple(
+            item
+            if (type(item) in (str, int, float, bool) or item is None)
+            else _validation_payload(item)
+            for item in value
+        )
     if isinstance(value, list):
-        return [_validation_payload(item) for item in value]
+        return [
+            item
+            if (type(item) in (str, int, float, bool) or item is None)
+            else _validation_payload(item)
+            for item in value
+        ]
     return value
 
 
@@ -256,10 +286,18 @@ class MeasurementUnit(StrEnum):
     DIMENSIONLESS = "dimensionless"
 
 
+_CANONICAL_ENUM_MEMBERS: dict[type[StrEnum], tuple[StrEnum, ...]] = {}
+
+
 def _require_canonical_enum(value: StrEnum) -> None:
     """Require the declared singleton, not merely an enum instance or equal text."""
-    if not any(value is member for member in type(value)):
-        raise ValueError(f"{type(value).__name__} requires a canonical declared enum member")
+    enum_cls = type(value)
+    members = _CANONICAL_ENUM_MEMBERS.get(enum_cls)
+    if members is None:
+        members = tuple(enum_cls)
+        _CANONICAL_ENUM_MEMBERS[enum_cls] = members
+    if not any(value is member for member in members):
+        raise ValueError(f"{enum_cls.__name__} requires a canonical declared enum member")
 
 
 class RuleReference(_ContractModel):

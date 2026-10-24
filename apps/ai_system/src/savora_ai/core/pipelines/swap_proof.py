@@ -402,10 +402,10 @@ def build_swap(
     )
 
     originals = {o.reference.option_id: o for o in inputs.weekly.daily_source.options}
-    configs = {option_id(c): c for cb in bundle.combinations.values() for c in cb.configurations}
+    configs = bundle.option_configs
     grouped: dict[str, list[CompactPortionSource]] = {}
     for option in options:
-        cfg = configs[option.reference.option_id]
+        _, cfg = configs[option.reference.option_id]
         original = originals.get(option.reference.option_id)
         ref = option.reference if original is None else original.reference
         grouped.setdefault(option.reference.combination_id, []).append(

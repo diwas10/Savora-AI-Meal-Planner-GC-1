@@ -403,6 +403,9 @@ def _record_evidence(value: object) -> tuple[EvidenceReference, ...]:
     """Inspect already validated records without sorting their ordered witness paths."""
     if isinstance(value, EvidenceReference):
         return (value,)
+    val_type = type(value)
+    if val_type in (str, int, float, bool) or value is None:
+        return ()
     if isinstance(value, _ContractModel):
         return tuple(ref for item in vars(value).values() for ref in _record_evidence(item))
     if isinstance(value, tuple):

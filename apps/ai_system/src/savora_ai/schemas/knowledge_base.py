@@ -53,6 +53,9 @@ _ContentDigest = Annotated[str, StringConstraints(pattern=r"^[0-9a-f]{64}$")]
 
 def _canonical_enum_inputs(value: object) -> None:
     """Guard Phase 1 enum instances before their identity-based validators run."""
+    val_type = type(value)
+    if val_type in (str, int, float, bool) or value is None:
+        return
     if isinstance(value, StrEnum):
         _validate_canonical_enum(value)
     elif isinstance(value, _ContractModel):

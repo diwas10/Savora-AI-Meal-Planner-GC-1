@@ -96,21 +96,18 @@ const STAGES = [
 ];
 
 function getEstimatedProgress(seconds: number): number {
-  if (seconds <= 30) {
-    return 6 + (seconds / 30) * 28; // 6% -> 34%
+  if (seconds <= 8) {
+    return 10 + (seconds / 8) * 30; // 10% -> 40%
   }
-  if (seconds <= 75) {
-    return 34 + ((seconds - 30) / 45) * 36; // 34% -> 70%
+  if (seconds <= 24) {
+    return 40 + ((seconds - 8) / 16) * 48; // 40% -> 88%
   }
-  if (seconds <= 150) {
-    return 70 + ((seconds - 75) / 75) * 22; // 70% -> 92%
-  }
-  return Math.min(97, 92 + 5 * (1 - Math.exp(-(seconds - 150) / 45)));
+  return Math.min(98, 88 + 9 * (1 - Math.exp(-(seconds - 24) / 20)));
 }
 
 function getActiveStage(seconds: number): number {
-  if (seconds < 30) return 0;
-  if (seconds < 75) return 1;
+  if (seconds < 8) return 0;
+  if (seconds < 16) return 1;
   return 2;
 }
 
