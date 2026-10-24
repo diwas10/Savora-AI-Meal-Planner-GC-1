@@ -3,6 +3,7 @@
 import {
   CalendarDays,
   ChevronRight,
+  CreditCard,
   Heart,
   Laptop,
   LogOut,
@@ -183,6 +184,7 @@ export function ProfileView() {
             <ProfileLink icon={<Heart className="size-5" aria-hidden />} title="Favourite dishes" detail={`${p.seedRecipeIds.length} picked`} onClick={() => setSeedsOpen(true)} />
             <ProfileLink icon={<CalendarDays className="size-5" aria-hidden />} title="Saved plans" detail="Every version is kept" href="/meal-plans" />
             <ProfileLink icon={<UtensilsCrossed className="size-5" aria-hidden />} title="Discover dishes" detail="Ask for a craving" href="/discover" />
+            <ProfileLink icon={<CreditCard className="size-5" aria-hidden />} title="Pricing & plans" detail="Free (S$0) · Premium (S$6.90/mo)" href="/pricing" />
           </motion.section>
 
           <motion.div variants={fadeUp}>

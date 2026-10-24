@@ -1,7 +1,16 @@
 "use client";
 
-import { ArrowRight, CalendarCheck, Leaf, MessageCircle, Repeat2, ShieldCheck } from "lucide-react";
+import {
+  ArrowRight,
+  CalendarCheck,
+  Leaf,
+  MessageCircle,
+  Repeat2,
+  ShieldCheck,
+  Zap,
+} from "lucide-react";
 import { motion } from "motion/react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { Wordmark } from "@/components/functional/Brand";
@@ -43,6 +52,9 @@ export function LandingView() {
           <Wordmark className="[&_span]:text-hero-ink" />
           <div className="flex items-center gap-2 sm:gap-3">
             <ThemeToggle onHero />
+            <LinkButton href="/pricing" variant="ghost" size="sm" className="text-hero-ink hover:bg-hero-ink/10">
+              Pricing
+            </LinkButton>
             <LinkButton href="/login" variant="ghost" size="sm" className="text-hero-ink hover:bg-hero-ink/10">
               Sign in
             </LinkButton>
@@ -63,8 +75,8 @@ export function LandingView() {
             <LinkButton href="/register" size="lg" className="bg-hero-ink text-hero-from shadow-float hover:bg-hero-ink/90" icon={<ArrowRight className="size-5" aria-hidden />}>
               Get started
             </LinkButton>
-            <LinkButton href="/login" size="lg" variant="ghost" className="text-hero-ink ring-1 ring-hero-ink/40 hover:bg-hero-ink/10">
-              I have an account
+            <LinkButton href="/pricing" size="lg" variant="ghost" className="text-hero-ink ring-1 ring-hero-ink/40 hover:bg-hero-ink/10">
+              View pricing
             </LinkButton>
           </motion.div>
         </motion.div>
@@ -86,6 +98,84 @@ export function LandingView() {
           ))}
         </div>
       </section>
+
+      {/* Side-by-side Pricing Preview Section */}
+      <section className="border-t border-border/70 bg-surface-muted/30 py-16 sm:py-24">
+        <div className="mx-auto max-w-5xl px-6">
+          <div className="text-center">
+            <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+              Transparent pricing
+            </h2>
+            <p className="mt-2 text-2xl font-bold tracking-tight sm:text-3xl">
+              Simple plans for everyday wellness
+            </p>
+          </div>
+
+          <div className="mt-10 grid gap-6 sm:grid-cols-2">
+            {/* Free */}
+            <div className="flex flex-col justify-between rounded-card-lg border border-border/80 bg-surface p-6 shadow-card">
+              <div>
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xl font-bold">Free</h3>
+                  <span className="rounded-pill bg-surface-muted px-2.5 py-0.5 text-xs font-semibold text-muted-foreground">
+                    S$0
+                  </span>
+                </div>
+                <div className="mt-4 rounded-xl bg-surface-muted p-3 text-sm font-semibold text-foreground">
+                  Meal discovery, limited weekly plans
+                </div>
+                <p className="mt-3 text-sm text-muted-foreground">
+                  Explore custom cravings, search safe dishes, and generate baseline 7-day schedules.
+                </p>
+              </div>
+              <div className="mt-6">
+                <LinkButton href="/register" variant="secondary" size="md" block>
+                  Get started free
+                </LinkButton>
+              </div>
+            </div>
+
+            {/* Premium */}
+            <div className="relative flex flex-col justify-between rounded-card-lg border-2 border-primary bg-surface p-6 shadow-float">
+              <span className="absolute -top-3 right-6 inline-flex items-center gap-1 rounded-pill bg-primary px-3 py-0.5 text-xs font-bold text-primary-foreground shadow-glow">
+                <Zap className="size-3" aria-hidden /> Most Popular
+              </span>
+              <div>
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xl font-bold">Premium</h3>
+                  <span className="text-xl font-bold text-primary-strong dark:text-primary-soft-foreground">
+                    S$6.90<span className="text-xs font-normal text-muted-foreground">/month</span>
+                  </span>
+                </div>
+                <div className="mt-4 rounded-xl bg-primary-soft p-3 text-sm font-semibold text-primary-soft-foreground">
+                  Advanced preferences, more planning and substitution features
+                </div>
+                <p className="mt-3 text-sm text-muted-foreground">
+                  Unlock strict multi-cuisine policies, single-slot locked meal swaps, and unlimited plans.
+                </p>
+              </div>
+              <div className="mt-6">
+                <LinkButton href="/pricing" variant="primary" size="md" block icon={<ArrowRight className="size-4" aria-hidden />}>
+                  View full plan details
+                </LinkButton>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="border-t border-border/70 py-8 text-center text-xs text-muted-foreground">
+        <div className="mx-auto max-w-5xl px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <Wordmark />
+          <p>Savora GC1 &middot; Singapore &middot; Free (S$0) &amp; Premium (S$6.90/month)</p>
+          <div className="flex items-center gap-4">
+            <Link href="/" className="hover:text-foreground">Home</Link>
+            <Link href="/pricing" className="hover:text-foreground font-medium">Pricing</Link>
+            <Link href="/login" className="hover:text-foreground">Sign in</Link>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
