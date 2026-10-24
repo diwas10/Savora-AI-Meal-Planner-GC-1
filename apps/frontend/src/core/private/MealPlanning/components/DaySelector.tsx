@@ -58,7 +58,7 @@ export function DaySelector({ dates, selected, onSelect, idPrefix }: DaySelector
             onKeyDown={(e) => move(e, index)}
             className={cn(
               "relative flex h-[72px] min-w-[52px] flex-1 snap-start scroll-ml-4 flex-col items-center justify-center rounded-2xl text-sm transition-colors",
-              active ? "text-primary-foreground" : "bg-surface text-foreground ring-1 ring-border hover:bg-surface-muted",
+              active ? "text-primary-foreground" : "bg-surface/80 backdrop-blur-md text-foreground ring-1 ring-border hover:bg-surface-muted/90",
             )}
           >
             {active && (

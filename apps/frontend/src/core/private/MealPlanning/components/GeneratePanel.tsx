@@ -1,6 +1,6 @@
 "use client";
 
-import { CalendarPlus, ChefHat, Sparkles } from "lucide-react";
+import { CalendarPlus, Check, ChefHat, Sparkles } from "lucide-react";
 import { motion } from "motion/react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
@@ -10,6 +10,7 @@ import { InlineAlert } from "@/components/ui/States";
 import { useOnline } from "@/hooks/useOnline";
 import { ApiError } from "@/lib/api-request";
 import { nextMonday, shortRange } from "@/lib/format";
+import { cn } from "@/lib/utils";
 import { useCreateMealPlanMutation } from "../service/meal-planning.query";
 
 /** Start a new 7-day plan; earlier plans are kept (never overwritten). */
@@ -38,54 +39,52 @@ export function GeneratePanel({
     <Card className={compact ? "p-5" : "overflow-hidden p-0"}>
       {!compact && (
         <div className="relative isolate overflow-hidden bg-gradient-to-br from-hero-from via-hero-via to-hero-to px-6 pb-8 pt-7 text-hero-ink">
-          <ChefHat className="absolute -right-4 -top-4 size-28 opacity-15 motion-safe:animate-float" aria-hidden />
-          <Sparkles className="mb-3 size-7" aria-hidden />
-          <h2 className="text-2xl font-bold tracking-tight">{title}</h2>
-          <p className="mt-1.5 max-w-md text-[15px] opacity-90">{description}</p>
+          <div className="pointer-events-none absolute -right-12 -top-12 size-48 rounded-pill bg-white/10 blur-2xl" />
+          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-hero-ink/80">
+            <Sparkles className="size-4" aria-hidden /> Savora planner
+          </div>
+          <h2 className="mt-2 text-2xl font-bold tracking-tight">{title}</h2>
+          <p className="mt-1 max-w-xl text-sm text-hero-ink/90">{description}</p>
         </div>
       )}
-      <form
-        className="flex flex-col gap-4 p-5 sm:flex-row sm:items-end"
-        onSubmit={(e) => {
-          e.preventDefault();
-          void start();
-        }}
-      >
-        {compact && <h2 className="text-base font-semibold sm:hidden">{title}</h2>}
-        <div className="flex flex-1 flex-col gap-1.5">
-          <div className="flex items-center justify-between">
-            <label htmlFor="week-start" className="text-sm font-medium text-foreground">
-              Week starts
-            </label>
-            <span className="text-xs font-normal text-muted-foreground">
-              {shortRange(weekStart)}
-            </span>
+
+      <div className={compact ? "space-y-4" : "space-y-4 p-6"}>
+        {compact && (
+          <div>
+            <h3 className="font-semibold">{title}</h3>
+            <p className="mt-0.5 text-xs text-muted-foreground">{description}</p>
           </div>
-          <Input
-            id="week-start"
-            type="date"
-            value={weekStart}
-            required
-            onChange={(e) => setWeekStart(e.target.value)}
-            className="h-12"
-          />
+        )}
+
+        <div>
+          <label htmlFor="week-start-input" className="text-xs font-medium text-muted-foreground">
+            Starting Monday
+          </label>
+          <div className="mt-1 flex items-center gap-2">
+            <Input
+              id="week-start-input"
+              type="date"
+              value={weekStart}
+              onChange={(e) => setWeekStart(e.target.value)}
+              className="h-11 max-w-xs"
+            />
+            <span className="text-xs text-muted-foreground">({shortRange(weekStart)})</span>
+          </div>
         </div>
+
+        {error && <InlineAlert tone="danger">{error}</InlineAlert>}
+
         <Button
-          type="submit"
-          size="md"
-          className="h-12 w-full rounded-2xl px-6 text-[15px] font-semibold sm:w-auto"
+          block
+          size="lg"
+          onClick={() => void start()}
           loading={mutation.isPending}
           disabled={!online}
           icon={<CalendarPlus className="size-5" aria-hidden />}
         >
-          {compact ? "Generate" : "Generate plan"}
+          {online ? "Start 7-day plan" : "Connect to internet to plan"}
         </Button>
-      </form>
-      {(error || !online) && (
-        <div className="px-5 pb-5">
-          <InlineAlert tone={online ? "danger" : "warning"}>{online ? error : "Planning needs a connection."}</InlineAlert>
-        </div>
-      )}
+      </div>
     </Card>
   );
 }
@@ -96,7 +95,26 @@ const STAGES = [
   "Checking all 21 meals as one week",
 ];
 
-/** Honest progress: elapsed time and the steps the planner runs; no made-up percentage or stage. */
+function getEstimatedProgress(seconds: number): number {
+  if (seconds <= 30) {
+    return 6 + (seconds / 30) * 28; // 6% -> 34%
+  }
+  if (seconds <= 75) {
+    return 34 + ((seconds - 30) / 45) * 36; // 34% -> 70%
+  }
+  if (seconds <= 150) {
+    return 70 + ((seconds - 75) / 75) * 22; // 70% -> 92%
+  }
+  return Math.min(97, 92 + 5 * (1 - Math.exp(-(seconds - 150) / 45)));
+}
+
+function getActiveStage(seconds: number): number {
+  if (seconds < 30) return 0;
+  if (seconds < 75) return 1;
+  return 2;
+}
+
+/** Honest progress: elapsed time, visual progress bar, and active steps the planner runs. */
 export function GeneratingCard({ since }: { since: string }) {
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
@@ -105,38 +123,97 @@ export function GeneratingCard({ since }: { since: string }) {
   }, []);
   const seconds = Math.max(0, Math.round((now - new Date(since).getTime()) / 1000));
   const clock = `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
+  const progress = getEstimatedProgress(seconds);
+  const activeStage = getActiveStage(seconds);
+
   return (
     <Card className="overflow-hidden p-6" aria-live="polite" aria-busy="true">
       <div className="flex items-center gap-4">
         <div className="relative grid size-14 shrink-0 place-items-center">
-          <span className="absolute inset-0 animate-ping rounded-pill bg-primary-soft motion-reduce:hidden" />
-          <span className="relative grid size-14 place-items-center rounded-pill bg-primary text-primary-foreground">
+          <span className="absolute inset-0 animate-ping rounded-pill bg-primary-soft opacity-75 motion-reduce:hidden" />
+          <span className="relative grid size-14 place-items-center rounded-pill bg-primary text-primary-foreground shadow-glow">
             <ChefHat className="size-7" aria-hidden />
           </span>
         </div>
         <div className="min-w-0">
-          <h2 className="text-lg font-semibold">Preparing your week</h2>
+          <h2 className="text-lg font-semibold tracking-tight">Preparing your week</h2>
           <p className="text-sm text-muted-foreground">The planner is working on it</p>
         </div>
-        <span className="ml-auto font-mono text-sm tabular-nums text-muted-foreground" aria-label={`${seconds} seconds elapsed`}>
-          {clock}
-        </span>
+        <div className="ml-auto flex items-baseline gap-2 font-mono text-sm tabular-nums">
+          <span className="font-semibold text-primary">{Math.round(progress)}%</span>
+          <span className="text-xs text-muted-foreground" aria-label={`${seconds} seconds elapsed`}>
+            {clock}
+          </span>
+        </div>
       </div>
-      <div className="mt-5 h-1.5 overflow-hidden rounded-pill bg-surface-muted" aria-hidden>
-        <div className="skeleton h-full w-full rounded-pill" />
+
+      {/* Animated active progress bar */}
+      <div
+        className="relative mt-5 h-2 w-full overflow-hidden rounded-pill bg-surface-muted ring-1 ring-border/50"
+        role="progressbar"
+        aria-valuenow={Math.round(progress)}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-label="Planning progress"
+      >
+        <motion.div
+          className="relative h-full rounded-pill bg-gradient-to-r from-hero-from via-hero-via to-hero-to shadow-sm"
+          initial={false}
+          animate={{ width: `${progress}%` }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+        >
+          <motion.span
+            className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent"
+            animate={{ x: ["-100%", "200%"] }}
+            transition={{ repeat: Infinity, duration: 1.8, ease: "linear" }}
+          />
+        </motion.div>
       </div>
+
       <motion.ol
         initial="hidden"
         animate="show"
         variants={{ hidden: {}, show: { transition: { staggerChildren: 0.12 } } }}
-        className="mt-4 flex flex-col gap-1.5 text-sm"
+        className="mt-4 flex flex-col gap-2 text-sm"
       >
-        {STAGES.map((s, i) => (
-          <motion.li key={s} variants={{ hidden: { opacity: 0, x: -6 }, show: { opacity: 1, x: 0 } }} className="flex items-center gap-2 text-muted-foreground">
-            <span className="grid size-5 place-items-center rounded-pill bg-surface-muted text-[11px] font-semibold">{i + 1}</span>
-            {s}
-          </motion.li>
-        ))}
+        {STAGES.map((s, i) => {
+          const isDone = activeStage > i;
+          const isCurrent = activeStage === i;
+          return (
+            <motion.li
+              key={s}
+              variants={{ hidden: { opacity: 0, x: -6 }, show: { opacity: 1, x: 0 } }}
+              className={cn(
+                "flex items-center gap-2.5 transition-colors",
+                isDone
+                  ? "text-foreground font-medium"
+                  : isCurrent
+                    ? "text-primary font-semibold"
+                    : "text-muted-foreground",
+              )}
+            >
+              <span
+                className={cn(
+                  "grid size-5 place-items-center rounded-pill text-[11px] font-semibold transition-colors",
+                  isDone
+                    ? "bg-primary-soft text-primary-soft-foreground"
+                    : isCurrent
+                      ? "bg-primary text-primary-foreground ring-2 ring-primary/30"
+                      : "bg-surface-muted text-subtle-foreground",
+                )}
+              >
+                {isDone ? <Check className="size-3 stroke-[2.5]" aria-hidden /> : i + 1}
+              </span>
+              <span>{s}</span>
+              {isCurrent && (
+                <span className="relative flex size-2 ml-1" aria-hidden>
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75 motion-reduce:hidden" />
+                  <span className="relative inline-flex size-2 rounded-full bg-primary" />
+                </span>
+              )}
+            </motion.li>
+          );
+        })}
       </motion.ol>
       <p className="mt-3 text-xs text-muted-foreground">
         This usually takes 2–3 minutes. You can leave this screen; your plan appears here when it&apos;s ready.

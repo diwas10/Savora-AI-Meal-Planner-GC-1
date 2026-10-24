@@ -59,7 +59,7 @@ export function AuthLayout({ title, subtitle, children }: { title: string; subti
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          className="w-full max-w-md rounded-sheet bg-surface p-6 shadow-float ring-1 ring-border/70 sm:p-8"
+          className="w-full max-w-md rounded-sheet bg-surface/85 backdrop-blur-xl p-6 shadow-float ring-1 ring-border/70 sm:p-8"
         >
           <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
           <p className="mb-6 mt-1 text-[15px] text-muted-foreground">{subtitle}</p>

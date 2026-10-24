@@ -49,10 +49,10 @@ export function ErrorState({ title = "Something went wrong", message, onRetry, o
 }
 
 const ALERT_TONES = {
-  info: "bg-info-soft text-info-foreground",
-  warning: "bg-warning-soft text-warning-foreground ring-1 ring-warning-border",
-  danger: "bg-danger-soft text-danger-foreground",
-  success: "bg-success-soft text-success-foreground",
+  info: "bg-info-soft/85 backdrop-blur-sm text-info-foreground",
+  warning: "bg-warning-soft/85 backdrop-blur-sm text-warning-foreground ring-1 ring-warning-border",
+  danger: "bg-danger-soft/85 backdrop-blur-sm text-danger-foreground",
+  success: "bg-success-soft/85 backdrop-blur-sm text-success-foreground",
 } as const;
 
 export function InlineAlert({

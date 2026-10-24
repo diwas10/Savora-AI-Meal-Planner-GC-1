@@ -228,7 +228,7 @@ function ThemeButton({
       onClick={onClick}
       className={`flex items-center gap-1.5 rounded-pill px-3 py-1.5 text-xs font-semibold transition ${
         active
-          ? "bg-surface text-foreground shadow-sm ring-1 ring-border"
+          ? "bg-surface/90 backdrop-blur-sm text-foreground shadow-sm ring-1 ring-border"
           : "text-muted-foreground hover:text-foreground"
       }`}
       aria-pressed={active}
@@ -262,7 +262,7 @@ function ProfileLink({
       <ChevronRight className="size-5 text-subtle-foreground" aria-hidden />
     </>
   );
-  const className = "flex w-full items-center gap-3 rounded-card bg-surface p-3.5 text-left shadow-card ring-1 ring-border/70 transition-colors hover:bg-surface-muted";
+  const className = "flex w-full items-center gap-3 rounded-card bg-surface/80 backdrop-blur-md p-3.5 text-left shadow-card ring-1 ring-border/70 transition-colors hover:bg-surface-muted/90";
   return href ? (
     <Link href={href} className={className}>
       {body}

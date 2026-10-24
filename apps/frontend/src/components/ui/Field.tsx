@@ -3,7 +3,7 @@ import { forwardRef, type InputHTMLAttributes, type ReactNode, type SelectHTMLAt
 import { cn } from "@/lib/utils";
 
 const controlClass =
-  "w-full rounded-2xl bg-surface px-4 text-[15px] text-foreground ring-1 ring-border placeholder:text-subtle-foreground transition-shadow focus:outline-none focus:ring-2 focus:ring-ring aria-[invalid=true]:ring-2 aria-[invalid=true]:ring-danger";
+  "w-full rounded-2xl bg-surface/85 backdrop-blur-sm px-4 text-[15px] text-foreground ring-1 ring-border placeholder:text-subtle-foreground transition-shadow focus:outline-none focus:ring-2 focus:ring-ring aria-[invalid=true]:ring-2 aria-[invalid=true]:ring-danger";
 
 interface FieldProps {
   id: string;
