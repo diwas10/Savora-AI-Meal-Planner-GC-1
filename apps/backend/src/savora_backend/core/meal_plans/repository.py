@@ -87,7 +87,9 @@ class MealPlanRepository:
         )
         res_plans = await self._session.execute(stmt_plans)
         res_subs = await self._session.execute(stmt_subs)
-        count = int(getattr(res_plans, "rowcount", 0) or 0) + int(getattr(res_subs, "rowcount", 0) or 0)
+        count = int(getattr(res_plans, "rowcount", 0) or 0) + int(
+            getattr(res_subs, "rowcount", 0) or 0
+        )
         if count > 0:
             await self._session.flush()
         return count
