@@ -14,7 +14,11 @@ from savora_backend.core.meal_plans.dto import (
     MealPlanDetailDto,
     MealPlanSummaryDto,
 )
-from savora_backend.core.meal_plans.entity import MealPlanEntity, MealPlanJobStatus
+from savora_backend.core.meal_plans.entity import (
+    CANCELLED_MESSAGE,
+    MealPlanEntity,
+    MealPlanJobStatus,
+)
 from savora_backend.core.meal_plans.jobs import (
     SessionFactory,
     run_plan_week_job,
@@ -100,6 +104,7 @@ class MealPlanService:
         return self._job_session_factory or get_session_factory()
 
     async def get_plan(self, user_id: UUID, plan_id: UUID) -> MealPlanDetailDto:
+        await self._plans.recover_stale_jobs_for_user(user_id)
         plan = await self._plans.get_owned_plan(plan_id, user_id)
         if plan is None:
             raise not_found("Meal plan not found")
@@ -109,5 +114,17 @@ class MealPlanService:
     async def list_plans(
         self, user_id: UUID, *, current_only: bool = False
     ) -> list[MealPlanSummaryDto]:
+        await self._plans.recover_stale_jobs_for_user(user_id)
         plans = await self._plans.list_plans(user_id, current_only=current_only)
         return [MealPlanSummaryDto.model_validate(p) for p in plans]
+
+    async def cancel_plan(self, user_id: UUID, plan_id: UUID) -> MealPlanDetailDto:
+        plan = await self._plans.get_owned_plan(plan_id, user_id, lock=True)
+        if plan is None:
+            raise not_found("Meal plan not found")
+        if plan.status != MealPlanJobStatus.GENERATING.value:
+            raise conflict("Only a generating meal plan can be cancelled.")
+        plan.status = MealPlanJobStatus.FAILED.value
+        plan.message = CANCELLED_MESSAGE
+        await self._session.flush()
+        return to_detail_dto(plan, [])

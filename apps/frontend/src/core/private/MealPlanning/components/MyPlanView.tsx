@@ -158,7 +158,7 @@ export function MyPlanView() {
               <ErrorState message="We couldn't load this plan." offline={!online} onRetry={() => void detail.refetch()} />
             </Card>
           ) : plan.status === "GENERATING" ? (
-            <GeneratingCard since={plan.createdAt} />
+            <GeneratingCard since={plan.createdAt} planId={plan.id} />
           ) : plan.status !== "FEASIBLE" ? (
             <Card>
               <EmptyState

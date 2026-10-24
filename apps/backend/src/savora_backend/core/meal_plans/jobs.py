@@ -19,7 +19,12 @@ from savora_ai.schemas.craving import CravingRequest
 from savora_ai.schemas.nutrients_v2 import Nutrient
 from savora_backend.ai.gateway import AiGateway
 from savora_backend.core.meal_plans.authority import capture_binding, digest, validate_binding
-from savora_backend.core.meal_plans.entity import MealPlanEntity, MealPlanJobStatus
+from savora_backend.core.meal_plans.entity import (
+    PLAN_TIMEOUT_MESSAGE,
+    SWAP_TIMEOUT_MESSAGE,
+    MealPlanEntity,
+    MealPlanJobStatus,
+)
 from savora_backend.core.meal_plans.mapper import apply_week_result, copy_slot, slot_entity
 from savora_backend.core.meal_plans.repository import MealPlanRepository
 from savora_backend.core.nutrition_profiles.mapper import to_planning_profile
@@ -29,6 +34,10 @@ from savora_backend.database import get_session_factory
 logger = logging.getLogger(__name__)
 
 SessionFactory = Callable[[], Any]
+
+PLAN_WEEK_TIMEOUT_SECONDS: float = 180.0
+SUBSTITUTE_TIMEOUT_SECONDS: float = 180.0
+
 PLAN_FAILED_MESSAGE = "We could not generate this plan. Please try again."
 SWAP_FAILED_MESSAGE = "We could not complete this swap. Your plan is unchanged; please try again."
 RESTARTED_MESSAGE = "The server restarted before this finished. Please try again."
@@ -98,9 +107,22 @@ async def run_plan_week_job(
     target_snapshot: dict[str, Any],
 ) -> None:
     try:
-        week = await gateway.plan_week(
-            planning_profile, week_id=str(plan_id), start_date=week_start
-        )
+        try:
+            week = await asyncio.wait_for(
+                gateway.plan_week(planning_profile, week_id=str(plan_id), start_date=week_start),
+                timeout=PLAN_WEEK_TIMEOUT_SECONDS,
+            )
+        except TimeoutError:
+            logger.warning(
+                "Plan generation job %s timed out after %ss", plan_id, PLAN_WEEK_TIMEOUT_SECONDS
+            )
+            async with session_factory() as session, session.begin():
+                plan = await MealPlanRepository(session).get_owned_plan(plan_id, user_id)
+                if plan is not None and plan.status == MealPlanJobStatus.GENERATING.value:
+                    plan.status = MealPlanJobStatus.TIMEOUT.value
+                    plan.message = PLAN_TIMEOUT_MESSAGE
+            return
+
         async with session_factory() as session, session.begin():
             repo = MealPlanRepository(session)
             profiles = ProfileRepository(session)
@@ -172,16 +194,35 @@ async def run_substitute_job(
     proof_mode: ProofMode = "off",
 ) -> None:
     try:
-        swapped = await gateway.substitute(
-            planning_profile,
-            current=current_options,
-            slot=slot_id,
-            week_id=f"{from_plan_id}-sub-{substitution_id}",
-            start_date=week_start,
-            exclude_combination_ids=exclude_combination_ids,
-            replacement_combination_id=replacement_combination_id,
-            preference=preference,
-        )
+        try:
+            swapped = await asyncio.wait_for(
+                gateway.substitute(
+                    planning_profile,
+                    current=current_options,
+                    slot=slot_id,
+                    week_id=f"{from_plan_id}-sub-{substitution_id}",
+                    start_date=week_start,
+                    exclude_combination_ids=exclude_combination_ids,
+                    replacement_combination_id=replacement_combination_id,
+                    preference=preference,
+                ),
+                timeout=SUBSTITUTE_TIMEOUT_SECONDS,
+            )
+        except TimeoutError:
+            logger.warning(
+                "Substitution job %s timed out after %ss",
+                substitution_id,
+                SUBSTITUTE_TIMEOUT_SECONDS,
+            )
+            async with session_factory() as session, session.begin():
+                sub = await MealPlanRepository(session).get_owned_substitution(
+                    substitution_id, user_id
+                )
+                if sub is not None and sub.status == MealPlanJobStatus.GENERATING.value:
+                    sub.status = MealPlanJobStatus.TIMEOUT.value
+                    sub.message = SWAP_TIMEOUT_MESSAGE
+            return
+
         new_meal = next((m for m in swapped.meals if m.slot_id == slot_id), None)
         if swapped.status is PlanStatus.FEASIBLE and (
             swapped.profile_id != str(user_id)
@@ -205,17 +246,36 @@ async def run_substitute_job(
                 )
                 if sub is not None and sub.status == MealPlanJobStatus.GENERATING.value:
                     sub.message = VERIFYING_MESSAGE
-            proof = await gateway.prove_swap(
-                planning_profile,
-                saved=current_options,
-                slot=slot_id,
-                replacement_option_id=new_meal.option_id,
-                plan_id=str(from_plan_id),
-                revision=from_revision,
-                owner_id=str(user_id),
-                start_date=week_start,
-                calculator_payload=expected_binding["targetSnapshot"],
-            )
+            try:
+                proof = await asyncio.wait_for(
+                    gateway.prove_swap(
+                        planning_profile,
+                        saved=current_options,
+                        slot=slot_id,
+                        replacement_option_id=new_meal.option_id,
+                        plan_id=str(from_plan_id),
+                        revision=from_revision,
+                        owner_id=str(user_id),
+                        start_date=week_start,
+                        calculator_payload=expected_binding["targetSnapshot"],
+                    ),
+                    timeout=SUBSTITUTE_TIMEOUT_SECONDS,
+                )
+            except TimeoutError:
+                logger.warning(
+                    "Substitution proof %s timed out after %ss",
+                    substitution_id,
+                    SUBSTITUTE_TIMEOUT_SECONDS,
+                )
+                async with session_factory() as session, session.begin():
+                    sub = await MealPlanRepository(session).get_owned_substitution(
+                        substitution_id, user_id
+                    )
+                    if sub is not None and sub.status == MealPlanJobStatus.GENERATING.value:
+                        sub.status = MealPlanJobStatus.TIMEOUT.value
+                        sub.message = SWAP_TIMEOUT_MESSAGE
+                return
+
         async with session_factory() as session, session.begin():
             repo = MealPlanRepository(session)
             profiles = ProfileRepository(session)

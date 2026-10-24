@@ -33,6 +33,10 @@ class MealPlanJobStatus(StrEnum):
 
 _GENERATING = text("status = 'GENERATING'")
 
+PLAN_TIMEOUT_MESSAGE = "Generation timed out. Please try again."
+SWAP_TIMEOUT_MESSAGE = "Substitution timed out. Please try again."
+CANCELLED_MESSAGE = "Generation cancelled by user."
+
 
 class MealPlanEntity(CommonEntity):
     __tablename__ = "meal_plans"

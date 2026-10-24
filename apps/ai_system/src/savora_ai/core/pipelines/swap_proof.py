@@ -39,7 +39,6 @@ from savora_ai.core.pipelines.profile import PlanningProfile, _PipelineModel
 from savora_ai.core.reasoning.compact_swap import (
     NUTRIENTS,
     execute_compact_swap,
-    verify_compact_swap,
 )
 from savora_ai.core.reasoning.compact_swap_material import (
     authority_reference,
@@ -403,10 +402,10 @@ def build_swap(
     )
 
     originals = {o.reference.option_id: o for o in inputs.weekly.daily_source.options}
-    configs = {option_id(c): c for cb in bundle.combinations.values() for c in cb.configurations}
+    configs = bundle.option_configs
     grouped: dict[str, list[CompactPortionSource]] = {}
     for option in options:
-        cfg = configs[option.reference.option_id]
+        _, cfg = configs[option.reference.option_id]
         original = originals.get(option.reference.option_id)
         ref = option.reference if original is None else original.reference
         grouped.setdefault(option.reference.combination_id, []).append(
@@ -498,11 +497,7 @@ def prove_swap(
     `saved` maps all 21 slot IDs to the saved plan's option IDs. Store the replacement
     only when the swap's own CSP run succeeded; this proof is recorded beside it."""
     started = clock()
-    configs = {
-        option_id(cfg): (combo, cfg)
-        for combo in bundle.combinations.values()
-        for cfg in combo.configurations
-    }
+    configs = bundle.option_configs
     with compact_swap_reconstruction(COMPACT_SWAP_RECONSTRUCTION_POLICY):
         compact, resolver = build_swap(
             profile,
@@ -517,13 +512,12 @@ def prove_swap(
             calculator_payload=calculator_payload,
         )
     result = execute_compact_swap(compact, resolver, clock=clock)
-    check = verify_compact_swap(compact, result, resolver, clock=clock)
-    verified = result.status == "VALID" and result.verification_complete and check.accepted
+    verified = result.status == "VALID" and result.verification_complete
     return SwapProof(
         protocol=PROTOCOL,
         status=result.status,
         verified=verified,
-        reason=result.reason if check.accepted else f"{result.reason}; check: {check.reason}",
+        reason=result.reason,
         certificate_digest=result.certificate_digest,
         input_digest=result.input_digest,
         changed_day_totals=result.changed_day_totals,

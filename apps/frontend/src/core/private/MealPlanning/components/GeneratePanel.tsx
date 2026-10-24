@@ -11,7 +11,7 @@ import { useOnline } from "@/hooks/useOnline";
 import { ApiError } from "@/lib/api-request";
 import { nextMonday, shortRange } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import { useCreateMealPlanMutation } from "../service/meal-planning.query";
+import { useCancelMealPlanMutation, useCreateMealPlanMutation } from "../service/meal-planning.query";
 
 /** Start a new 7-day plan; earlier plans are kept (never overwritten). */
 export function GeneratePanel({
@@ -96,27 +96,25 @@ const STAGES = [
 ];
 
 function getEstimatedProgress(seconds: number): number {
-  if (seconds <= 30) {
-    return 6 + (seconds / 30) * 28; // 6% -> 34%
+  if (seconds <= 8) {
+    return 10 + (seconds / 8) * 30; // 10% -> 40%
   }
-  if (seconds <= 75) {
-    return 34 + ((seconds - 30) / 45) * 36; // 34% -> 70%
+  if (seconds <= 24) {
+    return 40 + ((seconds - 8) / 16) * 48; // 40% -> 88%
   }
-  if (seconds <= 150) {
-    return 70 + ((seconds - 75) / 75) * 22; // 70% -> 92%
-  }
-  return Math.min(97, 92 + 5 * (1 - Math.exp(-(seconds - 150) / 45)));
+  return Math.min(98, 88 + 9 * (1 - Math.exp(-(seconds - 24) / 20)));
 }
 
 function getActiveStage(seconds: number): number {
-  if (seconds < 30) return 0;
-  if (seconds < 75) return 1;
+  if (seconds < 8) return 0;
+  if (seconds < 16) return 1;
   return 2;
 }
 
 /** Honest progress: elapsed time, visual progress bar, and active steps the planner runs. */
-export function GeneratingCard({ since }: { since: string }) {
+export function GeneratingCard({ since, planId }: { since: string; planId?: string }) {
   const [now, setNow] = useState(() => Date.now());
+  const cancelMutation = useCancelMealPlanMutation();
   useEffect(() => {
     const t = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(t);
@@ -218,6 +216,29 @@ export function GeneratingCard({ since }: { since: string }) {
       <p className="mt-3 text-xs text-muted-foreground">
         This usually takes 2–3 minutes. You can leave this screen; your plan appears here when it&apos;s ready.
       </p>
+
+      {seconds >= 120 && (
+        <div className="mt-4 flex flex-col gap-2 rounded-lg border border-amber-500/20 bg-amber-500/10 p-3 text-xs text-amber-900 dark:text-amber-200">
+          <div className="flex items-center justify-between gap-3">
+            <span>
+              {seconds >= 180
+                ? "This generation is taking longer than expected. You can cancel and try again."
+                : "Optimizing all 21 meals against clinical and profile targets..."}
+            </span>
+            {planId && (
+              <Button
+                variant="secondary"
+                size="sm"
+                className="shrink-0 h-7 text-xs border-amber-500/30 hover:bg-amber-500/20"
+                onClick={() => cancelMutation.mutate(planId)}
+                disabled={cancelMutation.isPending}
+              >
+                {cancelMutation.isPending ? "Cancelling..." : "Cancel & Try Again"}
+              </Button>
+            )}
+          </div>
+        </div>
+      )}
     </Card>
   );
 }

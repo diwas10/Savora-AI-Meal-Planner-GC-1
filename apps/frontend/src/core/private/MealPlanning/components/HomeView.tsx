@@ -83,7 +83,7 @@ export function HomeView() {
           <>
             {generating && (
               <motion.div variants={fadeUp}>
-                <GeneratingCard since={generating.createdAt} />
+                <GeneratingCard since={generating.createdAt} planId={generating.id} />
               </motion.div>
             )}
             {failedLatest && !generating && (

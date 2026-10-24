@@ -6,10 +6,11 @@ passes the bundle into each call; the AI layer never reads files per request.
 
 import json
 from dataclasses import dataclass, field
+from functools import cached_property
 from pathlib import Path
 
 from savora_ai.core.food_data.models import CatalogueRecipe
-from savora_ai.core.meal_composition.models import MealCombination
+from savora_ai.core.meal_composition.models import MealCombination, PortionConfiguration
 from savora_ai.core.recommendation.ranking import PopularityScorer
 
 
@@ -23,6 +24,16 @@ class CatalogueBundle:
     # tags (e.g. British). Empty for exports that predate the field: then every cuisine.
     target_cuisines: tuple[str, ...] = ()
     recipe_steps: dict[str, tuple[str, ...]] = field(default_factory=dict, compare=False)
+
+    @cached_property
+    def option_configs(self) -> dict[str, tuple[MealCombination, PortionConfiguration]]:
+        from savora_ai.core.meal_composition.member2_adapter import option_id
+
+        return {
+            option_id(cfg): (combo, cfg)
+            for combo in self.combinations.values()
+            for cfg in combo.configurations
+        }
 
     @property
     def cuisine_ids(self) -> dict[str, str]:

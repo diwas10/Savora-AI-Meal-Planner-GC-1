@@ -1,5 +1,6 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+  cancelMealPlanApi,
   createMealPlanApi,
   createSubstitutionApi,
   getMealPlanApi,
@@ -58,6 +59,14 @@ export function useCreateMealPlanMutation() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (payload: GeneratePlanRequest) => createMealPlanApi(payload),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: mealPlanKeys.all }),
+  });
+}
+
+export function useCancelMealPlanMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (planId: string) => cancelMealPlanApi(planId),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: mealPlanKeys.all }),
   });
 }

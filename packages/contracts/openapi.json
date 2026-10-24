@@ -622,6 +622,49 @@
         }
       }
     },
+    "/api/meal-plans/{plan_id}/cancel": {
+      "post": {
+        "tags": [
+          "meal-plans"
+        ],
+        "summary": "Cancel Meal Plan",
+        "operationId": "cancel_meal_plan_api_meal_plans__plan_id__cancel_post",
+        "parameters": [
+          {
+            "name": "plan_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Plan Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MealPlanDetailDto"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/meal-plans/{plan_id}/slots/{slot_id}/replacement-options": {
       "post": {
         "tags": [

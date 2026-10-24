@@ -527,6 +527,12 @@ export interface paths {
       response: components["schemas"]["MealPlanDetailDto"];
     };
   };
+  "/api/meal-plans/{plan_id}/cancel": {
+    post: {
+      requestBody?: never;
+      response: components["schemas"]["MealPlanDetailDto"];
+    };
+  };
   "/api/meal-plans/{plan_id}/slots/{slot_id}/replacement-options": {
     post: {
       requestBody?: components["schemas"]["ReplacementOptionsRequest"];

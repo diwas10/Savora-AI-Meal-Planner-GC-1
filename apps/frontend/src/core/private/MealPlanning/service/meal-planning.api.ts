@@ -27,6 +27,10 @@ export function getMealPlanApi(planId: string): Promise<MealPlanDetailDto> {
   return apiRequest({ method: "GET", url: `/meal-plans/${planId}` });
 }
 
+export function cancelMealPlanApi(planId: string): Promise<MealPlanDetailDto> {
+  return apiRequest({ method: "POST", url: `/meal-plans/${planId}/cancel` });
+}
+
 export function getReplacementOptionsApi(
   planId: string,
   slotId: string,
