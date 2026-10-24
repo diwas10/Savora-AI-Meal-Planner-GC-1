@@ -2,9 +2,10 @@
 
 import { Check, Heart, Search } from "lucide-react";
 import { motion } from "motion/react";
-import { useDeferredValue, useState } from "react";
+import { useDeferredValue, useId, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Field";
+import { Sheet } from "@/components/ui/Sheet";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { ErrorState, InlineAlert } from "@/components/ui/States";
 import { ApiError } from "@/lib/api-request";
@@ -24,40 +25,46 @@ interface Dish {
   swaps?: { ingredient: string; instead: string }[];
 }
 
-/** ADR 0005: 3-5 liked dishes give the ranker a starting history (cold start). */
-export function SeedPicker({ initial, onDone }: { initial: string[]; onDone: () => void }) {
-  const suggestions = useSeedSuggestionsQuery();
-  const [query, setQuery] = useState("");
-  const deferred = useDeferredValue(query.trim());
-  const search = useDishSearchQuery(deferred);
-  const confirm = useConfirmSeedPicksMutation();
-  const [picked, setPicked] = useState<string[]>(initial);
+interface DishPickerContentProps {
+  query: string;
+  setQuery: (val: string) => void;
+  deferred: string;
+  search: ReturnType<typeof useDishSearchQuery>;
+  suggestions: ReturnType<typeof useSeedSuggestionsQuery>;
+  list: Dish[];
+  picked: string[];
+  toggle: (id: string) => void;
+  error: string | null;
+}
 
-  const list: Dish[] = deferred
-    ? (search.data ?? []).map((d) => ({ ...d, cuisines: [...d.cuisines] }))
-    : (suggestions.data?.suggestions ?? []).map((s) => ({ ...s, cuisines: [...s.cuisines], swaps: [...(s.swaps ?? [])] }));
-  const count = picked.length;
-
-  const toggle = (id: string) =>
-    setPicked((prev) =>
-      prev.includes(id) ? prev.filter((p) => p !== id) : prev.length >= MAX ? prev : [...prev, id],
-    );
-
-  const save = async () => {
-    await confirm.mutateAsync({ recipeIds: picked });
-    onDone();
-  };
-
-  const error = confirm.error instanceof ApiError ? confirm.error.message : confirm.error ? "Could not save your picks." : null;
+function DishPickerContent({
+  query,
+  setQuery,
+  deferred,
+  search,
+  suggestions,
+  list,
+  picked,
+  toggle,
+  error,
+}: DishPickerContentProps) {
+  const searchId = useId();
 
   return (
     <div className="flex flex-col gap-4">
       <div className="relative">
         <Search className="pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-subtle-foreground" aria-hidden />
-        <label htmlFor="dish-search" className="sr-only">
+        <label htmlFor={searchId} className="sr-only">
           Search dishes
         </label>
-        <Input id="dish-search" type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search dishes or cuisines" className="pl-12" />
+        <Input
+          id={searchId}
+          type="search"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search dishes or cuisines"
+          className="pl-12"
+        />
       </div>
 
       {(deferred ? search.isPending : suggestions.isPending) ? (
@@ -69,7 +76,7 @@ export function SeedPicker({ initial, onDone }: { initial: string[]; onDone: () 
       ) : suggestions.isError && !deferred ? (
         <ErrorState message="We couldn't load suggestions." onRetry={() => void suggestions.refetch()} />
       ) : list.length === 0 ? (
-        <p className="py-6 text-center text-sm text-muted-foreground">No dishes match “{deferred}”.</p>
+        <p className="py-6 text-center text-sm text-muted-foreground">No dishes match &ldquo;{deferred}&rdquo;.</p>
       ) : (
         <motion.ul variants={stagger} initial="hidden" animate="show" className="grid grid-cols-2 gap-2.5" aria-label="Dishes">
           {list.map((dish) => {
@@ -115,15 +122,149 @@ export function SeedPicker({ initial, onDone }: { initial: string[]; onDone: () 
       )}
 
       {error && <InlineAlert tone="danger">{error}</InlineAlert>}
+    </div>
+  );
+}
 
-      <div className="sticky bottom-0 -mx-1 flex items-center gap-3 bg-background/90 px-1 py-3 backdrop-blur-sm">
-        <p className="flex-1 text-sm" aria-live="polite">
-          <span className="font-semibold tabular-nums">{count}</span> of {MIN}–{MAX} picked
-        </p>
-        <Button size="lg" disabled={count < MIN} loading={confirm.isPending} onClick={() => void save()}>
-          Save favourites
-        </Button>
-      </div>
+/**
+ * Dedicated modal sheet for selecting and saving favourite seed dishes from Profile.
+ * Uses Sheet's native footer slot for clean docking, full width, and consistent rounded clipping.
+ */
+export function FavouriteDishesSheet({
+  open,
+  onOpenChange,
+  initial,
+  onDone,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  initial: string[];
+  onDone?: () => void;
+}) {
+  const suggestions = useSeedSuggestionsQuery();
+  const [query, setQuery] = useState("");
+  const deferred = useDeferredValue(query.trim());
+  const search = useDishSearchQuery(deferred);
+  const confirm = useConfirmSeedPicksMutation();
+  const [picked, setPicked] = useState<string[]>(initial);
+
+  const handleOpenChange = (next: boolean) => {
+    if (!next) {
+      setQuery("");
+      setPicked(initial);
+    }
+    onOpenChange(next);
+  };
+
+
+  const list: Dish[] = deferred
+    ? (search.data ?? []).map((d) => ({ ...d, cuisines: [...d.cuisines] }))
+    : (suggestions.data?.suggestions ?? []).map((s) => ({ ...s, cuisines: [...s.cuisines], swaps: [...(s.swaps ?? [])] }));
+  const count = picked.length;
+
+  const toggle = (id: string) =>
+    setPicked((prev) =>
+      prev.includes(id) ? prev.filter((p) => p !== id) : prev.length >= MAX ? prev : [...prev, id],
+    );
+
+  const save = async () => {
+    await confirm.mutateAsync({ recipeIds: picked });
+    onOpenChange(false);
+    onDone?.();
+  };
+
+  const error = confirm.error instanceof ApiError ? confirm.error.message : confirm.error ? "Could not save your picks." : null;
+
+  return (
+    <Sheet
+      open={open}
+      onOpenChange={handleOpenChange}
+      title="Favourite dishes"
+      description="Pick 3 to 5; they shape your rankings."
+      footer={
+        <div className="flex items-center justify-between gap-3">
+          <p className="flex-1 text-sm" aria-live="polite">
+            <span className="font-semibold tabular-nums">{count}</span> of {MIN}–{MAX} picked
+          </p>
+          <Button size="lg" disabled={count < MIN} loading={confirm.isPending} onClick={() => void save()}>
+            Save favourites
+          </Button>
+        </div>
+      }
+    >
+      <DishPickerContent
+        query={query}
+        setQuery={setQuery}
+        deferred={deferred}
+        search={search}
+        suggestions={suggestions}
+        list={list}
+        picked={picked}
+        toggle={toggle}
+        error={error}
+      />
+    </Sheet>
+  );
+}
+
+/** ADR 0005: 3-5 liked dishes give the ranker a starting history (cold start). */
+export function SeedPicker({
+  initial,
+  onDone,
+  hideFooter = false,
+}: {
+  initial: string[];
+  onDone: () => void;
+  hideFooter?: boolean;
+}) {
+  const suggestions = useSeedSuggestionsQuery();
+  const [query, setQuery] = useState("");
+  const deferred = useDeferredValue(query.trim());
+  const search = useDishSearchQuery(deferred);
+  const confirm = useConfirmSeedPicksMutation();
+  const [picked, setPicked] = useState<string[]>(initial);
+
+  const list: Dish[] = deferred
+    ? (search.data ?? []).map((d) => ({ ...d, cuisines: [...d.cuisines] }))
+    : (suggestions.data?.suggestions ?? []).map((s) => ({ ...s, cuisines: [...s.cuisines], swaps: [...(s.swaps ?? [])] }));
+  const count = picked.length;
+
+  const toggle = (id: string) =>
+    setPicked((prev) =>
+      prev.includes(id) ? prev.filter((p) => p !== id) : prev.length >= MAX ? prev : [...prev, id],
+    );
+
+  const save = async () => {
+    await confirm.mutateAsync({ recipeIds: picked });
+    onDone();
+  };
+
+  const error = confirm.error instanceof ApiError ? confirm.error.message : confirm.error ? "Could not save your picks." : null;
+
+  return (
+    <div className="flex flex-col gap-4">
+      <DishPickerContent
+        query={query}
+        setQuery={setQuery}
+        deferred={deferred}
+        search={search}
+        suggestions={suggestions}
+        list={list}
+        picked={picked}
+        toggle={toggle}
+        error={error}
+      />
+
+      {!hideFooter && (
+        <div className="sticky bottom-0 -mx-5 flex items-center justify-between gap-3 border-t border-border/70 bg-background/95 px-5 py-3 backdrop-blur-md pb-safe">
+          <p className="flex-1 text-sm" aria-live="polite">
+            <span className="font-semibold tabular-nums">{count}</span> of {MIN}–{MAX} picked
+          </p>
+          <Button size="lg" disabled={count < MIN} loading={confirm.isPending} onClick={() => void save()}>
+            Save favourites
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

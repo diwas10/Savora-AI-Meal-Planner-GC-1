@@ -26,7 +26,7 @@ export function Sheet({ open, onOpenChange, title, description, children, footer
         <Drawer.Overlay className="fixed inset-0 z-50 bg-scrim" />
         <Drawer.Content
           className={cn(
-            "glass fixed inset-x-0 bottom-0 z-50 mx-auto flex max-h-[92dvh] w-full max-w-2xl flex-col rounded-t-sheet bg-glass-strong outline-none sm:bottom-4 sm:max-h-[88dvh] sm:rounded-sheet",
+            "glass fixed inset-x-0 bottom-0 z-50 mx-auto flex max-h-[92dvh] w-full max-w-2xl flex-col overflow-hidden rounded-t-sheet bg-glass-strong outline-none sm:bottom-4 sm:max-h-[88dvh] sm:rounded-sheet",
             className,
           )}
         >
