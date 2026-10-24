@@ -1,12 +1,14 @@
 """Plan, slot and substitution persistence; every read is scoped to the owner."""
 
-from datetime import date
+from datetime import UTC, date, datetime, timedelta
 from uuid import UUID
 
 from sqlalchemy import desc, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from savora_backend.core.meal_plans.entity import (
+    PLAN_TIMEOUT_MESSAGE,
+    SWAP_TIMEOUT_MESSAGE,
     MealPlanEntity,
     MealPlanJobStatus,
     MealPlanSlotEntity,
@@ -54,7 +56,44 @@ class MealPlanRepository:
             stmt = stmt.with_for_update().execution_options(populate_existing=True)
         return await self._session.scalar(stmt)
 
+    async def recover_stale_jobs_for_user(
+        self, user_id: UUID, *, timeout_seconds: float = 180.0
+    ) -> int:
+        """Transition any GENERATING jobs older than timeout_seconds to TIMEOUT."""
+        cutoff = datetime.now(UTC) - timedelta(seconds=timeout_seconds)
+        stmt_plans = (
+            update(MealPlanEntity)
+            .where(
+                MealPlanEntity.user_id == user_id,
+                MealPlanEntity.status == _GENERATING,
+                MealPlanEntity.created_at <= cutoff,
+            )
+            .values(
+                status=MealPlanJobStatus.TIMEOUT.value,
+                message=PLAN_TIMEOUT_MESSAGE,
+            )
+        )
+        stmt_subs = (
+            update(MealPlanSubstitutionEntity)
+            .where(
+                MealPlanSubstitutionEntity.user_id == user_id,
+                MealPlanSubstitutionEntity.status == _GENERATING,
+                MealPlanSubstitutionEntity.created_at <= cutoff,
+            )
+            .values(
+                status=MealPlanJobStatus.TIMEOUT.value,
+                message=SWAP_TIMEOUT_MESSAGE,
+            )
+        )
+        res_plans = await self._session.execute(stmt_plans)
+        res_subs = await self._session.execute(stmt_subs)
+        count = int(getattr(res_plans, "rowcount", 0) or 0) + int(getattr(res_subs, "rowcount", 0) or 0)
+        if count > 0:
+            await self._session.flush()
+        return count
+
     async def has_generating_job(self, user_id: UUID) -> bool:
+        await self.recover_stale_jobs_for_user(user_id)
         plan = select(MealPlanEntity.id).where(
             MealPlanEntity.user_id == user_id, MealPlanEntity.status == _GENERATING
         )

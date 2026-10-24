@@ -68,6 +68,17 @@ async def get_meal_plan(
     return await MealPlanService(session, gateway).get_plan(user.id, plan_id)
 
 
+@meal_plans_router.post("/{plan_id}/cancel")
+@response_message("Meal plan generation cancelled")
+async def cancel_meal_plan(
+    plan_id: UUID,
+    user: CurrentUser,
+    session: SessionDep,
+    gateway: GatewayDep,
+) -> MealPlanDetailDto:
+    return await MealPlanService(session, gateway).cancel_plan(user.id, plan_id)
+
+
 @meal_plans_router.post("/{plan_id}/slots/{slot_id}/replacement-options")
 @response_message("Replacement options ranked")
 async def list_replacement_options(

@@ -190,6 +190,7 @@ class SubstitutionService:
         return CreateSubstitutionAcceptedDto(substitution_id=sub.id)
 
     async def get_substitution(self, user_id: UUID, substitution_id: UUID) -> SubstitutionDetailDto:
+        await self._plans.recover_stale_jobs_for_user(user_id)
         sub = await self._plans.get_owned_substitution(substitution_id, user_id)
         if sub is None:
             raise not_found("Substitution not found", SOURCE)
