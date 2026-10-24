@@ -35,8 +35,8 @@ logger = logging.getLogger(__name__)
 
 SessionFactory = Callable[[], Any]
 
-PLAN_WEEK_TIMEOUT_SECONDS: float = 180.0
-SUBSTITUTE_TIMEOUT_SECONDS: float = 180.0
+PLAN_WEEK_TIMEOUT_SECONDS: float = 300.0
+SUBSTITUTE_TIMEOUT_SECONDS: float = 300.0
 
 PLAN_FAILED_MESSAGE = "We could not generate this plan. Please try again."
 SWAP_FAILED_MESSAGE = "We could not complete this swap. Your plan is unchanged; please try again."

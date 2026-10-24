@@ -1,3 +1,4 @@
+import functools
 """Request-local WEEK preparation and pure supplied-trial evaluation; no search."""
 
 from collections import Counter
@@ -118,6 +119,7 @@ class _WeekProgram:
     ]
 
 
+@functools.lru_cache(maxsize=32)
 def _compile_week(manifest: ExpectedWeekCheckManifest) -> _WeekProgram:
     days = tuple(
         ExpectedDayCheckManifest.build(
