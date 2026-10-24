@@ -43,11 +43,20 @@ export function selectPlans(plans: MealPlanSummaryDto[] | undefined) {
 }
 
 export function useMealPlanDetailQuery(planId: string | null | undefined) {
+  const queryClient = useQueryClient();
   return useQuery({
     queryKey: mealPlanKeys.detail(planId ?? ""),
-    queryFn: () => getMealPlanApi(planId as string),
+    queryFn: async () => {
+      const data = await getMealPlanApi(planId as string);
+      // Once a plan completes or settles, make sure the plan list query is synchronized.
+      if (data.status !== "GENERATING") {
+        void queryClient.invalidateQueries({ queryKey: mealPlanKeys.list() });
+      }
+      return data;
+    },
     enabled: Boolean(planId),
-    staleTime: 60_000,
+    // Stale immediately while GENERATING so polling/navigation always gets freshest status.
+    staleTime: (query) => (query.state.data?.status === "GENERATING" ? 0 : 60_000),
     // Switching plans (e.g. to the revision a swap just created) keeps the current plan
     // on screen until the next one loads: no skeleton flash, open sheets stay mounted.
     placeholderData: keepPreviousData,
