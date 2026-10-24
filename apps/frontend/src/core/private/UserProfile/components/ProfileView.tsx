@@ -21,7 +21,6 @@ import { PageHeader } from "@/components/functional/PageHeader";
 import { Badge } from "@/components/ui/Badge";
 import { Button, LinkButton } from "@/components/ui/Button";
 import { Card, SectionTitle } from "@/components/ui/Card";
-import { Sheet } from "@/components/ui/Sheet";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { ErrorState } from "@/components/ui/States";
 import { useTheme } from "@/core/common/theme/ThemeContext";
@@ -30,7 +29,7 @@ import { useOnline } from "@/hooks/useOnline";
 import { fadeUp, stagger } from "@/lib/motion";
 import { ACTIVITY_OPTIONS, CONDITION_OPTIONS } from "../schema/profile.schema";
 import { useProfileQuery } from "../service/profile.query";
-import { SeedPicker } from "./SeedPicker";
+import { FavouriteDishesSheet } from "./SeedPicker";
 import { TargetsCard } from "./TargetsCard";
 
 const GOAL = { LOSE: "Lose weight", MAINTAIN: "Maintain weight", GAIN: "Gain weight" } as const;
@@ -201,9 +200,13 @@ export function ProfileView() {
         </motion.div>
       )}
 
-      <Sheet open={seedsOpen} onOpenChange={setSeedsOpen} title="Favourite dishes" description="Pick 3 to 5; they shape your rankings.">
-        {p && <SeedPicker initial={p.seedRecipeIds} onDone={() => setSeedsOpen(false)} />}
-      </Sheet>
+      {p && (
+        <FavouriteDishesSheet
+          open={seedsOpen}
+          onOpenChange={setSeedsOpen}
+          initial={p.seedRecipeIds}
+        />
+      )}
     </>
   );
 }
