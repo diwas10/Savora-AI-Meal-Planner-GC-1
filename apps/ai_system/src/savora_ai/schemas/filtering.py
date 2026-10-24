@@ -27,6 +27,7 @@ from savora_ai.schemas.food_graph import (
     _OpaqueId,
 )
 from savora_ai.schemas.knowledge import (
+    _SAFE_SCALAR_TYPES,
     ApprovalStatus,
     EvidenceReference,
     MeasurementUnit,
@@ -404,7 +405,7 @@ def _record_evidence(value: object) -> tuple[EvidenceReference, ...]:
     if isinstance(value, EvidenceReference):
         return (value,)
     val_type = type(value)
-    if val_type in (str, int, float, bool) or value is None:
+    if val_type in _SAFE_SCALAR_TYPES:
         return ()
     if isinstance(value, _ContractModel):
         return tuple(ref for item in vars(value).values() for ref in _record_evidence(item))
@@ -415,7 +416,11 @@ def _record_evidence(value: object) -> tuple[EvidenceReference, ...]:
 
 def _evidence_union(value: object) -> tuple[EvidenceReference, ...]:
     references = _record_evidence(value)
+    if not references:
+        return ()
     _validate_provenance(references)
+    if len(references) == 1:
+        return references
     indexed = {(ref.evidence_id, ref.version): ref for ref in references}
     return tuple(indexed[key] for key in sorted(indexed))
 

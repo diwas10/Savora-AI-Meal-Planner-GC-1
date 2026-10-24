@@ -1,8 +1,10 @@
 """Provisional, versioned rule declarations; no predicate execution or clinical limits."""
 
+from datetime import date, datetime
+from decimal import Decimal
+from enum import Enum, StrEnum
 import functools
 import json
-from enum import StrEnum
 from math import isfinite
 from typing import Annotated, Self
 
@@ -23,6 +25,18 @@ from pydantic_core import core_schema
 
 _NonBlank = Annotated[str, StringConstraints(min_length=1, pattern=r"\S")]
 _FactValue = bool | int | float | _NonBlank | tuple[_NonBlank, ...]
+
+_SAFE_SCALAR_TYPES: set[type] = {
+    str,
+    int,
+    float,
+    bool,
+    bytes,
+    type(None),
+    date,
+    datetime,
+    Decimal,
+}
 
 
 class _ContractModel(BaseModel):
@@ -91,10 +105,12 @@ class _ContractModel(BaseModel):
 
     @classmethod
     def _validate_alias_keys(cls, value: object) -> None:
-        if isinstance(value, dict):
-            field_keys, invalid, _ = _model_field_keys(cls)
+        if isinstance(value, dict) and len(value) > 1:
+            field_keys, invalid, has_aliased_keys = _model_field_keys(cls)
             if invalid:
                 raise ValueError("malformed or colliding DTO field/alias keys")
+            if not has_aliased_keys:
+                return
             seen: set[str] = set()
             for key in value:
                 names = field_keys.get(key)
@@ -156,7 +172,10 @@ def _require_builtin_container(value: object) -> None:
 def _validation_payload(value: object) -> object:
     """Flatten DTOs without coercing, overwriting or dropping unchecked fields."""
     val_type = type(value)
-    if val_type in (str, int, float, bool) or value is None:
+    if val_type in _SAFE_SCALAR_TYPES:
+        return value
+    if issubclass(val_type, Enum):
+        _SAFE_SCALAR_TYPES.add(val_type)
         return value
     _require_builtin_container(value)
     if isinstance(value, _ContractModel):
@@ -204,22 +223,37 @@ def _validation_payload(value: object) -> object:
             if type(key) is not str:
                 _validation_payload(key)
             item_type = type(item)
-            if item_type in (str, int, float, bool) or item is None:
+            if item_type in _SAFE_SCALAR_TYPES:
+                payload[key] = item
+            elif issubclass(item_type, Enum):
+                _SAFE_SCALAR_TYPES.add(item_type)
                 payload[key] = item
             else:
                 payload[key] = _validation_payload(item)
         return payload
     if isinstance(value, tuple):
+        if val_type is tuple:
+            has_nested = False
+            for item in value:
+                it = type(item)
+                if it not in _SAFE_SCALAR_TYPES:
+                    if issubclass(it, Enum):
+                        _SAFE_SCALAR_TYPES.add(it)
+                    else:
+                        has_nested = True
+                        break
+            if not has_nested:
+                return value
         return tuple(
             item
-            if (type(item) in (str, int, float, bool) or item is None)
+            if (type(item) in _SAFE_SCALAR_TYPES)
             else _validation_payload(item)
             for item in value
         )
     if isinstance(value, list):
         return [
             item
-            if (type(item) in (str, int, float, bool) or item is None)
+            if (type(item) in _SAFE_SCALAR_TYPES)
             else _validation_payload(item)
             for item in value
         ]

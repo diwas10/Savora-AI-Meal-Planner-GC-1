@@ -57,7 +57,7 @@ class MealPlanRepository:
         return await self._session.scalar(stmt)
 
     async def recover_stale_jobs_for_user(
-        self, user_id: UUID, *, timeout_seconds: float = 180.0
+        self, user_id: UUID, *, timeout_seconds: float = 300.0
     ) -> int:
         """Transition any GENERATING jobs older than timeout_seconds to TIMEOUT."""
         cutoff = datetime.now(UTC) - timedelta(seconds=timeout_seconds)
